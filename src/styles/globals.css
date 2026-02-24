@@ -1,26 +1,146 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@font-face {
+  font-family: 'MyFont';
+  src: url('/fonts/my-font/PPNeueMontreal-Medium.woff2') format('woff2'), 
+       url('/fonts/my-font/PPNeueMontreal-Medium.woff') format('woff');
+
+  font-weight: medium;
+  font-style: medium;
+  font-display: swap;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  width: 100%;
+  /* height: 100%; */
+  /* height: 100vh; */
+  /* min-height: 100vh; */
+  background: white;
+  font-family: 'MyFont', sans-serif;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  /* cursor: grab;
+  user-select: none; */
+  /* overflow: hidden; */
 }
+
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.wrapper-invisible {
+  opacity: 0;
+}
+
+
+
+
+
+/* body.dragging {
+  cursor: grabbing;
+}
+
+#gallery {
+  position: relative;
+  width: 100vw;
+  height: 100svh;
+}
+
+.vignette-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0, 0, 0, 0.1) 70%,
+    rgba(0, 0, 0, 0.75) 90%,
+    rgba(0, 0, 0, 1) 100%
+  );
+} */
+
+
+
+.video-reveal-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20; /* por encima del video */
+}
+
+.video-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: white;
+  opacity: 1;
+  will-change: opacity;
+}
+
+.animate-text {
+  position: relative;
+  display: inline-block;
+  --clip-value: 100%;
+  color: #4f4f4f;
+}
+
+.animate-text::before {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #fff;
+  clip-path: inset(0 0 var(--clip-value) 0);
+  will-change: clip-path;
+}
+
+/* Inicial positions of SVGs - 7 elementos */
+.balearic-header:nth-child(1) {
+  transform: translateX(100%) translateY(0%);
+}
+
+.balearic-header:nth-child(2) {
+  transform: translateX(-100%) translateY(0%);
+}
+
+.balearic-header:nth-child(3) {
+  transform: translateX(100%) translateY(0%);
+}
+
+.balearic-header:nth-child(4) {
+  transform: translateX(-100%) translateY(0%);
+  z-index: 10;
+}
+
+.balearic-header:nth-child(5) {
+  transform: translateX(100%) translateY(0%);
+}
+
+.balearic-header:nth-child(6) {
+  transform: translateX(-100%) translateY(0%);
+}
+
+.balearic-header:nth-child(7) {
+  transform: translateX(100%) translateY(0%);
+}
+ 
