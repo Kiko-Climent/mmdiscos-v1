@@ -4,6 +4,9 @@ import Releases2 from "@/components/releases/index2";
 import Releases3 from "@/components/releases/index3";
 import Releases4 from "@/components/releases/index4";
 import Releases5 from "@/components/releases/index5";
+import AnimationReleases12 from "@/components/AnimationReleases/index12";
+import AnimationReleases11 from "@/components/AnimationReleases/index11";
+import AnimationReleases10 from "@/components/AnimationReleases/index10";
 
 export default function Home() {
   return (
@@ -15,7 +18,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head> */}
 
-      <Releases4 />
+      {/* <AnimationReleases10 /> */}
+
     </div>
   );
 }

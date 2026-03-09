@@ -1,25 +1,14 @@
 import { useEffect } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const AnimatedQuote = () => {
   useEffect(() => {
-    let gsap, ScrollTrigger, Lenis;
+    const triggers = [];
 
-    const loadAnimations = async () => {
-      gsap = (await import("gsap")).default;
-      ScrollTrigger = (await import("gsap/ScrollTrigger")).ScrollTrigger;
-      Lenis = (await import("lenis")).default;
-
-      gsap.registerPlugin(ScrollTrigger);
-
-      const lenis = new Lenis();
-      lenis.on("scroll", ScrollTrigger.update);
-      gsap.ticker.add((time) => lenis.raf(time * 1000));
-      gsap.ticker.lagSmoothing(0);
-
-      /* ============================================================
-         1) ANIMACIÓN PARA N SVGs → ENTRADA DESDE LADOS ALTERNADOS
-         ============================================================ */
-      ScrollTrigger.create({
+    triggers.push(ScrollTrigger.create({
         trigger: ".balearic-soundsystem",
         start: "top bottom",
         end: "top top",
@@ -34,12 +23,9 @@ const AnimatedQuote = () => {
             gsap.set(header, { x: `${x}%` });
           });
         },
-      });
+    }));
 
-      /* ============================================================
-         2) SEGUNDA FASE → SUBIDA/BAJADA + SCALE FINAL
-         ============================================================ */
-      ScrollTrigger.create({
+    triggers.push(ScrollTrigger.create({
         trigger: ".balearic-soundsystem",
         start: "top top",
         end: `+=${window.innerHeight * 2}`,
@@ -83,10 +69,9 @@ const AnimatedQuote = () => {
             headers.forEach((header) => gsap.set(header, { scale }));
           }
         },
-      });
-    };
+    }));
 
-    loadAnimations();
+    return () => triggers.forEach((t) => t.kill());
   }, []);
 
 

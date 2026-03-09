@@ -385,7 +385,7 @@ const AnimationReleases11 = () => {
 
   return (
     <div>
-      <section className="intro relative w-full min-h-[100svh] p-4 overflow-hidden bg-white flex items-center">
+      {/* <section className="intro relative w-full min-h-[100svh] p-4 overflow-hidden bg-white flex items-center">
         <Image
           src="/logo/MM.svg"
           alt="Mediterranean Logo"
@@ -393,10 +393,10 @@ const AnimationReleases11 = () => {
           height={168}
           className="mx-auto"
         />
-      </section>
+      </section> */}
 
       <section className="center-section relative w-full min-h-[100svh] p-4 overflow-hidden bg-white">
-        <div className="spotlight-video absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[0] overflow-hidden">
+        {/* <div className="spotlight-video absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[0] overflow-hidden">
           <video
             src="/video/Video MM Header.mp4"
             autoPlay
@@ -405,7 +405,7 @@ const AnimationReleases11 = () => {
             className="w-full h-full object-cover grayscale"
           />
           <RevealVideoMask trigger=".center-section" start="top 70%" />
-        </div>
+        </div> */}
 
         <div className="spotlight-images absolute inset-0 pointer-events-none z-[10]">
           {ReleaseImages.map((item, index) => (
@@ -492,11 +492,11 @@ const AnimationReleases11 = () => {
         </div>
       </section>
 
-      <section className="outro relative w-full min-h-[100svh] p-4 overflow-hidden bg-white flex items-center">
+      {/* <section className="outro relative w-full min-h-[100svh] p-4 overflow-hidden bg-white flex items-center">
         <h1 className="mx-auto text-center uppercase text-[clamp(2rem,10vw,5rem)] font-medium tracking-[-0.1rem] leading-[0.9] text-[#141414]">
           too mediterranean to care
         </h1>
-      </section>
+      </section> */}
 
       <style jsx>{`
         /* animaciones locales opcionales */
