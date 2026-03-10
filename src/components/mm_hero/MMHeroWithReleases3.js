@@ -399,7 +399,7 @@ const MMHeroWithReleases3 = () => {
       {/* Section releases */}
       <section
         ref={sectionRef}
-        className="center-section relative w-full min-h-[100dvh] p-4 overflow-hidden bg-transparent"
+        className="center-section relative w-full min-h-[100svh] p-4 overflow-hidden bg-transparent"
         style={{ zIndex: 10 }}
       >
         <div className="spotlight-images absolute inset-0 pointer-events-none z-[10]">
@@ -414,7 +414,7 @@ const MMHeroWithReleases3 = () => {
         </div>
 
         <div className="artist-list-wrapper absolute inset-0 z-[5] opacity-0 pointer-events-auto">
-          <div className="artist-scroll-container absolute top-0 w-full h-full no-scrollbar pt-[50vh] pb-[50vh]">
+          <div className="artist-scroll-container absolute top-0 w-full h-full no-scrollbar pt-[50svh] pb-[50svh]">
             <div className="flex flex-col items-center">
               {DataReleases.map((item, i) => (
                 <div
