@@ -46,7 +46,10 @@ const MMHeroWithReleases3 = () => {
     if (activeDisplay) gsap.to(activeDisplay, { opacity: 0, duration: 0.18, pointerEvents: "none" });
 
     const artistWrapper = section.querySelector(".artist-list-wrapper");
-    if (artistWrapper) artistWrapper.style.pointerEvents = "none";
+    if (artistWrapper) {
+      artistWrapper.style.pointerEvents = "none";
+      gsap.to(artistWrapper, { opacity: 0, duration: 0.4, ease: "power2.inOut" });
+    }
 
     const total  = spotlightImages.length;
     const radius = Math.min(window.innerWidth, window.innerHeight) * 0.25;
@@ -82,7 +85,10 @@ const MMHeroWithReleases3 = () => {
     if (activeDisplay) gsap.to(activeDisplay, { opacity: 1, duration: 0.18 });
 
     const artistWrapper = section.querySelector(".artist-list-wrapper");
-    if (artistWrapper) artistWrapper.style.pointerEvents = "auto";
+    if (artistWrapper) {
+      artistWrapper.style.pointerEvents = "auto";
+      gsap.to(artistWrapper, { opacity: 1, duration: 0.4, ease: "power2.inOut" });
+    }
 
     const spotlightImages = Array.from(section.querySelectorAll(".spotlight-img"));
     spotlightImages.forEach((imgEl, i) => {
