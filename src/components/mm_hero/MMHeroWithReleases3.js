@@ -104,85 +104,86 @@ const MMHeroWithReleases3 = () => {
     const section = sectionRef.current;
     if (!box || !logo || !spacer || !section) return;
 
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const isDesktop = vw >= 720;
+    const getViewport = () => ({
+      vw: window.innerWidth,
+      vh: window.innerHeight,
+    });
 
+    const getBoxDimensions = (vw, vh) => {
+      const isDesktop = vw >= 720;
+      const boxW = isDesktop ? vw * 0.35 : vw * 0.85;
+      const boxH = isDesktop ? boxW * (9 / 16) : boxW * (3 / 4);
+      return { boxW, boxH, boxLeft: (vw - boxW) / 2, boxTop: (vh - boxH) / 2, isDesktop };
+    };
+
+    const getTotalLogoHeight = (logoWidth) => {
+      gsap.set(logo, { width: logoWidth });
+      return logo.getBoundingClientRect().height;
+    };
+
+    const initBoxAndLogo = () => {
+      const { vw, vh } = getViewport();
+      const { boxW, boxH, boxLeft, boxTop, isDesktop } = getBoxDimensions(vw, vh);
+
+      if (!isDesktop) {
+        gsap.set(box, { width: boxW, height: boxH });
+      }
+
+      const logoPadding = isDesktop ? "2.5rem" : "1.25rem";
+      gsap.set(logo, {
+        left: boxLeft, width: boxW, padding: logoPadding,
+        top: boxTop + boxH / 2, bottom: "auto", opacity: 1,
+      });
+
+      const logoHeight = getTotalLogoHeight(boxW);
+      const startTop = boxTop + (boxH - logoHeight) / 2;
+      gsap.set(logo, { top: startTop });
+    };
+
+    initBoxAndLogo();
+
+    const { vw, vh } = getViewport();
+    const isDesktop = vw >= 720;
     const HERO_SCROLL = vh * 1.5;
 
     // ─── HERO ANIMATION ─────────────────────────────────────────────────────────
-    // Misma lógica para desktop y móvil — solo cambian las dimensiones iniciales del box.
-    // Desktop: 35vw × 16:9  |  Mobile: 85vw × 4:3 (más cuadrado, mejor para portrait)
+    // Valores calculados dinámicamente en cada onUpdate para resistir resize/viewport changes
     let heroTrigger;
 
-    {
-      // Forzamos el tamaño inicial del box según breakpoint ANTES de leer offsetWidth
-      if (!isDesktop) {
-        gsap.set(box, {
-          width: vw * 0.85,
-          height: (vw * 0.85) * (3 / 4), // ratio 4:3 portrait-friendly
-        });
-      }
-      // En desktop el box ya tiene sus dimensiones del CSS (35vw, 16/9)
+    const endWidth = isDesktop ? 250 : 160;
 
-      const boxW    = box.offsetWidth;
-      const boxH    = box.offsetHeight;
-      const boxLeft = (vw - boxW) / 2;
-      const boxTop  = (vh - boxH) / 2;
+    const applyHeroProgress = (p) => {
+      const { vw: vwNow, vh: vhNow } = getViewport();
+      const { boxW: boxWNow, boxH: boxHNow, boxLeft: boxLeftNow, boxTop: boxTopNow } = getBoxDimensions(vwNow, vhNow);
+      const currentWidth = gsap.utils.interpolate(boxWNow, endWidth, p);
+      const logoHeight = getTotalLogoHeight(currentWidth);
+      const startTopNow = boxTopNow + (boxHNow - logoHeight) / 2;
+      const endLeftNow = (vwNow - endWidth) / 2;
 
-      // Logo padding: más comprimido en móvil
-      const logoPadding = isDesktop ? "2.5rem" : "1.25rem";
+      gsap.set(box, {
+        width:           gsap.utils.interpolate(boxWNow, vwNow, p),
+        height:          gsap.utils.interpolate(boxHNow, vhNow, p),
+        backgroundColor: `rgba(255,255,255,${gsap.utils.interpolate(0.35, 1, p)})`,
+      });
 
-      // Centramos el logo dentro del box:
-      // el logo tiene el mismo ancho que el box, así que solo necesitamos
-      // centrar verticalmente — top = centro del box - altura del logo / 2
-      // Como aún no sabemos la altura del logo, lo posicionamos primero con
-      // top provisional igual al centro del box y luego ajustamos con getBoundingClientRect
       gsap.set(logo, {
-        left:    boxLeft,
-        width:   boxW,
-        padding: logoPadding,
-        top:     boxTop + boxH / 2,   // centro vertical del box (provisional)
-        bottom:  "auto",
-        opacity: 1,
+        top:   gsap.utils.interpolate(startTopNow, 0, p),
+        left:  gsap.utils.interpolate(boxLeftNow, endLeftNow, p),
+        width: gsap.utils.interpolate(boxWNow, endWidth, p),
       });
 
-      // Ahora leemos la altura real del logo y recentramos
-      const logoRect  = logo.getBoundingClientRect();
-      const startTop  = boxTop + (boxH - logoRect.height) / 2;  // centrado exacto
-      gsap.set(logo, { top: startTop });
+      if (videoRef.current) {
+        gsap.set(videoRef.current, { opacity: 1 - p });
+      }
+    };
 
-      // Estado final del logo: más pequeño en móvil
-      const endWidth = isDesktop ? 250 : 160;
-      const endLeft  = (vw - endWidth) / 2;
-      const endTop   = 0;
-
-      heroTrigger = ScrollTrigger.create({
-        trigger: spacer,
-        start:   "top top",
-        end:     `+=${HERO_SCROLL}`,
-        scrub:   1,
-        onUpdate: (self) => {
-          const p = self.progress;
-
-          gsap.set(box, {
-            width:           gsap.utils.interpolate(boxW, vw, p),
-            height:          gsap.utils.interpolate(boxH, vh, p),
-            backgroundColor: `rgba(255,255,255,${gsap.utils.interpolate(0.35, 1, p)})`,
-          });
-
-          gsap.set(logo, {
-            top:   gsap.utils.interpolate(startTop, endTop, p),
-            left:  gsap.utils.interpolate(boxLeft, endLeft, p),
-            width: gsap.utils.interpolate(boxW, endWidth, p),
-          });
-
-          if (videoRef.current) {
-            gsap.set(videoRef.current, { opacity: 1 - p });
-          }
-        },
-      });
-    }
+    heroTrigger = ScrollTrigger.create({
+      trigger: spacer,
+      start:   "top top",
+      end:     `+=${HERO_SCROLL}`,
+      scrub:   1,
+      onUpdate: (self) => applyHeroProgress(self.progress),
+    });
 
     // ─── STACK ANIMATION ────────────────────────────────────────────────────────
     const spotlightImages = section.querySelectorAll(".spotlight-img");
@@ -320,7 +321,26 @@ const MMHeroWithReleases3 = () => {
       );
     });
 
+    let resizeTimeout = null;
+    const onResize = () => {
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        resizeTimeout = null;
+        ScrollTrigger.refresh();
+        if (heroTrigger?.isActive) {
+          applyHeroProgress(heroTrigger.progress);
+        }
+      }, 80);
+    };
+
+    window.addEventListener("resize", onResize);
+    const vv = window.visualViewport;
+    if (vv) vv.addEventListener("resize", onResize);
+
     return () => {
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      window.removeEventListener("resize", onResize);
+      if (vv) vv.removeEventListener("resize", onResize);
       heroTrigger?.kill();
       stackTrigger.kill();
       secondTrigger.kill();
@@ -332,12 +352,14 @@ const MMHeroWithReleases3 = () => {
     <>
       <div ref={spacerRef} style={{ height: "150vh", pointerEvents: "none" }} />
 
-      {/* Video de fondo */}
+      {/* Video de fondo — 100dvh se adapta cuando la barra del navegador aparece/desaparece */}
       <div
         ref={videoRef}
         style={{
           position: "fixed", top: 0, left: 0,
-          width: "100%", height: "100svh",
+          width: "100%",
+          height: "100dvh",
+          minHeight: "100vh",
           pointerEvents: "none", overflow: "hidden", zIndex: 1,
         }}
       >
@@ -377,7 +399,7 @@ const MMHeroWithReleases3 = () => {
       {/* Section releases */}
       <section
         ref={sectionRef}
-        className="center-section relative w-full min-h-[100svh] p-4 overflow-hidden bg-transparent"
+        className="center-section relative w-full min-h-[100dvh] p-4 overflow-hidden bg-transparent"
         style={{ zIndex: 10 }}
       >
         <div className="spotlight-images absolute inset-0 pointer-events-none z-[10]">
