@@ -200,7 +200,7 @@ const MMHeroWithReleases3 = () => {
       trigger: section,
       start:   "top top",
       end:     `+=${totalScrollImages}`,
-      scrub:   1,
+      scrub:   0.5,
       pin:     true,
       onEnter: () => {
         gsap.to(box, { opacity: 0, duration: 0.25 });
@@ -223,9 +223,8 @@ const MMHeroWithReleases3 = () => {
           localProgress = Math.min(Math.max(localProgress, 0), 1);
           const eased    = 1 - Math.pow(1 - localProgress, 3);
           const rotation = baseRotations[index % baseRotations.length];
-          img.dataset.rotation = rotation;
           gsap.set(img, {
-            transform: `translate(-50%, ${350 - eased * 400}%) rotate(${rotation}deg)`,
+            transform: `translate3d(-50%, ${350 - eased * 400}%, 0) rotate(${rotation}deg)`,
           });
         });
       },
@@ -267,6 +266,7 @@ const MMHeroWithReleases3 = () => {
       },
     });
 
+    let prevClosestIndex = -1;
     if (artistContainer) {
       artistContainer.addEventListener("scroll", () => {
         if (detailActiveRef.current) return;
@@ -282,19 +282,20 @@ const MMHeroWithReleases3 = () => {
         });
 
         artistItems.forEach((el, i) => {
-          el.style.opacity   = i === closestIndex ? "1" : "0.4";
-          el.style.color     = i === closestIndex ? "#000" : "#888";
-          el.style.transform = i === closestIndex ? "scale(1.1)" : "scale(1)";
           el.classList.toggle("active-item", i === closestIndex);
         });
 
-        spotlightImages.forEach((img, i) => {
-          gsap.to(img, {
-            zIndex: i === closestIndex ? 10 : 1,
-            scale:  i === closestIndex ? 1.05 : 1,
-            duration: 0.25, ease: "power2.out",
+        if (closestIndex !== prevClosestIndex) {
+          prevClosestIndex = closestIndex;
+          spotlightImages.forEach((img, i) => {
+            gsap.to(img, {
+              zIndex: i === closestIndex ? 10 : 1,
+              scale:  i === closestIndex ? 1.05 : 1,
+              duration: 0.25, ease: "power2.out",
+              force3D: true,
+            });
           });
-        });
+        }
 
         if (activeArtistDisplay)
           activeArtistDisplay.innerText = artistItems[closestIndex].innerText;
@@ -322,7 +323,7 @@ const MMHeroWithReleases3 = () => {
     spotlightImages.forEach((img, index) => {
       exitTimeline.to(
         img,
-        { y: -vh - 100, duration: 1, ease: "power1.inOut" },
+        { y: -vh - 100, duration: 1, ease: "power1.inOut", force3D: true },
         index / spotlightImages.length
       );
     });
@@ -412,7 +413,8 @@ const MMHeroWithReleases3 = () => {
           {ReleaseImages.map((item, index) => (
             <div
               key={index}
-              className="spotlight-img absolute top-1/2 left-1/2 w-[clamp(14rem,48vw,26rem)] aspect-[1/1] -translate-x-1/2 translate-y-[350%] overflow-hidden [will-change:transform] z-[1]"
+              className="spotlight-img absolute top-1/2 left-1/2 w-[clamp(14rem,48vw,26rem)] aspect-[1/1] overflow-hidden z-[1]"
+              style={{ transform: "translate3d(-50%, 350%, 0)", willChange: "transform" }}
             >
               <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
             </div>
