@@ -13,12 +13,12 @@ const FOOTER_LINKS = [
   { label: "contact",    href: "https://www.soundcloud.com/mmdiscos" },
 ];
 
-// const FOOTER_LINKS = [
-//     { label: "ig",  href: "https://www.instagram.com/mmdiscos/" },
-//     { label: "bc",   href: "https://www.bandcamp.com/mmdiscos" },
-//     { label: "sc", href: "https://www.soundcloud.com/mmdiscos" },
-//     { label: "contact",    href: "https://www.soundcloud.com/mmdiscos" },
-//   ];
+const FOOTER_LINKS_MOBILE = [
+    { label: "ig",  href: "https://www.instagram.com/mmdiscos/" },
+    { label: "bc",   href: "https://www.bandcamp.com/mmdiscos" },
+    { label: "sc", href: "https://www.soundcloud.com/mmdiscos" },
+    { label: "contact",    href: "https://www.soundcloud.com/mmdiscos" },
+  ];
 
 // Ajusta este valor (0–1) para afinar cuándo aparece el footer.
 // 0.92 = cuando el 92% del texto ya ha aparecido (última palabra casi en su sitio)
@@ -158,11 +158,24 @@ export default function AboutSection3() {
           <div className="flex flex-row justify-between gap-6">
             {FOOTER_LINKS.map(({ label, href }, idx) => (
               <a
-                key={label}
+                key={`d-${label}`}
                 ref={(el) => { linksRef.current[idx] = el; }}
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
+                className="hidden md:inline"
+              >
+                {label}
+              </a>
+            ))}
+            {FOOTER_LINKS_MOBILE.map(({ label, href }, idx) => (
+              <a
+                key={`m-${label}`}
+                ref={(el) => { linksRef.current[4 + idx] = el; }}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline md:hidden"
               >
                 {label}
               </a>

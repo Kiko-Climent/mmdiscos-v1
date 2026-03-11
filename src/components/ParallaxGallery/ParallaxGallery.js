@@ -124,50 +124,50 @@ export default function ParallaxGallery() {
         }}
       />
     </>
-  );
-}
+      );
+    }
 
-const stickyStyle = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100vw",
-  height: "100vh",
-  backgroundColor: "#ffffff",
-  overflow: "hidden",
-  zIndex: 0,          // debajo del section blanco de MMHeroWithReleases (z:10)
-};
+    const stickyStyle = {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100vw",
+      height: "100vh",
+      backgroundColor: "#ffffff",
+      overflow: "hidden",
+      zIndex: 0,          // debajo del section blanco de MMHeroWithReleases (z:10)
+    };
 
-const wrapperStyle = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%) scale(1)",
-  width: "160vw",
-  height: "100vh",
-  display: "flex",
-  gap: "4em",
-  willChange: "transform",
-};
+    const wrapperStyle = {
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%) scale(1)",
+      width: "160vw",
+      height: "100vh",
+      display: "flex",
+      gap: "4em",
+      willChange: "transform",
+    };
 
-const colStyle = {
-  flex: 1,
-  height: "100%",
-  display: "flex",
-  flexDirection: "column",
-  gap: "4em",
-  willChange: "transform",
-};
+    const colStyle = {
+      flex: 1,
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+      gap: "4em",
+      willChange: "transform",
+    };
 
-const cellStyle = {
-  flex: 1,
-  overflow: "hidden",
-  backgroundColor: "#ffffff",
-};
+    const cellStyle = {
+      flex: 1,
+      overflow: "hidden",
+      backgroundColor: "#ffffff",
+    };
 
-const fillStyle = {
-  width: "100%",
-  height: "100%",
-  objectFit: "cover",
-  display: "block",
-};
+    const fillStyle = {
+      width: "100%",
+      height: "100%",
+      objectFit: "cover",
+      display: "block",
+    };
