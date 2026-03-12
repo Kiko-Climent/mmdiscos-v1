@@ -50,7 +50,7 @@ export default function Tests() {
       <MMHeroWithReleases4 />
       {/* <ParallaxGallery /> */}
       {/* <ParallaxGallery2 /> */}
-      <ParallaxGallery6 />
+      <ParallaxGallery2 />
       <AboutSection3 />
       {/* <AnimatedQuote /> */}
       {/* <Footer /> */}

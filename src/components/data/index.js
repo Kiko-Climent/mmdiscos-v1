@@ -242,7 +242,7 @@ export const DataReleases = [
     artist_name: "Socarrat vol.2",
     title: "Socarrat vol.2",
     image: "/MMD040-2.png",
-    year: "2025",
+    year: "2026",
     ref: "mmd040.2",
     tracklist: [
       "Feel Fly - Arama Depesco ",

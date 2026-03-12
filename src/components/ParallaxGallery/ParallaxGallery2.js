@@ -12,9 +12,9 @@ const GAP = "1.5em";
 //            — central:   img / video / img (sin tocar)
 const COLS = [
   { type: "side", imgs: ["/img1.jpg",  "/img2.jpg",  "/img3.jpg",  "/img4.jpg",  "/img5.jpg"]  },
-  { type: "side", imgs: ["/img6.jpg",  "/img7.jpg",  "/img8.jpg",  "/img9.jpg",  "/img10.jpg"] },
-  { type: "center", rows: [["/img11.jpg"], [null], ["/img12.jpg"]] },
-  { type: "side", imgs: ["/img13.jpg", "/img14.jpg", "/img15.jpg", "/img16.jpg", "/img1.jpg"]  },
+  { type: "side", imgs: ["/img6.jpg",  "/img4.jpg",  "/img3.jpg",  "/img9.jpg",  "/img10.jpg"] },
+  { type: "center", rows: [["/MMD040_Cover-1.jpg"], [null], ["/statues.jpeg"]] },
+  { type: "side", imgs: ["/morira - cover.png", "/Celex - cover.jpg", "/MMD040-2.png", "/MMD038.png", "/img1.jpg"]  },
   { type: "side", imgs: ["/img2.jpg",  "/img3.jpg",  "/img4.jpg",  "/img5.jpg",  "/img6.jpg"]  },
 ];
 
@@ -112,7 +112,6 @@ export default function ParallaxGallery2() {
                               transform: "scale(2)",
                               willChange: "transform",
                               transformOrigin: "center center",
-                              filter: "grayscale(100%)",
                             }}
                           >
                             <source src="/video/Video MM Header.mp4" type="video/mp4" />
@@ -148,7 +147,7 @@ const S = {
     top: 0, left: 0,
     width: "100vw",
     height: "100vh",
-    backgroundColor: "#000",
+    backgroundColor: "#fff",
     overflow: "hidden",
     zIndex: 0,
   },
@@ -185,7 +184,7 @@ const S = {
     aspectRatio: "1 / 1",
     flexShrink: 0,
     overflow: "hidden",
-    backgroundColor: "#000",
+    backgroundColor: "#fff",
   },
 
   // contain para portadas de vinilo — sin recortes
@@ -194,7 +193,7 @@ const S = {
     height: "100%",
     objectFit: "contain",
     display: "block",
-    backgroundColor: "#000",
+    backgroundColor: "#fff",
   },
 
   // Central — sigue ocupando el 100% del alto

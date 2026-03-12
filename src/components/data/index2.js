@@ -4,6 +4,7 @@ export const DataReleases2 = [
     title: "12 hour EP",
     image: "/video/Video MM Header.mp4",
     year: "2025",
+    ref: "mmd035"
   },
   { 
     artist: "ungaro & phil anker",
