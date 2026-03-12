@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "optimize:images": "node src/components/tools/OptimizedImages.js"
   },
   "dependencies": {
     "gsap": "^3.13.0",
@@ -14,6 +15,7 @@
     "next": "^15.5.9",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
+    "sharp": "^0.34.5",
     "three": "^0.177.0"
   },
   "devDependencies": {

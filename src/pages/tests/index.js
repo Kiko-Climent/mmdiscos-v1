@@ -19,6 +19,7 @@ import AboutSection3 from "@/components/About/index3";
 import MMHeroWithReleases3 from "@/components/mm_hero/MMHeroWithReleases3";
 import ParallaxGallery5 from "@/components/ParallaxGallery/ParallaxGallery5";
 import ParallaxGallery6 from "@/components/ParallaxGallery/ParallaxGallery6";
+import MMHeroWithReleases4 from "@/components/mm_hero/MMHeroWithReleases4";
 
 gsap.registerPlugin(ScrollTrigger);
 
