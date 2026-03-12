@@ -330,6 +330,40 @@ const MMHeroWithReleases4 = () => {
       exitTimeline.to(img, { y: -vh - 100, duration: 1, ease: "power1.inOut", force3D: true }, index / spotlightImages.length);
     });
 
+    // ── Mask: cortina pinta el logo de blanco al pasar (solo en About) ─────────
+    const aboutSection = document.querySelector(".about-section");
+    const logoBlackRef = logoRef.current?.querySelector(".logo-layer-black");
+    const logoWhiteRef = logoRef.current?.querySelector(".logo-layer-white");
+    const updateLogoMask = () => {
+      if (!aboutSection || !logo || !logoBlackRef || !logoWhiteRef) return;
+      const curtainTop = aboutSection.getBoundingClientRect().top;
+      const vh = window.innerHeight;
+      // Antes de About (cortina abajo del viewport): logo negro (sin invert)
+      if (curtainTop > vh) {
+        logoBlackRef.style.clipPath = "inset(0 0 0 0)";
+        logoWhiteRef.style.clipPath = "inset(100% 0 0 0)";
+        return;
+      }
+      const logoRect = logo.getBoundingClientRect();
+      const logoTop = logoRect.top;
+      const logoBottom = logoRect.bottom;
+      const logoHeight = logoBottom - logoTop;
+      let cutPercent;
+      if (curtainTop <= logoTop) cutPercent = 0;
+      else if (curtainTop >= logoBottom) cutPercent = 100;
+      else cutPercent = ((curtainTop - logoTop) / logoHeight) * 100;
+      logoBlackRef.style.clipPath = `inset(0 0 ${100 - cutPercent}% 0)`;
+      logoWhiteRef.style.clipPath = `inset(${cutPercent}% 0 0 0)`;
+    };
+    const logoCurtainTrigger = ScrollTrigger.create({
+      trigger: document.body,
+      start: 0,
+      end: "max",
+      scrub: 0,
+      onUpdate: updateLogoMask,
+    });
+    updateLogoMask();
+
     let resizeTimeout = null;
     const onResize = () => {
       if (resizeTimeout) clearTimeout(resizeTimeout);
@@ -337,6 +371,7 @@ const MMHeroWithReleases4 = () => {
         resizeTimeout = null;
         ScrollTrigger.refresh();
         if (heroTrigger?.isActive) applyHeroProgress(heroTrigger.progress);
+        updateLogoMask();
       }, 80);
     };
 
@@ -351,6 +386,7 @@ const MMHeroWithReleases4 = () => {
       heroTrigger?.kill();
       stackTrigger.kill();
       secondTrigger.kill();
+      logoCurtainTrigger?.kill();
       if (exitTimeline.scrollTrigger) exitTimeline.scrollTrigger.kill();
     };
   }, []);
@@ -378,9 +414,22 @@ const MMHeroWithReleases4 = () => {
         pointerEvents: "none", zIndex: 5,
       }} />
 
-      <div ref={logoRef} style={{ position: "fixed", zIndex: 9999, pointerEvents: "none", opacity: 0, filter: "invert(1)" }}>
-        <img src="/logo/Balearic Sound System Logo.svg" alt="MM Discos"
-          style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+      <div ref={logoRef} style={{ position: "fixed", zIndex: 9999, pointerEvents: "none", opacity: 0 }}>
+        <img
+          src="/logo/Balearic Sound System Logo.svg"
+          alt=""
+          aria-hidden
+          className="logo-sizer"
+          style={{ width: "100%", height: "auto", display: "block", opacity: 0, pointerEvents: "none" }}
+        />
+        <div className="logo-layer-black" style={{ position: "absolute", inset: 0 }}>
+          <img src="/logo/Balearic Sound System Logo.svg" alt="" aria-hidden
+            style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+        </div>
+        <div className="logo-layer-white" style={{ position: "absolute", inset: 0, zIndex: 1 }}>
+          <img src="/logo/Balearic Sound System Logo.svg" alt="MM Discos"
+            style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", filter: "invert(1)" }} />
+        </div>
       </div>
 
       {/* Izquierda — year + ref, centrado vertical — solo desktop */}
