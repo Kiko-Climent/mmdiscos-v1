@@ -3,7 +3,8 @@ export const DataReleases = [
     artist: "mogwaa",
     title: "Hazzy Dreams LP",
     image: "/img3.jpg",
-    year: "2024",
+    year: "2023",
+    ref: "mmd028",
     tracklist: [
       "Full Bloom",
       "Nacimiento",
@@ -28,6 +29,7 @@ export const DataReleases = [
     title: "MM Discos Factory",
     image: "/Factory Edits - cover.jpg",
     year: "2023",
+    ref: "mmd024",
     tracklist: [
       "Jaisiel - Timeless",
       "Tech Support - Dream Space",
@@ -43,6 +45,7 @@ export const DataReleases = [
     title: "Night Runner",
     image: "/statues.jpeg",
     year: "2024",
+    ref: "mmd030",
     tracklist: [
       "Slipstream",
       "Dodge a Bullet",
@@ -57,8 +60,9 @@ export const DataReleases = [
   { 
     artist: "Corben",
     title: "Peachland LP",
-    image: "/corben_peachland_cover.jpg",
+    image: "/corben_peachland_cover.jpg", 
     year: "2024",
+    ref: "mms007",
     tracklist: [
       "Make It Move",
       "Fire to Flame ",
@@ -78,6 +82,7 @@ export const DataReleases = [
     title: "Capa Disco Works",
     image: "/Celex - cover.jpg",
     year: "2024",
+    ref: "mmd031",
     tracklist: [
       "Aquarius",
       "Comme ça",
@@ -95,6 +100,7 @@ export const DataReleases = [
     title: "Edits Vol.01-02-03",
     image: "/Daichi - cover.jpg",
     year: "2024",
+    ref: "mmd033",
     tracklist: [
       "See Of Cosmic",
       "Dampness",
@@ -113,6 +119,7 @@ export const DataReleases = [
     title: "12 hour EP",
     image: "/img1.jpg",
     year: "2025",
+    ref: "mmd035",
     tracklist: [
       "Fantasy",
       "Dance",
@@ -128,6 +135,7 @@ export const DataReleases = [
     title: "Dreamwalker EP",
     image: "/img4.jpg",
     year: "2025",
+    ref: "mmd036",
     tracklist: [
       "Kyobashi",
       "Dreamwalker",
@@ -143,6 +151,7 @@ export const DataReleases = [
     title: "Freedom Spirit EP",
     image: "/img5.jpg",
     year: "2025",
+    ref: "mmd032",
     tracklist: [
       "Cloud Waves (New Age Balearic Mix)",
       "Surf Meditation ",
@@ -161,6 +170,7 @@ export const DataReleases = [
     title: "The Ten9Eight EP",
     image: "/img2.jpg",
     year: "2025",
+    ref: "mmd037",
     tracklist: [
       "Ten9Eight",
       "Despertar",
@@ -175,6 +185,7 @@ export const DataReleases = [
     title: "Club Solsticio",
     image: "/MMD038.png",
     year: "2025",
+    ref: "mmd038",
     tracklist: [
       "Yes, Maybe No",
       "Dejame En Paz",
@@ -191,6 +202,7 @@ export const DataReleases = [
     title: "Eternal Sunset EP",
     image: "/MMD039.png",
     year: "2025",
+    ref: "mmd039",
     tracklist: [
       "Sunset '92",
       "Mystic Riddim",
@@ -209,6 +221,7 @@ export const DataReleases = [
     title: "Socarrat vol.1",
     image: "/MMD040_Cover-1.jpg",
     year: "2025",
+    ref: "mmd040.1",
     tracklist: [
       "Pleasure Voyage - Puertas del Cielo",
       "Triple Nickel - Moving on Time (Tucan Discos Edit)",
@@ -230,6 +243,7 @@ export const DataReleases = [
     title: "Socarrat vol.2",
     image: "/MMD040-2.png",
     year: "2025",
+    ref: "mmd040.2",
     tracklist: [
       "Feel Fly - Arama Depesco ",
       "Das Komplex - Baby",

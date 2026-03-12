@@ -227,7 +227,7 @@ const MMHeroWithReleases4 = () => {
           let localProgress = (progress - startOffset) / (endOffset - startOffset);
           localProgress = Math.min(Math.max(localProgress, 0), 1);
           const eased    = 1 - Math.pow(1 - localProgress, 3);
-          const rotation = window.innerWidth < 768 ? 0 : baseRotations[index % baseRotations.length];
+          const rotation = baseRotations[index % baseRotations.length];
           gsap.set(img, {
             transform: `translate3d(-50%, ${350 - eased * 400}%, 0) rotate(${rotation}deg)`,
           });

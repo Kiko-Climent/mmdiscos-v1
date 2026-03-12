@@ -41,19 +41,25 @@ export default function DetailView2({ detail, release, closeDetail }) {
       });
     } else {
       gsap.set(els, { willChange: "filter, opacity" });
-      [...els].reverse().forEach((el, i) => {
-        gsap.timeline({ delay: i * 0.06 })
-          .to(el, { filter: "blur(90px)", duration: 0.25, ease: "power2.in" })
-          .to(el, {
-            opacity: 0, filter: "blur(120px)", duration: 0.5, ease: "power3.in",
-            onComplete: () => {
-              if (i === els.length - 1) {
-                setMounted(false);
-                elementsRef.current = [];
-              }
-            },
-          });
-      });
+      
+      // Salida uniforme — todos a la vez, sin stagger que delate el orden del DOM
+      gsap.timeline()
+        .to(els, {
+          filter: "blur(60px)",
+          duration: 0.2,
+          ease: "power2.in",
+        })
+        .to(els, {
+          opacity: 0,
+          filter: "blur(100px)",
+          duration: 0.4,
+          ease: "power3.in",
+          stagger: { each: 0.03, from: "end" },
+          onComplete: () => {
+            setMounted(false);
+            elementsRef.current = [];
+          },
+        });
     }
   }, [detail, mounted]);
 
@@ -61,7 +67,7 @@ export default function DetailView2({ detail, release, closeDetail }) {
 
   const reg          = (i) => (el) => { elementsRef.current[i] = el; };
   const tracklist    = release?.tracklist ?? [];
-  const TRACK_OFFSET = 5;
+  const TRACK_OFFSET = 7;
 
   // Posición de la imagen activa — usada en mobile para anclar el contenido
   const imgRect = detail?.imgRect;
@@ -72,20 +78,27 @@ export default function DetailView2({ detail, release, closeDetail }) {
     const imgBottom = imgRect.bottom;
     const imgLeft   = imgRect.left;
     const imgRight  = imgRect.right;
-    const GAP       = 12; // px entre imagen y contenido
+    const GAP       = 14; // px entre imagen y contenido
 
     return (
       <div className="absolute inset-0 z-[200] pointer-events-none">
 
         {/* Links ENCIMA de la imagen — close, bandcamp, soundcloud */}
         <div
-          className="absolute flex flex-row justify-between w-full px-4 pointer-events-none"
-          style={{ top: imgTop - GAP - 72, left: 0 }} // 72px ≈ altura aprox de los 3 links
+          className="absolute flex flex-row-reverse justify-between w-full px-4 pointer-events-none"
+          style={{ 
+            top: imgTop - GAP, 
+            left: 0,
+            transform: "translateY(-100%)" // ← se mueve su propia altura hacia arriba
+          }}
         >
-          <div className="flex flex-col text-releases-sm uppercase items-start gap-1">
+          <div className="flex flex-col text-releases-sm items-start">
             <button ref={reg(2)} onClick={closeDetail} className="pointer-events-auto uppercase">
               close
             </button>
+          </div>
+          <div className="flex flex-col text-releases-sm uppercase items-start">
+            
             <a ref={reg(3)} href={release?.bandcamp} target="_blank" rel="noopener noreferrer" className="pointer-events-auto">
               bandcamp
             </a>
@@ -95,21 +108,35 @@ export default function DetailView2({ detail, release, closeDetail }) {
           </div>
         </div>
 
+
         {/* Info + tracklist DEBAJO de la imagen */}
         <div
-          className="absolute flex flex-col text-releases-sm px-4 pointer-events-none gap-2"
+          className="absolute flex flex-col text-releases-sm px-4 pointer-events-none"
           style={{ top: imgBottom + GAP, left: 0, right: 0 }}
         >
-          <span ref={reg(0)} className="block">{release?.artist}</span>
-          <span ref={reg(1)} className="block">{release?.title}</span>
+          {/* Fila: artista (izq) — año (der) */}
+          <div className="flex justify-between w-full">
+            <span ref={reg(0)} className="block">{release?.artist}</span>
+            <span ref={reg(5)} className="block">{release?.ref}</span>
+          </div>
 
-          <div className="flex flex-col mt-2">
+          {/* Fila: título (izq) — ref (der) */}
+          <div className="flex justify-between w-full">
+            <span ref={reg(1)} className="block">{release?.title}</span>
+            <span ref={reg(6)} className="block">{release?.year}</span>
+          </div>
+
+          {/* Tracklist — mt-3 = mismo respiro que el gap entre imagen y links arriba */}
+          <div className="flex flex-col mt-3">
             {tracklist.map((track, idx) => (
-              <span key={idx} ref={reg(TRACK_OFFSET + idx)} className="block">
-                <span className="inline-block w-10">
-                  {String.fromCharCode(65 + Math.floor(idx / 4))}
-                  {(idx % 4) + 1})
-                </span>
+              <span
+                key={idx}
+                ref={reg(TRACK_OFFSET + idx)}
+                className="block"
+                style={{ fontVariantNumeric: "tabular-nums" }}
+              >
+                <span className="inline-block mr-1">{idx + 1}</span>
+                <span className="mr-1">—</span>
                 {track}
               </span>
             ))}
@@ -133,15 +160,13 @@ export default function DetailView2({ detail, release, closeDetail }) {
               <span ref={reg(1)} className="block">{release?.title}</span>
             </div>
             <div className="flex flex-col mt-4">
-              {tracklist.map((track, idx) => (
-                <span key={idx} ref={reg(TRACK_OFFSET + idx)} className="block">
-                  <span className="inline-block w-10">
-                    {String.fromCharCode(65 + Math.floor(idx / 4))}
-                    {(idx % 4) + 1})
-                  </span>
-                  {track}
-                </span>
-              ))}
+            {tracklist.map((track, idx) => (
+              <span key={idx} ref={reg(TRACK_OFFSET + idx)} className="block" style={{ fontVariantNumeric: "tabular-nums" }}>
+                <span className="inline-block mr-1">{idx + 1}</span>
+                <span className="mr-1">—</span>
+                {track}
+              </span>
+            ))}
             </div>
           </div>
 
