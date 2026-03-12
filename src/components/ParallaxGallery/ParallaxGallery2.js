@@ -6,16 +6,17 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const GAP = "1.5em";
+const GAP = "1em";
+const GAP_MOBILE = "0.4em"; // ← añadir esta línea
 
 // 5 columnas — laterales: 5 imágenes cuadradas apiladas
 //            — central:   img / video / img (sin tocar)
 const COLS = [
   { type: "side", imgs: ["/img1.jpg",  "/img2.jpg",  "/img3.jpg",  "/img4.jpg",  "/img5.jpg"]  },
-  { type: "side", imgs: ["/img6.jpg",  "/img4.jpg",  "/img3.jpg",  "/img9.jpg",  "/img10.jpg"] },
+  { type: "side", imgs: ["/Factory Edits - cover.jpg",  "/img4.jpg",  "/img3.jpg",  "/img9.jpg",  "/img10.jpg"] },
   { type: "center", rows: [["/MMD040_Cover-1.jpg"], [null], ["/statues.jpeg"]] },
   { type: "side", imgs: ["/morira - cover.png", "/Celex - cover.jpg", "/MMD040-2.png", "/MMD038.png", "/img1.jpg"]  },
-  { type: "side", imgs: ["/img2.jpg",  "/img3.jpg",  "/img4.jpg",  "/img5.jpg",  "/img6.jpg"]  },
+  { type: "side", imgs: ["/img2.jpg",  "/img3.jpg",  "/img4.jpg",  "/img5.jpg",  "/img12.jpg"]  },
 ];
 
 export default function ParallaxGallery2() {
@@ -32,6 +33,8 @@ export default function ParallaxGallery2() {
     const video   = mainVideoRef.current;
     const sides   = sideColRefs.current;
     if (!wrapper || !spacer || !video) return;
+
+    const isMobile = () => window.innerWidth < 768;
 
     const revealTrigger = ScrollTrigger.create({
       trigger: spacer,
@@ -51,10 +54,13 @@ export default function ParallaxGallery2() {
       scrub: 1,
       onUpdate: (self) => {
         const p        = self.progress;
-        const maxScale = window.innerWidth < 900 ? 4 : 2.65;
+        const mobile   = isMobile();
+        const maxScale = mobile ? 4 : 2.65;
+        const parallax = mobile ? 180 : 300;
+
         wrapper.style.transform = `translate(-50%, -50%) scale(${1 + p * maxScale})`;
         sides.forEach((col) => {
-          if (col) col.style.transform = `translateY(${p * 300}px)`;
+          if (col) col.style.transform = `translateY(${p * parallax}px)`;
         });
         video.style.transform = `scale(${2 - p * 0.85})`;
       },
@@ -67,37 +73,48 @@ export default function ParallaxGallery2() {
 
   return (
     <>
+      <style>{`
+        @media (max-width: 767px) {
+          .pg2-wrapper {
+            gap: ${GAP_MOBILE} !important;
+            width: 200vw !important;
+          }
+          .pg2-side-col {
+            gap: ${GAP_MOBILE} !important;
+            flex: 0.35 !important;
+          }
+          .pg2-center-col {
+            width: 36vw !important;
+            gap: ${GAP_MOBILE} !important;
+          }
+        }
+      `}</style>
+
       <div ref={galleryRef} style={{ ...S.sticky, clipPath: "inset(100% 0 0 0)" }}>
-        <div ref={wrapperRef} style={S.wrapper}>
+        <div ref={wrapperRef} style={S.wrapper} className="pg2-wrapper">
           {COLS.map((col, colIndex) => {
             const isCenter = col.type === "center";
             const si = !isCenter ? sideIdx++ : null;
 
             if (!isCenter) {
               return (
-                // Columna lateral — centra verticalmente el stack de 5 cuadrados
                 <div
                   key={colIndex}
                   ref={(el) => { sideColRefs.current[si] = el; }}
                   style={S.sideCol}
+                  className="pg2-side-col"
                 >
                   {col.imgs.map((src, i) => (
-                    // Celda cuadrada: width = 100% de la col, height = mismo valor via aspectRatio
                     <div key={i} style={S.squareCell}>
-                      <img
-                        src={src}
-                        alt=""
-                        style={S.containImg}
-                      />
+                      <img src={src} alt="" style={S.containImg} />
                     </div>
                   ))}
                 </div>
               );
             }
 
-            // Columna central — igual que el original
             return (
-              <div key={colIndex} style={S.centerCol}>
+              <div key={colIndex} style={S.centerCol} className="pg2-center-col">
                 {col.rows.map((row, rowIndex) => {
                   const isVideoSlot = rowIndex === 1;
                   return (
@@ -135,7 +152,7 @@ export default function ParallaxGallery2() {
 
       <section
         ref={spacerRef}
-        style={{ width: "100vw", height: "600vh", pointerEvents: "none" }}
+        style={{ width: "100vw", height: "300vh", pointerEvents: "none" }}
       />
     </>
   );
@@ -145,13 +162,11 @@ const S = {
   sticky: {
     position: "fixed",
     top: 0, left: 0,
-    width: "100vw",
-    height: "100vh",
+    width: "100vw", height: "100vh",
     backgroundColor: "#fff",
     overflow: "hidden",
     zIndex: 0,
   },
-
   wrapper: {
     position: "absolute",
     top: "50%", left: "50%",
@@ -160,25 +175,21 @@ const S = {
     height: "100vh",
     display: "flex",
     flexDirection: "row",
-    alignItems: "center",   // alinea verticalmente al centro las columnas laterales
+    alignItems: "center",
     gap: GAP,
     willChange: "transform",
     overflow: "hidden",
   },
-
-  // Lateral — no estira al alto, se centra; las celdas definen su propia altura
   sideCol: {
     flex: 0.5,
     display: "flex",
     flexDirection: "column",
     alignItems: "stretch",
-    justifyContent: "center",  // stack centrado verticalmente
+    justifyContent: "center",
     gap: GAP,
     willChange: "transform",
     overflow: "hidden",
   },
-
-  // Cuadrado: width = 100% de la columna, height = mismo valor
   squareCell: {
     width: "100%",
     aspectRatio: "1 / 1",
@@ -186,8 +197,6 @@ const S = {
     overflow: "hidden",
     backgroundColor: "#fff",
   },
-
-  // contain para portadas de vinilo — sin recortes
   containImg: {
     width: "100%",
     height: "100%",
@@ -195,8 +204,6 @@ const S = {
     display: "block",
     backgroundColor: "#fff",
   },
-
-  // Central — sigue ocupando el 100% del alto
   centerCol: {
     flex: "none",
     width: "28vw",
@@ -206,20 +213,17 @@ const S = {
     gap: GAP,
     overflow: "hidden",
   },
-
   centerRow: {
     flex: 1,
     minHeight: 0,
     display: "flex",
     overflow: "hidden",
   },
-
   centerCell: {
     flex: 1,
     minWidth: 0,
     overflow: "hidden",
   },
-
   fill: {
     width: "100%",
     height: "100%",

@@ -26,8 +26,10 @@ const MMHeroWithReleases4 = () => {
   const refLabelRef  = useRef(null);
   const yearLabelRef = useRef(null);
   const labelsVisible = useRef(false);
-  const [activeRef,  setActiveRef]  = useState(DataReleases[0]?.ref  ?? "");
-  const [activeYear, setActiveYear] = useState(DataReleases[0]?.year ?? "");
+  const [activeRef,    setActiveRef]    = useState(DataReleases[0]?.ref    ?? "");
+  const [activeYear,   setActiveYear]   = useState(DataReleases[0]?.year   ?? "");
+  const [activeFormat, setActiveFormat] = useState(DataReleases[0]?.format ?? "");
+  const [activeVinyl,  setActiveVinyl]  = useState(DataReleases[0]?.vinyl  ?? "");
 
   const showLabels = () => {
     if (labelsVisible.current) return;
@@ -45,10 +47,12 @@ const MMHeroWithReleases4 = () => {
     });
   };
 
-  const updateLabels = (ref, year) => {
+  const updateLabels = (rel) => {
     // Cambio instantáneo con el scroll
-    setActiveRef(ref ?? "");
-    setActiveYear(year ?? "");
+    setActiveRef(rel?.ref    ?? "");
+    setActiveYear(rel?.year  ?? "");
+    setActiveFormat(rel?.format ?? "");
+    setActiveVinyl(rel?.vinyl   ?? "");
   };
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -293,7 +297,7 @@ const MMHeroWithReleases4 = () => {
 
           // Actualizar ref y year con fade simple
           const rel = DataReleases[closestIndex];
-          if (rel) updateLabels(rel.ref, rel.year);
+          if (rel) updateLabels(rel);
 
           spotlightImages.forEach((img, i) => {
             gsap.to(img, {
@@ -374,38 +378,44 @@ const MMHeroWithReleases4 = () => {
         pointerEvents: "none", zIndex: 5,
       }} />
 
-      <div ref={logoRef} style={{ position: "fixed", zIndex: 9999, pointerEvents: "none", opacity: 0 }}>
+      <div ref={logoRef} style={{ position: "fixed", zIndex: 9999, pointerEvents: "none", opacity: 0, filter: "invert(1)" }}>
         <img src="/logo/Balearic Sound System Logo.svg" alt="MM Discos"
           style={{ width: "100%", height: "100%", objectFit: "contain" }} />
       </div>
 
-      {/* Ref — izquierda, centrado vertical — solo desktop */}
+      {/* Izquierda — year + ref, centrado vertical — solo desktop */}
       <div
         ref={refLabelRef}
-        className="hidden md:block"
+        className="hidden md:flex"
         style={{
           position: "fixed", left: "1.5rem", top: "50%",
           transform: "translateY(-50%)",
           zIndex: 20, opacity: 0, pointerEvents: "none",
+          flexDirection: "column", gap: "0px",
         }}
       >
-        <span className="text-releases-sm uppercase text-neutral-500">
-          {activeRef}
-        </span>
+        <span className="text-releases-sm uppercase text-neutral-500">{activeYear}</span>
+        <span className="text-releases-sm uppercase text-neutral-500">{activeRef}</span>
       </div>
 
-      {/* Year — derecha, centrado vertical — solo desktop */}
+      {/* Derecha — format + vinyl (si existe), centrado vertical — solo desktop */}
+      {/* Derecha — format + vinyl, centrado vertical — solo desktop */}
       <div
         ref={yearLabelRef}
-        className="hidden md:block"
+        className="hidden md:flex"
         style={{
           position: "fixed", right: "1.5rem", top: "50%",
           transform: "translateY(-50%)",
           zIndex: 20, opacity: 0, pointerEvents: "none",
+          flexDirection: "column", alignItems: "flex-end", gap: "0px",
         }}
       >
-        <span className="text-releases-sm uppercase text-neutral-500">
-          {activeYear}
+        <span className="text-releases-sm uppercase text-neutral-500">{activeFormat}</span>
+        <span
+          className="text-releases-sm uppercase text-neutral-500"
+          style={{ opacity: activeVinyl ? 1 : 0 }}
+        >
+          {activeVinyl || "\u00A0"}
         </span>
       </div>
 

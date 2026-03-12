@@ -4,6 +4,8 @@ export const DataReleases = [
     title: "Hazzy Dreams LP",
     image: "/img3.jpg",
     year: "2023",
+    format: "AIFF, FLAC, MP3, WAV",
+    vinyl: "12\" 33 ⅓ RPM",
     ref: "mmd028",
     tracklist: [
       "Full Bloom",
@@ -29,6 +31,8 @@ export const DataReleases = [
     title: "MM Discos Factory",
     image: "/Factory Edits - cover.jpg",
     year: "2023",
+    format: "AIFF, FLAC, MP3, WAV",
+    vinyl: "12\" 33 ⅓ RPM",
     ref: "mmd024",
     tracklist: [
       "Jaisiel - Timeless",
@@ -45,6 +49,7 @@ export const DataReleases = [
     title: "Night Runner",
     image: "/statues.jpeg",
     year: "2024",
+    format: "AIFF, FLAC, MP3, WAV",
     ref: "mmd030",
     tracklist: [
       "Slipstream",
@@ -62,6 +67,8 @@ export const DataReleases = [
     title: "Peachland LP",
     image: "/corben_peachland_cover.jpg", 
     year: "2024",
+    format: "AIFF, FLAC, MP3, WAV",
+    vinyl: "12\" 33 ⅓ RPM",
     ref: "mms007",
     tracklist: [
       "Make It Move",
@@ -82,6 +89,7 @@ export const DataReleases = [
     title: "Capa Disco Works",
     image: "/Celex - cover.jpg",
     year: "2024",
+    format: "AIFF, FLAC, MP3, WAV",
     ref: "mmd031",
     tracklist: [
       "Aquarius",
@@ -100,6 +108,7 @@ export const DataReleases = [
     title: "Edits Vol.01-02-03",
     image: "/Daichi - cover.jpg",
     year: "2024",
+    format: "AIFF, FLAC, MP3, WAV",
     ref: "mmd033",
     tracklist: [
       "See Of Cosmic",
@@ -119,6 +128,7 @@ export const DataReleases = [
     title: "12 hour EP",
     image: "/img1.jpg",
     year: "2025",
+    format: "AIFF, FLAC, MP3, WAV",
     ref: "mmd035",
     tracklist: [
       "Fantasy",
@@ -135,6 +145,7 @@ export const DataReleases = [
     title: "Dreamwalker EP",
     image: "/img4.jpg",
     year: "2025",
+    format: "AIFF, FLAC, MP3, WAV",
     ref: "mmd036",
     tracklist: [
       "Kyobashi",
@@ -151,6 +162,8 @@ export const DataReleases = [
     title: "Freedom Spirit EP",
     image: "/img5.jpg",
     year: "2025",
+    format: "AIFF, FLAC, MP3, WAV",
+    vinyl: "12\" 33 ⅓ RPM",
     ref: "mmd032",
     tracklist: [
       "Cloud Waves (New Age Balearic Mix)",
@@ -170,6 +183,7 @@ export const DataReleases = [
     title: "The Ten9Eight EP",
     image: "/img2.jpg",
     year: "2025",
+    format: "AIFF, FLAC, MP3, WAV",
     ref: "mmd037",
     tracklist: [
       "Ten9Eight",
@@ -185,6 +199,7 @@ export const DataReleases = [
     title: "Club Solsticio",
     image: "/MMD038.png",
     year: "2025",
+    format: "AIFF, FLAC, MP3, WAV",
     ref: "mmd038",
     tracklist: [
       "Yes, Maybe No",
@@ -202,6 +217,8 @@ export const DataReleases = [
     title: "Eternal Sunset EP",
     image: "/MMD039.png",
     year: "2025",
+    format: "AIFF, FLAC, MP3, WAV",
+    vinyl: "12\" 33 ⅓ RPM",
     ref: "mmd039",
     tracklist: [
       "Sunset '92",
@@ -221,6 +238,7 @@ export const DataReleases = [
     title: "Socarrat vol.1",
     image: "/MMD040_Cover-1.jpg",
     year: "2025",
+    format: "AIFF, FLAC, MP3, WAV",
     ref: "mmd040.1",
     tracklist: [
       "Pleasure Voyage - Puertas del Cielo",
@@ -243,6 +261,7 @@ export const DataReleases = [
     title: "Socarrat vol.2",
     image: "/MMD040-2.png",
     year: "2026",
+    format: "AIFF, FLAC, MP3, WAV",
     ref: "mmd040.2",
     tracklist: [
       "Feel Fly - Arama Depesco ",
