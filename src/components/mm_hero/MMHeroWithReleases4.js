@@ -34,11 +34,16 @@ const MMHeroWithReleases4 = () => {
   const openDetail = (item, index) => {
     const section = sectionRef.current;
     if (!section) return;
-
+  
     const spotlightImages = Array.from(section.querySelectorAll(".spotlight-img"));
+    
+    // Capturar posición de la imagen activa en pantalla
+    const activeImg = spotlightImages[index];
+    const imgRect   = activeImg ? activeImg.getBoundingClientRect() : null;
+  
     spotlightImages.forEach((imgEl, i) => { imageStateRef.current[i] = captureImageState(imgEl); });
-
-    setDetail(item);
+  
+    setDetail({ ...item, imgRect }); // ← pasar el rect junto al item
     activeIndexRef.current = index;
     detailActiveRef.current = true;
 

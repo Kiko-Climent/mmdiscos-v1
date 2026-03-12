@@ -47,7 +47,7 @@ export default function Tests() {
       {/* <MMHeroIntro />
       <AnimationReleases12 /> */}
       {/* <MMHeroReleasesNew3 /> */}
-      <MMHeroWithReleases3 />
+      <MMHeroWithReleases4 />
       {/* <ParallaxGallery /> */}
       {/* <ParallaxGallery2 /> */}
       <ParallaxGallery6 />
