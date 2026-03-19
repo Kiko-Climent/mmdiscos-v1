@@ -7,6 +7,7 @@ import Releases5 from "@/components/releases/index5";
 import AnimationReleases12 from "@/components/AnimationReleases/index12";
 import AnimationReleases11 from "@/components/AnimationReleases/index11";
 import AnimationReleases10 from "@/components/AnimationReleases/index10";
+import MMHoldingScreen from "@/components/UnderConstruction/index";
 
 export default function Home() {
   return (
@@ -19,7 +20,7 @@ export default function Home() {
       </Head> */}
 
       {/* <AnimationReleases10 /> */}
-
+      <MMHoldingScreen />
     </div>
   );
 }
