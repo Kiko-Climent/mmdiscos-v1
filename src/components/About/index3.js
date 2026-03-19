@@ -153,7 +153,7 @@ export default function AboutSection3() {
 
         <div className="about-footer about-text absolute bottom-0 left-0 w-full flex flex-col justify-between px-6 pb-4">
           <p ref={copyrightRef} className="about-text">
-            MM Discos © 2026
+            MM Discos©2026
           </p>
           <div className="flex flex-row justify-between gap-6">
             {FOOTER_LINKS.map(({ label, href }, idx) => (
