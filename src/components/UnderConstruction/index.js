@@ -1,12 +1,24 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
 
 const MMHoldingScreen = () => {
-  const boxRef   = useRef(null);
-  const logoRef  = useRef(null);
-  const videoRef = useRef(null);
+  const boxRef        = useRef(null);
+  const logoRef       = useRef(null);
+  const logoBlackRef  = useRef(null);
+  const logoWhiteRef  = useRef(null);
+  const videoRef      = useRef(null);
+
+  const handleMouseEnter = useCallback(() => {
+    gsap.to(logoBlackRef.current, { opacity: 0, duration: 0.3, ease: "power2.out" });
+    gsap.to(logoWhiteRef.current, { opacity: 1, duration: 0.3, ease: "power2.out" });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    gsap.to(logoBlackRef.current, { opacity: 1, duration: 0.3, ease: "power2.out" });
+    gsap.to(logoWhiteRef.current, { opacity: 0, duration: 0.3, ease: "power2.out" });
+  }, []);
 
   useEffect(() => {
     // Prevent any scrolling
@@ -127,14 +139,22 @@ const MMHoldingScreen = () => {
         }}
       />
 
-      {/* Logo */}
-      <div
+      {/* Logo — clickable link */}
+      <a
         ref={logoRef}
+        href="https://mmdiscos.bandcamp.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="MM Discos en Bandcamp"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         style={{
           position: "fixed",
           zIndex: 9999,
-          pointerEvents: "none",
           opacity: 0,
+          cursor: "pointer",
+          display: "block",
+          textDecoration: "none",
         }}
       >
         {/* Invisible sizer */}
@@ -152,6 +172,7 @@ const MMHoldingScreen = () => {
         />
         {/* Black layer */}
         <div
+          ref={logoBlackRef}
           style={{ position: "absolute", inset: 0 }}
         >
           <img
@@ -165,7 +186,25 @@ const MMHoldingScreen = () => {
             }}
           />
         </div>
-      </div>
+        {/* White layer — visible on hover */}
+        <div
+          ref={logoWhiteRef}
+          style={{ position: "absolute", inset: 0, opacity: 0 }}
+        >
+          <img
+            src="/logo/Balearic Sound System Logo.svg"
+            alt=""
+            aria-hidden
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              display: "block",
+              filter: "invert(1)",
+            }}
+          />
+        </div>
+      </a>
     </div>
   );
 };
