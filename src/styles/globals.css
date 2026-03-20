@@ -167,7 +167,7 @@ body::-webkit-scrollbar {
 }
 
 .text-releases-sm {
-  font-size: clamp(0.75rem, 1.4vw, 1.6rem);
+  font-size: clamp(0.5rem, 0.75vw, 0.78rem);
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: 0.04em;

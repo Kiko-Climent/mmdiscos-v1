@@ -4,6 +4,8 @@ import { useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
 
 const MMHoldingScreen = () => {
+  const logoScale = 0.6;
+
   const boxRef        = useRef(null);
   const logoRef       = useRef(null);
   const logoBlackRef  = useRef(null);
@@ -43,13 +45,13 @@ const MMHoldingScreen = () => {
       const logoPadding = isDesktop ? "2.5rem" : "1.25rem";
 
       // Size the logo to match box width
-      gsap.set(logo, { width: boxW, padding: logoPadding });
+      gsap.set(logo, { width: boxW * logoScale, padding: logoPadding });
       const logoHeight = logo.getBoundingClientRect().height;
 
       gsap.set(logo, {
-        left:    boxLeft,
-        top:     boxTop + (boxH - logoHeight) / 2,
-        width:   boxW,
+        left: boxLeft + (boxW - boxW * logoScale) / 2,
+        top:  boxTop + (boxH - logoHeight) / 2,
+        width: boxW * logoScale,
         padding: logoPadding,
       });
 
