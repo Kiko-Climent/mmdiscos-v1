@@ -183,7 +183,7 @@ const CopyrightSVG = forwardRef(function CopyrightSVG(_, ref) {
 
       {/* El SVG con el filtro aplicado */}
       <img
-        src="/svg/MM Discos©2026.svg"
+        src="/svg/MM Discos©2026.2.svg"
         alt="MM Discos © 2026"
         draggable={false}
         style={{

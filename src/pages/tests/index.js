@@ -23,6 +23,7 @@ import MMHeroWithReleases4 from "@/components/mm_hero/MMHeroWithReleases4";
 import AboutSection4 from "@/components/About/index4";
 import MMHeroWithReleases5 from "@/components/mm_hero/MMHeroWithReleases5";
 import AboutSection5 from "@/components/About/index5";
+import MMHeroWithReleases6 from "@/components/mm_hero/MMHeroWithReleases6";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -51,7 +52,7 @@ export default function Tests() {
       <AnimationReleases12 /> */}
       {/* <MMHeroReleasesNew3 /> */}
       {/* <MMHeroWithReleases4 /> */}
-      <MMHeroWithReleases5 />
+      <MMHeroWithReleases6 />
       {/* <ParallaxGallery /> */}
       {/* <ParallaxGallery2 /> */}
       <ParallaxGallery2 />
