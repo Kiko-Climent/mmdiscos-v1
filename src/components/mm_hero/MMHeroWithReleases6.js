@@ -156,6 +156,12 @@ const MMHeroWithReleases6 = () => {
       return { boxW, boxH, boxLeft: (vw - boxW) / 2, boxTop: (vh - boxH) / 2, isDesktop };
     };
 
+    const getLogoDimensions = (vw, vh) => {
+      const isDesktop = vw >= 720;
+      const logoW = isDesktop ? vw * 0.20 : vw * 0.50;
+      return { logoW, isDesktop };
+    };
+
     const getTotalLogoHeight = (logoWidth) => {
       gsap.set(logo, { width: logoWidth });
       return logo.getBoundingClientRect().height;
@@ -164,10 +170,11 @@ const MMHeroWithReleases6 = () => {
     const initBoxAndLogo = () => {
       const { vw, vh } = getViewport();
       const { boxW, boxH, boxLeft, boxTop, isDesktop } = getBoxDimensions(vw, vh);
+      const { logoW } = getLogoDimensions(vw, vh);
       if (!isDesktop) gsap.set(box, { width: boxW, height: boxH });
       const logoPadding = isDesktop ? "2.5rem" : "1.25rem";
-      gsap.set(logo, { left: boxLeft, width: boxW, padding: logoPadding, top: boxTop + boxH / 2, bottom: "auto", opacity: 1 });
-      const logoHeight = getTotalLogoHeight(boxW);
+      gsap.set(logo, { left: (vw - logoW) / 2, width: logoW, padding: logoPadding, top: boxTop + boxH / 2, bottom: "auto", opacity: 1 });
+      const logoHeight = getTotalLogoHeight(logoW);
       gsap.set(logo, { top: boxTop + (boxH - logoHeight) / 2 });
     };
 
@@ -182,10 +189,11 @@ const MMHeroWithReleases6 = () => {
     const applyHeroProgress = (p) => {
       const { vw: vwNow, vh: vhNow } = getViewport();
       const { boxW: bW, boxH: bH, boxLeft: bL, boxTop: bT } = getBoxDimensions(vwNow, vhNow);
-      const currentWidth = gsap.utils.interpolate(bW, endWidth, p);
-      const logoHeight   = getTotalLogoHeight(currentWidth);
+      const { logoW: logoWStart, isDesktop } = getLogoDimensions(vwNow, vhNow);
+      const endLogoWidth = isDesktop ? 250 : 140; // Mobile más pequeño que el inicial (50% = ~160px)
+      const logoHeight   = getTotalLogoHeight(gsap.utils.interpolate(logoWStart, endLogoWidth, p));
       const startTopNow  = bT + (bH - logoHeight) / 2;
-      const endLeftNow   = (vwNow - endWidth) / 2;
+      const endLeftNow   = (vwNow - endLogoWidth) / 2;
 
       gsap.set(box, {
         width:           gsap.utils.interpolate(bW, vwNow, p),
@@ -194,8 +202,8 @@ const MMHeroWithReleases6 = () => {
       });
       gsap.set(logo, {
         top:   gsap.utils.interpolate(startTopNow, 0, p),
-        left:  gsap.utils.interpolate(bL, endLeftNow, p),
-        width: gsap.utils.interpolate(bW, endWidth, p),
+        left:  gsap.utils.interpolate((vwNow - logoWStart) / 2, endLeftNow, p),
+        width: gsap.utils.interpolate(logoWStart, endLogoWidth, p),
       });
       if (videoRef.current) gsap.set(videoRef.current, { opacity: 1 - p });
       setNavVisible(p > 0.92);
@@ -499,7 +507,7 @@ const MMHeroWithReleases6 = () => {
             <div className="flex flex-col items-center">
               {DataReleases.map((item, i) => (
                 <div key={i}
-                  className="artist-item text-[clamp(1.7rem,3.8vw,5rem)] uppercase text-neutral-500 h-[25px] md:h-[45px] flex items-center justify-center transition-all duration-200"
+                  className="artist-item text-[clamp(1.2rem,2.8vw,3.2rem)] uppercase text-neutral-500 h-[40px] flex items-center justify-center transition-all duration-200"
                 >
                   {item.artist}
                 </div>
