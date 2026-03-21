@@ -198,13 +198,14 @@ export default function AboutSection4() {
           ))}
         </p>
 
-        <div className="about-footer absolute bottom-0 left-0 w-full flex flex-col px-8 pb-4 gap-2">
-
+        <div className="about-footer absolute bottom-0 left-0 w-full flex flex-col pb-4 gap-2">
           {/* SVG con efecto de revelación orgánica */}
-          <CopyrightSVG ref={copyrightRef} />
+          <div className="px-5 md:px-8">
+            <CopyrightSVG ref={copyrightRef} />
+          </div>
 
           {/* Links sociales */}
-          <div className="flex flex-row justify-between">
+          <div className="flex flex-row justify-between px-5 md:px-8">
             {FOOTER_LINKS.map(({ label, href }, idx) => (
               <a
                 key={`d-${label}`}

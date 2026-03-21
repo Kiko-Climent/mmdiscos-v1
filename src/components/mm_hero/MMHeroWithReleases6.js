@@ -7,6 +7,7 @@ import { DataReleases } from "../data";
 import DetailView2 from "../tools/DetailView2";
 import NavPills from "../menu/NavPills";
 import NavPills2 from "../menu/NavPills2";
+import NavPills3 from "../menu/NavPills3";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -17,6 +18,8 @@ const MMHeroWithReleases6 = () => {
   const boxRef    = useRef(null);
   const logoRef   = useRef(null);
   const videoRef  = useRef(null);
+  const navPillsRef = useRef(null);
+
 
   const sectionRef      = useRef(null);
   const [detail, setDetail]   = useState(null);
@@ -364,6 +367,7 @@ const MMHeroWithReleases6 = () => {
       else cutPercent = ((curtainTop - logoTop) / logoHeight) * 100;
       logoBlackRef.style.clipPath = `inset(0 0 ${100 - cutPercent}% 0)`;
       logoWhiteRef.style.clipPath = `inset(${cutPercent}% 0 0 0)`;
+      navPillsRef.current?.updateCurtain(curtainTop, vh);
     };
     const logoCurtainTrigger = ScrollTrigger.create({
       trigger: document.body,
@@ -524,7 +528,7 @@ const MMHeroWithReleases6 = () => {
           />
         </div>
       </section>
-      <NavPills2 visible={navVisible} logoRef={logoRef}/>
+      <NavPills3 ref={navPillsRef} visible={navVisible} logoRef={logoRef} />
     </>
   );
 };
