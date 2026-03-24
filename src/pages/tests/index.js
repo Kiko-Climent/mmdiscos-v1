@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
@@ -32,21 +32,47 @@ export default function Tests() {
 
   const lenisRef = useRef(null);
 
-  useEffect(() => {
-    history.scrollRestoration = "manual"; // desactiva la restauración del navegador
+  // useLayoutEffect: antes que los useEffect de los hijos (p. ej. MMHero), para que Lenis + proxy existan cuando se crean los ScrollTriggers
+  useLayoutEffect(() => {
+    history.scrollRestoration = "manual";
     window.scrollTo(0, 0);
-  
+
     const lenis = new Lenis();
     lenisRef.current = lenis;
     lenis.scrollTo(0, { immediate: true });
+
+    const scroller = document.documentElement;
+    ScrollTrigger.scrollerProxy(scroller, {
+      scrollTop(value) {
+        if (arguments.length) {
+          lenis.scrollTo(value, { immediate: true, force: true });
+        }
+        return lenis.scroll;
+      },
+      getBoundingClientRect() {
+        return {
+          top: 0,
+          left: 0,
+          width: window.innerWidth,
+          height: window.innerHeight,
+        };
+      },
+    });
+    ScrollTrigger.defaults({ scroller });
+    ScrollTrigger.refresh();
+
     lenis.on("scroll", ScrollTrigger.update);
     const rafCb = (time) => lenis.raf(time * 1000);
     gsap.ticker.add(rafCb);
     gsap.ticker.lagSmoothing(0);
-  
+
     return () => {
       gsap.ticker.remove(rafCb);
       lenis.destroy();
+      lenisRef.current = null;
+      ScrollTrigger.scrollerProxy(scroller);
+      delete ScrollTrigger.defaults().scroller;
+      ScrollTrigger.refresh(true);
     };
   }, []);
 

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from "react";
 import gsap from "gsap";
 
-const NavPills3 = forwardRef(({ visible, logoRef }, ref) => {
+const NavPills3 = forwardRef(({ visible, logoRef, onReleasesClick, onStatementClick }, ref) => {
   const releasesRef       = useRef(null);
   const statementRef      = useRef(null);
   const releasesWhiteRef  = useRef(null);
@@ -12,7 +12,7 @@ const NavPills3 = forwardRef(({ visible, logoRef }, ref) => {
 
   // ── Expone updateCurtain al padre ─────────────────────────────────────
   useImperativeHandle(ref, () => ({
-    updateCurtain(aboutTop, viewportHeight) {
+    updateCurtain(aboutTop, viewportHeight, aboutBottom) {
       const pills = [
         { dark: releasesRef.current,  white: releasesWhiteRef.current },
         { dark: statementRef.current, white: statementWhiteRef.current },
@@ -26,7 +26,10 @@ const NavPills3 = forwardRef(({ visible, logoRef }, ref) => {
         const pillHeight = pillBottom - pillTop;
 
         let cutPercent;
-        if (aboutTop > viewportHeight || pillHeight === 0) {
+        // About ya salió por arriba del viewport: no forzar capa blanca (texto blanco invisible)
+        if (typeof aboutBottom === "number" && aboutBottom < 0) {
+          cutPercent = 100;
+        } else if (aboutTop > viewportHeight || pillHeight === 0) {
           cutPercent = 100; // cortina aún no llegó
         } else if (aboutTop <= pillTop) {
           cutPercent = 0;   // cortina ya cubrió todo el pill
@@ -103,8 +106,16 @@ const NavPills3 = forwardRef(({ visible, logoRef }, ref) => {
     transition: "background 0.2s ease",
   };
 
+  const buttonReset = {
+    border: "none",
+    margin: 0,
+    WebkitAppearance: "none",
+    appearance: "none",
+  };
+
   const darkPill = {
     ...pillBase,
+    ...buttonReset,
     background: "rgba(255,255,255,0.18)",
     color: "#1a1a1a",
     zIndex: 10000,
@@ -125,13 +136,13 @@ const NavPills3 = forwardRef(({ visible, logoRef }, ref) => {
 
   return (
     <>
-      {/* Capa dark */}
-      <a ref={releasesRef}  href="#releases"  style={darkPill}  onMouseEnter={hoverIn} onMouseLeave={hoverOut}>releases</a>
-      <a ref={statementRef} href="#statement" style={darkPill}  onMouseEnter={hoverIn} onMouseLeave={hoverOut}>statement</a>
+      {/* Botones: <a href="#"> hace que el navegador salte al inicio (tests#) */}
+      <button type="button" ref={releasesRef} style={darkPill} onMouseEnter={hoverIn} onMouseLeave={hoverOut} onClick={() => onReleasesClick?.()}>releases</button>
+      <button type="button" ref={statementRef} style={darkPill} onMouseEnter={hoverIn} onMouseLeave={hoverOut} onClick={() => onStatementClick?.()}>statement</button>
 
       {/* Capa white — revelada por clip-path */}
-      <a ref={releasesWhiteRef}  href="#releases"  style={whitePill}>releases</a>
-      <a ref={statementWhiteRef} href="#statement" style={whitePill}>statement</a>
+      <span ref={releasesWhiteRef} style={whitePill} aria-hidden>releases</span>
+      <span ref={statementWhiteRef} style={whitePill} aria-hidden>statement</span>
     </>
   );
 });

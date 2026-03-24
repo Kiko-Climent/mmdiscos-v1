@@ -11,7 +11,7 @@ import NavPills3 from "../menu/NavPills3";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const MMHeroWithReleases6 = () => {
+const MMHeroWithReleases6 = ({ lenisRef } = {}) => {
   const ReleaseImages = DataReleases.slice(0, 14);
 
   const spacerRef = useRef(null);
@@ -19,7 +19,10 @@ const MMHeroWithReleases6 = () => {
   const logoRef   = useRef(null);
   const videoRef  = useRef(null);
   const navPillsRef = useRef(null);
-
+  const scrollToReleasesRef = useRef(() => {});
+  const scrollToStatementRef = useRef(() => {});
+  /** Scroll Y real (Lenis/window) al entrar en la fase del listado; los .end de ST no coinciden siempre con Lenis. */
+  const navReleasesScrollYPxRef = useRef(null);
 
   const sectionRef      = useRef(null);
   const [detail, setDetail]   = useState(null);
@@ -188,6 +191,7 @@ const MMHeroWithReleases6 = () => {
     const HERO_SCROLL = vh * 1.5;
     const endWidth    = isDesktop ? 250 : 160;
     let heroTrigger;
+    let heroEndPx = 0;
 
     const applyHeroProgress = (p) => {
       const { vw: vwNow, vh: vhNow } = getViewport();
@@ -209,13 +213,20 @@ const MMHeroWithReleases6 = () => {
         width: gsap.utils.interpolate(logoWStart, endLogoWidth, p),
       });
       if (videoRef.current) gsap.set(videoRef.current, { opacity: 1 - p });
-      setNavVisible(p > 0.92);
+      const yScroll = window.scrollY || document.documentElement.scrollTop || 0;
+      // Tras refresh o saltos de scroll, el scrub del hero puede reportar p bajo aunque ya pasamos el hero
+      const showNav = p > 0.92 || (heroEndPx > 0 && yScroll >= heroEndPx - 2);
+      setNavVisible(showNav);
     };
 
     heroTrigger = ScrollTrigger.create({
       trigger: spacer, start: "top top", end: `+=${HERO_SCROLL}`, scrub: 1,
-      onUpdate: (self) => applyHeroProgress(self.progress),
+      onUpdate: (self) => {
+        heroEndPx = self.end;
+        applyHeroProgress(self.progress);
+      },
     });
+    heroEndPx = heroTrigger.end;
 
     const spotlightImages   = section.querySelectorAll(".spotlight-img");
     const baseRotations     = [5, -3, 3.5, -1];
@@ -253,6 +264,12 @@ const MMHeroWithReleases6 = () => {
     const totalInnerScroll  = (artistContainer?.scrollHeight ?? 0) - (artistContainer?.clientHeight ?? 0);
     const totalScrollLength = totalInnerScroll + vh * 1.5;
 
+    const readViewportScrollY = () => {
+      const l = lenisRef?.current;
+      if (l != null && typeof l.scroll === "number" && Number.isFinite(l.scroll)) return l.scroll;
+      return window.scrollY || document.documentElement.scrollTop || 0;
+    };
+
     const secondTrigger = ScrollTrigger.create({
       trigger: section,
       start:   () => stackTrigger.end,
@@ -261,6 +278,8 @@ const MMHeroWithReleases6 = () => {
       onEnter: () => {
         if (artistWrapper) gsap.to(artistWrapper, { opacity: 1, duration: 1 });
         showLabels();
+        // Al bajar desde el stack: este Y es el que Lenis/window usa de verdad (válido para scrollTo desde About)
+        navReleasesScrollYPxRef.current = Math.round(readViewportScrollY());
       },
       onLeave: () => {
         hideLabels();
@@ -349,12 +368,14 @@ const MMHeroWithReleases6 = () => {
     const logoWhiteRef = logoRef.current?.querySelector(".logo-layer-white");
     const updateLogoMask = () => {
       if (!aboutSection || !logo || !logoBlackRef || !logoWhiteRef) return;
-      const curtainTop = aboutSection.getBoundingClientRect().top;
+      const ab = aboutSection.getBoundingClientRect();
+      const curtainTop = ab.top;
       const vh = window.innerHeight;
       // Antes de About (cortina abajo del viewport): logo negro (sin invert)
       if (curtainTop > vh) {
         logoBlackRef.style.clipPath = "inset(0 0 0 0)";
         logoWhiteRef.style.clipPath = "inset(100% 0 0 0)";
+        navPillsRef.current?.updateCurtain(curtainTop, vh, ab.bottom);
         return;
       }
       const logoRect = logo.getBoundingClientRect();
@@ -367,7 +388,7 @@ const MMHeroWithReleases6 = () => {
       else cutPercent = ((curtainTop - logoTop) / logoHeight) * 100;
       logoBlackRef.style.clipPath = `inset(0 0 ${100 - cutPercent}% 0)`;
       logoWhiteRef.style.clipPath = `inset(${cutPercent}% 0 0 0)`;
-      navPillsRef.current?.updateCurtain(curtainTop, vh);
+      navPillsRef.current?.updateCurtain(curtainTop, vh, ab.bottom);
     };
     const logoCurtainTrigger = ScrollTrigger.create({
       trigger: document.body,
@@ -378,13 +399,79 @@ const MMHeroWithReleases6 = () => {
     });
     updateLogoMask();
 
+    const seedNavReleasesYFromTriggers = () => {
+      const base = stackTrigger.end;
+      const end = secondTrigger.end;
+      const span = Math.max(0, end - base);
+      const vhNow = window.innerHeight;
+      const into = span > 0 ? Math.min(vhNow * 0.12, span * 0.08) : 0;
+      let y = base + into;
+      if (span > 0) y = Math.min(y, end - 32);
+      const seeded = Math.max(0, Math.round(y));
+      if (Number.isFinite(seeded) && seeded > (heroEndPx || 0) + 40) {
+        navReleasesScrollYPxRef.current = seeded;
+      }
+    };
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(seedNavReleasesYFromTriggers);
+    });
+
+    scrollToReleasesRef.current = () => {
+      setNavVisible(true);
+      const lenis = lenisRef?.current;
+      requestAnimationFrame(() => {
+        lenis?.resize?.();
+        const vhNow = window.innerHeight;
+        const stEnd = secondTrigger.end;
+        const heroMin = Math.max(0, (heroTrigger?.end ?? heroEndPx ?? 0) + 40);
+        let target;
+        const cap = navReleasesScrollYPxRef.current;
+        if (cap != null && Number.isFinite(cap) && cap >= heroMin) {
+          target = Math.round(cap + Math.min(vhNow * 0.08, 100));
+          target = Math.min(target, stEnd - 20);
+        } else {
+          const base = stackTrigger.end;
+          const span = Math.max(0, stEnd - base);
+          const into = span > 0 ? Math.min(vhNow * 0.12, span * 0.08) : 0;
+          target = base + into;
+          if (span > 0) target = Math.min(target, stEnd - 32);
+        }
+        target = Math.max(0, Math.round(target));
+        const cur = lenis != null ? lenis.scroll : readViewportScrollY();
+        if (Math.abs(cur - target) < 8) {
+          seedNavReleasesYFromTriggers();
+          const cap2 = navReleasesScrollYPxRef.current;
+          if (cap2 != null && Number.isFinite(cap2) && Math.abs(cur - cap2) > 16) {
+            target = Math.max(0, Math.min(Math.round(cap2 + Math.min(vhNow * 0.08, 100)), stEnd - 20));
+          }
+        }
+        if (lenis) lenis.scrollTo(target, { duration: 1.35, force: true });
+        else window.scrollTo({ top: target, behavior: "smooth" });
+      });
+    };
+
+    scrollToStatementRef.current = () => {
+      setNavVisible(true);
+      const lenis = lenisRef?.current;
+      requestAnimationFrame(() => {
+        lenis?.resize?.();
+        const maxY = lenis != null
+          ? Math.round(lenis.limit)
+          : Math.round(ScrollTrigger.maxScroll(window));
+        if (lenis) lenis.scrollTo(maxY, { duration: 1.65, force: true });
+        else window.scrollTo({ top: maxY, behavior: "smooth" });
+      });
+    };
+
     let resizeTimeout = null;
     const onResize = () => {
       if (resizeTimeout) clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
         resizeTimeout = null;
         ScrollTrigger.refresh();
-        if (heroTrigger?.isActive) applyHeroProgress(heroTrigger.progress);
+        if (heroTrigger) heroEndPx = heroTrigger.end;
+        applyHeroProgress(heroTrigger?.progress ?? 0);
         updateLogoMask();
       }, 80);
     };
@@ -506,7 +593,7 @@ const MMHeroWithReleases6 = () => {
           })}
         </div>
 
-        <div className="artist-list-wrapper absolute inset-0 z-[5] opacity-0 pointer-events-auto">
+        <div id="releases" className="artist-list-wrapper absolute inset-0 z-[5] opacity-0 pointer-events-auto">
           <div className="artist-scroll-container absolute top-0 w-full h-full no-scrollbar pt-[50svh] pb-[50svh]">
             <div className="flex flex-col items-center">
               {DataReleases.map((item, i) => (
@@ -528,7 +615,13 @@ const MMHeroWithReleases6 = () => {
           />
         </div>
       </section>
-      <NavPills3 ref={navPillsRef} visible={navVisible} logoRef={logoRef} />
+      <NavPills3
+        ref={navPillsRef}
+        visible={navVisible}
+        logoRef={logoRef}
+        onReleasesClick={() => scrollToReleasesRef.current()}
+        onStatementClick={() => scrollToStatementRef.current()}
+      />
     </>
   );
 };

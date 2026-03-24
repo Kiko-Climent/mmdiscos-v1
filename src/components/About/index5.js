@@ -182,7 +182,7 @@ export default function AboutSection4() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="about-section relative">
+    <section id="statement" ref={sectionRef} className="about-section relative">
       <div className="about-inner">
 
         <p className="about-text" aria-label={RAW_TEXT}>
