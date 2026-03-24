@@ -205,7 +205,7 @@ export default function AboutSection4() {
           </div>
 
           {/* Links sociales */}
-          <div className="flex flex-row justify-between px-5 md:px-8">
+          <div className="flex flex-row justify-between px-8">
             {FOOTER_LINKS.map(({ label, href }, idx) => (
               <a
                 key={`d-${label}`}

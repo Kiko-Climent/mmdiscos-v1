@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
@@ -29,11 +29,15 @@ gsap.registerPlugin(ScrollTrigger);
 
 
 export default function Tests() {
+
+  const lenisRef = useRef(null);
+
   useEffect(() => {
     history.scrollRestoration = "manual"; // desactiva la restauración del navegador
     window.scrollTo(0, 0);
   
     const lenis = new Lenis();
+    lenisRef.current = lenis;
     lenis.scrollTo(0, { immediate: true });
     lenis.on("scroll", ScrollTrigger.update);
     const rafCb = (time) => lenis.raf(time * 1000);
@@ -52,7 +56,7 @@ export default function Tests() {
       <AnimationReleases12 /> */}
       {/* <MMHeroReleasesNew3 /> */}
       {/* <MMHeroWithReleases4 /> */}
-      <MMHeroWithReleases6 />
+      <MMHeroWithReleases6 lenisRef={lenisRef} />
       {/* <ParallaxGallery /> */}
       {/* <ParallaxGallery2 /> */}
       <ParallaxGallery2 />

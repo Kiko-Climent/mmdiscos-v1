@@ -36,11 +36,15 @@ export default function ParallaxGallery2() {
 
     const isMobile = () => window.innerWidth < 768;
 
+    const refreshAll = () => ScrollTrigger.refresh();
+
     const revealTrigger = ScrollTrigger.create({
       trigger: spacer,
       start: "top bottom",
-      end:   "top top",
+      // Móvil: la cortina (clip-path) completa el recorrido en ~45vh de scroll en lugar de ~100vh
+      end: () => (isMobile() ? "top 55%" : "top top"),
       scrub: 1,
+      invalidateOnRefresh: true,
       onUpdate: (self) => {
         if (!gallery) return;
         gallery.style.clipPath = `inset(${(1 - self.progress) * 100}% 0 0 0)`;
@@ -52,6 +56,7 @@ export default function ParallaxGallery2() {
       start: "top bottom",
       end:   "bottom bottom",
       scrub: 1,
+      invalidateOnRefresh: true,
       onUpdate: (self) => {
         const p        = self.progress;
         const mobile   = isMobile();
@@ -66,7 +71,14 @@ export default function ParallaxGallery2() {
       },
     });
 
-    return () => { trigger.kill(); revealTrigger.kill(); };
+    window.addEventListener("resize", refreshAll);
+    refreshAll();
+
+    return () => {
+      window.removeEventListener("resize", refreshAll);
+      trigger.kill();
+      revealTrigger.kill();
+    };
   }, []);
 
   let sideIdx = 0;
@@ -74,7 +86,14 @@ export default function ParallaxGallery2() {
   return (
     <>
       <style>{`
+        .pg2-scroll-spacer {
+          height: 300vh;
+        }
         @media (max-width: 767px) {
+          .pg2-scroll-spacer {
+            /* Mucho menos recorrido antes de que el About (cortina blur) entre en viewport */
+            height: 140vh;
+          }
           .pg2-wrapper {
             gap: ${GAP_MOBILE} !important;
             width: 200vw !important;
@@ -152,7 +171,8 @@ export default function ParallaxGallery2() {
 
       <section
         ref={spacerRef}
-        style={{ width: "100vw", height: "300vh", pointerEvents: "none" }}
+        className="pg2-scroll-spacer"
+        style={{ width: "100vw", pointerEvents: "none" }}
       />
     </>
   );
