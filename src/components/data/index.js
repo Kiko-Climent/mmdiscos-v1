@@ -6,6 +6,7 @@ export const DataReleases = [
     year: "2023",
     format: "AIFF, FLAC, MP3, WAV",
     vinyl: "12\" 33 ⅓ RPM",
+    type: "LP",
     ref: "mmd028",
     tracklist: [
       "Full Bloom",
@@ -33,6 +34,7 @@ export const DataReleases = [
     year: "2023",
     format: "AIFF, FLAC, MP3, WAV",
     vinyl: "12\" 33 ⅓ RPM",
+    type: "EP, Compilation",
     ref: "mmd024",
     tracklist: [
       "Jaisiel - Timeless",
@@ -50,6 +52,7 @@ export const DataReleases = [
     image: "/statues.jpeg",
     year: "2024",
     format: "AIFF, FLAC, MP3, WAV",
+    type: "EP",
     ref: "mmd030",
     tracklist: [
       "Slipstream",
@@ -69,6 +72,7 @@ export const DataReleases = [
     year: "2024",
     format: "AIFF, FLAC, MP3, WAV",
     vinyl: "12\" 33 ⅓ RPM",
+    type: "LP",
     ref: "mms007",
     tracklist: [
       "Make It Move",
@@ -90,6 +94,7 @@ export const DataReleases = [
     image: "/Celex - cover.jpg",
     year: "2024",
     format: "AIFF, FLAC, MP3, WAV",
+    type: "Mini Album",
     ref: "mmd031",
     tracklist: [
       "Aquarius",
@@ -109,6 +114,7 @@ export const DataReleases = [
     image: "/Daichi - cover.jpg",
     year: "2024",
     format: "AIFF, FLAC, MP3, WAV",
+    type: "EP",
     ref: "mmd033",
     tracklist: [
       "See Of Cosmic",
@@ -129,6 +135,7 @@ export const DataReleases = [
     image: "/img1.jpg",
     year: "2025",
     format: "AIFF, FLAC, MP3, WAV",
+    type: "EP",
     ref: "mmd035",
     tracklist: [
       "Fantasy",
@@ -146,6 +153,7 @@ export const DataReleases = [
     image: "/img4.jpg",
     year: "2025",
     format: "AIFF, FLAC, MP3, WAV",
+    type: "EP",
     ref: "mmd036",
     tracklist: [
       "Kyobashi",
@@ -164,6 +172,7 @@ export const DataReleases = [
     year: "2025",
     format: "AIFF, FLAC, MP3, WAV",
     vinyl: "12\" 33 ⅓ RPM",
+    type: "Mini Album",
     ref: "mmd032",
     tracklist: [
       "Cloud Waves (New Age Balearic Mix)",
@@ -184,6 +193,7 @@ export const DataReleases = [
     image: "/img2.jpg",
     year: "2025",
     format: "AIFF, FLAC, MP3, WAV",
+    type: "EP",
     ref: "mmd037",
     tracklist: [
       "Ten9Eight",
@@ -200,6 +210,7 @@ export const DataReleases = [
     image: "/MMD038.png",
     year: "2025",
     format: "AIFF, FLAC, MP3, WAV",
+    type: "EP",
     ref: "mmd038",
     tracklist: [
       "Yes, Maybe No",
@@ -219,6 +230,7 @@ export const DataReleases = [
     year: "2025",
     format: "AIFF, FLAC, MP3, WAV",
     vinyl: "12\" 33 ⅓ RPM",
+    type: "Mini Album",
     ref: "mmd039",
     tracklist: [
       "Sunset '92",
@@ -239,6 +251,7 @@ export const DataReleases = [
     image: "/MMD040_Cover-1.jpg",
     year: "2025",
     format: "AIFF, FLAC, MP3, WAV",
+    type: "LP, Compilation",
     ref: "mmd040.1",
     tracklist: [
       "Pleasure Voyage - Puertas del Cielo",
@@ -262,6 +275,7 @@ export const DataReleases = [
     image: "/MMD040-2.png",
     year: "2026",
     format: "AIFF, FLAC, MP3, WAV",
+    type: "LP, Compilation",
     ref: "mmd040.2",
     tracklist: [
       "Feel Fly - Arama Depesco ",

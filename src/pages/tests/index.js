@@ -24,6 +24,10 @@ import AboutSection4 from "@/components/About/index4";
 import MMHeroWithReleases5 from "@/components/mm_hero/MMHeroWithReleases5";
 import AboutSection5 from "@/components/About/index5";
 import MMHeroWithReleases6 from "@/components/mm_hero/MMHeroWithReleases6";
+import MMDiscosHero4 from "@/components/MMDiscos_Hero/MMDiscosHero4";
+import MMDiscosHero3 from "@/components/MMDiscos_Hero/MMDiscosHero3";
+import MMDiscosHero5 from "@/components/MMDiscos_Hero/MMDiscosHero5";
+import MMDiscosHeroFinal from "@/components/MMDiscos_Hero/MMDiscosHeroFinal";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -82,7 +86,9 @@ export default function Tests() {
       <AnimationReleases12 /> */}
       {/* <MMHeroReleasesNew3 /> */}
       {/* <MMHeroWithReleases4 /> */}
-      <MMHeroWithReleases6 lenisRef={lenisRef} />
+      {/* <MMHeroWithReleases6 lenisRef={lenisRef} /> */}
+      {/* <MMDiscosHero3 /> */}
+      <MMDiscosHeroFinal />
       {/* <ParallaxGallery /> */}
       {/* <ParallaxGallery2 /> */}
       <ParallaxGallery2 />

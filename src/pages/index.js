@@ -8,6 +8,15 @@ import AnimationReleases12 from "@/components/AnimationReleases/index12";
 import AnimationReleases11 from "@/components/AnimationReleases/index11";
 import AnimationReleases10 from "@/components/AnimationReleases/index10";
 import MMHoldingScreen from "@/components/UnderConstruction/index";
+import MM_Hero from "@/components/mm_hero/index";
+import MM_Hero2 from "@/components/mm_hero/index2";
+import MMDiscosHero from "@/components/MMDiscos_Hero/MMDiscosHero";
+import MM_Hero3 from "@/components/mm_hero/index3";
+import MMDiscosHero2 from "@/components/MMDiscos_Hero/MMDiscosHero2";
+import ParallaxGallery2 from "@/components/ParallaxGallery/ParallaxGallery2";
+import AboutSection5 from "@/components/About/index5";
+import MMDiscosHero3 from "@/components/MMDiscos_Hero/MMDiscosHero3";
+import MMDiscosHero4 from "@/components/MMDiscos_Hero/MMDiscosHero4";
 
 export default function Home() {
   return (
@@ -20,7 +29,10 @@ export default function Home() {
       </Head> */}
 
       {/* <AnimationReleases10 /> */}
-      <MMHoldingScreen />
+      {/* <MMHoldingScreen /> */}
+      <MMDiscosHero3 />
+      <ParallaxGallery2 />
+      <AboutSection5 />
     </div>
   );
 }

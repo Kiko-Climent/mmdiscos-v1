@@ -6,7 +6,7 @@ import Lenis from "lenis";
 
 gsap.registerPlugin(ScrollTrigger, Flip);
 
-export default function MM_HeroIntro() {
+export default function MM_Hero4() {
   const backdropRef = useRef(null);
   const boxRef = useRef(null);
   const logoRef = useRef(null);

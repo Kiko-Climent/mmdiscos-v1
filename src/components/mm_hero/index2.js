@@ -8,7 +8,7 @@ import styles from "./MM_Hero.module.css";
 
 gsap.registerPlugin(ScrollTrigger, Flip);
 
-export default function MM_Hero() {
+export default function MM_Hero2() {
   const backdropRef = useRef(null);
   const bgRef = useRef(null);
   const logoRef = useRef(null);
