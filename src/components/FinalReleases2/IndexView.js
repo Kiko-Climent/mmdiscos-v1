@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DataReleases } from "../data/index";
 
-const COLS = [
+const COLS_DESKTOP = [
   { key: "ref" },
   { key: "artist" },
   { key: "title" },
@@ -12,11 +12,27 @@ const COLS = [
   { key: "format", right: true },
 ];
 
-const GRID = `repeat(${COLS.length}, 1fr)`;
+const COLS_MOBILE = [
+  { key: "ref" },
+  { key: "artist" },
+  { key: "title" },
+  { key: "year", right: true },
+];
 
 export default function IndexView() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
   const hoveredRelease = hoveredIndex !== null ? DataReleases[hoveredIndex] : null;
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const COLS = isMobile ? COLS_MOBILE : COLS_DESKTOP;
+  const GRID = `repeat(${COLS.length}, 1fr)`;
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
@@ -40,13 +56,13 @@ export default function IndexView() {
           <img
             src={hoveredRelease.image}
             alt={hoveredRelease.title}
-            style={{ width: 480, height: 480, objectFit: "cover" }}
+            style={{ width: isMobile ? 220 : 480, height: isMobile ? 220 : 480, objectFit: "cover" }}
           />
         )}
       </div>
 
       {/* Release list */}
-      <div className="w-full px-10" style={{ position: "relative", zIndex: 2 }}>
+      <div style={{ position: "relative", zIndex: 2, width: "100%", padding: isMobile ? "0 16px" : "0 40px", boxSizing: "border-box" }}>
 
         {/* Rows */}
         {DataReleases.map((release, i) => (

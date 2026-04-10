@@ -26,7 +26,7 @@ const DEFAULT_CREDITS_LINES = [
   "Powered By MM Discos",
 ];
 
-const COLS = [
+const COLS_DESKTOP = [
   { key: "ref"    },
   { key: "artist" },
   { key: "title"  },
@@ -34,7 +34,13 @@ const COLS = [
   { key: "type"   },
   { key: "format", right: true },
 ];
-const GRID = `repeat(${COLS.length}, 1fr)`;
+
+const COLS_MOBILE = [
+  { key: "ref"    },
+  { key: "artist" },
+  { key: "title"  },
+  { key: "year", right: true },
+];
 
 // ─── Helpers de estilo ────────────────────────────────────────────────────────
 const pLabel = () => ({
@@ -69,8 +75,18 @@ export default function IndexReleases3() {
   const [hoveredIndex,  setHoveredIndex]  = useState(null);
   const [focusedIndex,  setFocusedIndex]  = useState(null);
   const [visible,       setVisible]       = useState(false);
+  const [isMobile,      setIsMobile]      = useState(false);
 
   const focusedData = focusedIndex !== null ? DataReleases[focusedIndex] : null;
+  const COLS = isMobile ? COLS_MOBILE : COLS_DESKTOP;
+  const GRID = `repeat(${COLS.length}, 1fr)`;
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   const openDetail = (i) => {
     setFocusedIndex(i);
@@ -119,7 +135,15 @@ export default function IndexReleases3() {
       )}
 
       {/* ── Lista ─────────────────────────────────────────────────────────── */}
-      <div className="w-full px-10" style={{ position: "relative", zIndex: 1 }}>
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          width: "100%",
+          padding: isMobile ? "0 16px" : "0 40px",
+          boxSizing: "border-box",
+        }}
+      >
         {DataReleases.map((release, i) => (
           <div
             key={i}
@@ -157,7 +181,9 @@ export default function IndexReleases3() {
             opacity:    visible ? 1 : 0,
             transition: "opacity 0.3s ease",
             display:    "flex",
-            alignItems: "center",
+            alignItems: isMobile ? "flex-start" : "center",
+            flexDirection: isMobile ? "column" : "row",
+            overflowY:  isMobile ? "auto" : "hidden",
           }}
         >
           {/* Botón cerrar */}
@@ -165,8 +191,8 @@ export default function IndexReleases3() {
             onClick={closeDetail}
             style={{
               position:      "absolute",
-              top:           SIDE_PAD,
-              right:         SIDE_PAD,
+              top:           isMobile ? 16 : SIDE_PAD,
+              right:         isMobile ? 16 : SIDE_PAD,
               background:    "none",
               border:        "none",
               cursor:        "pointer",
@@ -181,174 +207,221 @@ export default function IndexReleases3() {
             Close
           </button>
 
-          {/* ── Columna 1: miniaturas ──────────────────────────────────────── */}
-          <div
-            style={{
-              flexShrink:     0,
-              width:          THUMB_W + SIDE_PAD * 2,
-              height:         "100%",
-              display:        "flex",
-              flexDirection:  "column",
-              alignItems:     "center",
-              justifyContent: "center",
-              gap:            THUMB_GAP,
-              padding:        `${SIDE_PAD}px ${SIDE_PAD}px`,
-              overflowY:      "auto",
-              boxSizing:      "border-box",
-            }}
-          >
-            {thumbReleases.map((r, i) => (
-              <div
-                key={i}
-                onClick={() => {
-                  const realIndex = DataReleases.findIndex((d) => d === r);
-                  setFocusedIndex(realIndex);
-                }}
-                style={{
-                  width:        THUMB_W,
-                  height:       THUMB_H,
-                  flexShrink:   0,
-                  cursor:       "pointer",
-                  overflow:     "hidden",
-                  opacity:      0.6,
-                  transition:   "opacity 0.15s ease",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}
-              >
-                {r.image ? (
-                  <img
-                    src={r.image}
-                    alt={r.title}
-                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                  />
-                ) : (
-                  <div style={{ width: "100%", height: "100%", background: "#eee" }} />
-                )}
+          {/* ── MÓVIL: layout vertical ─────────────────────────────────────── */}
+          {isMobile ? (
+            <div style={{ width: "100%", padding: "48px 24px 32px", boxSizing: "border-box" }}>
+              {/* Imagen */}
+              {focusedData.image && (
+                <img
+                  src={focusedData.image}
+                  alt={focusedData.title}
+                  style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", display: "block", marginBottom: 20 }}
+                />
+              )}
+              {/* Info básica */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
+                <p style={pLabel()}>{focusedData.ref}</p>
+                <p style={pLabel()}>{focusedData.artist}</p>
+                <p style={pText()}>{focusedData.title}</p>
+                <p style={pText()}>{focusedData.year}</p>
               </div>
-            ))}
-          </div>
-
-          {/* ── Columna 2: imagen hero ─────────────────────────────────────── */}
-          <div
-            style={{
-              flexShrink: 0,
-              width:      HERO_SIZE,
-              height:     HERO_SIZE,
-            }}
-          >
-            {focusedData.image && (
-              <img
-                src={focusedData.image}
-                alt={focusedData.title}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              />
-            )}
-          </div>
-
-          {/* ── Columna 3: info ───────────────────────────────────────────── */}
-          <div
-            style={{
-              flexShrink:     0,
-              width:          160,
-              height:         HERO_SIZE,
-              marginLeft:     COL_GAP,
-              display:        "flex",
-              flexDirection:  "column",
-              justifyContent: "space-between",
-            }}
-          >
-            {/* Artist + Title */}
-            <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
-              <p style={pLabel()}>{focusedData.artist}</p>
-              <p style={pText()}>{focusedData.title}</p>
-            </div>
-
-            {/* Year + Ref */}
-            <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
-              <p style={pText()}>{focusedData.year}</p>
-              <p style={pLabel()}>{focusedData.ref}</p>
-            </div>
-
-            {/* Type + Format + Vinyl */}
-            <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
-              <p style={pText()}>{focusedData.type}</p>
-              <p style={pText()}>{focusedData.format}</p>
-              {focusedData.vinyl && <p style={pText()}>{focusedData.vinyl}</p>}
-            </div>
-          </div>
-
-          {/* ── Columna 4: tracklist + credits ────────────────────────────── */}
-          <div
-            style={{
-              flex:           1,
-              height:         HERO_SIZE,
-              marginLeft:     COL_GAP,
-              marginRight:    SIDE_PAD,
-              display:        "flex",
-              flexDirection:  "column",
-              justifyContent: "space-between",
-              overflow:       "hidden",
-            }}
-          >
-            {/* Tracklist */}
-            <div style={{ overflow: "auto", flex: 1 }}>
-              {focusedData.tracklist?.map((track, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display:    "flex",
-                    alignItems: "baseline",
-                    gap:        10,
-                    lineHeight: PANEL_LINE_HEIGHT,
-                  }}
-                >
-                  <span style={{
-                    fontSize:           PANEL_FONT_SIZE,
-                    color:              PANEL_TEXT,
-                    minWidth:           18,
-                    letterSpacing:      "0.06em",
-                    fontVariantNumeric: "tabular-nums",
-                    flexShrink:         0,
-                  }}>
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span style={pText()}>{track}</span>
+              {/* Tracklist */}
+              {focusedData.tracklist?.length > 0 && (
+                <div style={{ marginBottom: 20 }}>
+                  {focusedData.tracklist.map((track, i) => (
+                    <div key={i} style={{ display: "flex", gap: 10, lineHeight: PANEL_LINE_HEIGHT }}>
+                      <span style={{
+                        fontSize:           PANEL_FONT_SIZE,
+                        color:              PANEL_TEXT,
+                        minWidth:           18,
+                        letterSpacing:      "0.06em",
+                        fontVariantNumeric: "tabular-nums",
+                        flexShrink:         0,
+                      }}>
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <span style={pText()}>{track}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-
-            {/* Credits + Links */}
-            <div style={{ flexShrink: 0, paddingTop: 16 }}>
-              <p style={{ ...pLabel(), marginBottom: PANEL_GAP_TIGHT * 2 }}>Credits</p>
-              {DEFAULT_CREDITS_LINES.map((line, i) => (
-                <p key={i} style={{ ...pText(), margin: 0 }}>{line}</p>
-              ))}
-
-              <div style={{ display: "flex", gap: 16, marginTop: 12 }}>
+              )}
+              {/* Links */}
+              <div style={{ display: "flex", gap: 16 }}>
                 {focusedData.bandcamp && (
-                  <a
-                    href={focusedData.bandcamp}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ ...pLabel(), textDecoration: "none" }}
-                  >
+                  <a href={focusedData.bandcamp} target="_blank" rel="noopener noreferrer" style={{ ...pLabel(), textDecoration: "none" }}>
                     Bandcamp ↗
                   </a>
                 )}
                 {focusedData.soundcloud && (
-                  <a
-                    href={focusedData.soundcloud}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ ...pLabel(), textDecoration: "none" }}
-                  >
+                  <a href={focusedData.soundcloud} target="_blank" rel="noopener noreferrer" style={{ ...pLabel(), textDecoration: "none" }}>
                     Soundcloud ↗
                   </a>
                 )}
               </div>
             </div>
-          </div>
+          ) : (
+            <>
+              {/* ── Columna 1: miniaturas ──────────────────────────────────── */}
+              <div
+                style={{
+                  flexShrink:     0,
+                  width:          THUMB_W + SIDE_PAD * 2,
+                  height:         "100%",
+                  display:        "flex",
+                  flexDirection:  "column",
+                  alignItems:     "center",
+                  justifyContent: "center",
+                  gap:            THUMB_GAP,
+                  padding:        `${SIDE_PAD}px ${SIDE_PAD}px`,
+                  overflowY:      "auto",
+                  boxSizing:      "border-box",
+                }}
+              >
+                {thumbReleases.map((r, i) => (
+                  <div
+                    key={i}
+                    onClick={() => {
+                      const realIndex = DataReleases.findIndex((d) => d === r);
+                      setFocusedIndex(realIndex);
+                    }}
+                    style={{
+                      width:        THUMB_W,
+                      height:       THUMB_H,
+                      flexShrink:   0,
+                      cursor:       "pointer",
+                      overflow:     "hidden",
+                      opacity:      0.6,
+                      transition:   "opacity 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                    onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}
+                  >
+                    {r.image ? (
+                      <img
+                        src={r.image}
+                        alt={r.title}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      />
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", background: "#eee" }} />
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* ── Columna 2: imagen hero ─────────────────────────────────── */}
+              <div
+                style={{
+                  flexShrink: 0,
+                  width:      HERO_SIZE,
+                  height:     HERO_SIZE,
+                }}
+              >
+                {focusedData.image && (
+                  <img
+                    src={focusedData.image}
+                    alt={focusedData.title}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
+                )}
+              </div>
+
+              {/* ── Columna 3: info ───────────────────────────────────────── */}
+              <div
+                style={{
+                  flexShrink:     0,
+                  width:          160,
+                  height:         HERO_SIZE,
+                  marginLeft:     COL_GAP,
+                  display:        "flex",
+                  flexDirection:  "column",
+                  justifyContent: "space-between",
+                }}
+              >
+                <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
+                  <p style={pLabel()}>{focusedData.artist}</p>
+                  <p style={pText()}>{focusedData.title}</p>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
+                  <p style={pText()}>{focusedData.year}</p>
+                  <p style={pLabel()}>{focusedData.ref}</p>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
+                  <p style={pText()}>{focusedData.type}</p>
+                  <p style={pText()}>{focusedData.format}</p>
+                  {focusedData.vinyl && <p style={pText()}>{focusedData.vinyl}</p>}
+                </div>
+              </div>
+
+              {/* ── Columna 4: tracklist + credits ────────────────────────── */}
+              <div
+                style={{
+                  flex:           1,
+                  height:         HERO_SIZE,
+                  marginLeft:     COL_GAP,
+                  marginRight:    SIDE_PAD,
+                  display:        "flex",
+                  flexDirection:  "column",
+                  justifyContent: "space-between",
+                  overflow:       "hidden",
+                }}
+              >
+                <div style={{ overflow: "auto", flex: 1 }}>
+                  {focusedData.tracklist?.map((track, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        display:    "flex",
+                        alignItems: "baseline",
+                        gap:        10,
+                        lineHeight: PANEL_LINE_HEIGHT,
+                      }}
+                    >
+                      <span style={{
+                        fontSize:           PANEL_FONT_SIZE,
+                        color:              PANEL_TEXT,
+                        minWidth:           18,
+                        letterSpacing:      "0.06em",
+                        fontVariantNumeric: "tabular-nums",
+                        flexShrink:         0,
+                      }}>
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <span style={pText()}>{track}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ flexShrink: 0, paddingTop: 16 }}>
+                  <p style={{ ...pLabel(), marginBottom: PANEL_GAP_TIGHT * 2 }}>Credits</p>
+                  {DEFAULT_CREDITS_LINES.map((line, i) => (
+                    <p key={i} style={{ ...pText(), margin: 0 }}>{line}</p>
+                  ))}
+                  <div style={{ display: "flex", gap: 16, marginTop: 12 }}>
+                    {focusedData.bandcamp && (
+                      <a
+                        href={focusedData.bandcamp}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ ...pLabel(), textDecoration: "none" }}
+                      >
+                        Bandcamp ↗
+                      </a>
+                    )}
+                    {focusedData.soundcloud && (
+                      <a
+                        href={focusedData.soundcloud}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ ...pLabel(), textDecoration: "none" }}
+                      >
+                        Soundcloud ↗
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

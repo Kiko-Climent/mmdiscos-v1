@@ -149,6 +149,16 @@ body::-webkit-scrollbar {
   transition: top 0s, bottom 0s; /* no transition — GSAP/Flip handles it */
 }
 
+/* Global persistent nav logo — position managed by CSS; GSAP overrides inline during hero animation */
+.mm-global-logo-nav {
+  position: fixed;
+  top: 0;
+  left: calc(50% - 125px);
+  width: 250px;
+  padding: 2.5rem;
+  z-index: 9999;
+}
+
 /* Applied dynamically: logo.classList.add(styles.logoPinned) */
 .logoPinned {
   bottom: unset;

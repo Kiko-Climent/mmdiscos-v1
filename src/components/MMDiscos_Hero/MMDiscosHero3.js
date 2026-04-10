@@ -23,7 +23,6 @@ const CYCLES = 10;
 export default function MMDiscosHero() {
   const spacerRef         = useRef(null);
   const boxRef            = useRef(null);
-  const logoRef           = useRef(null);
   const videoRef          = useRef(null);
   const artistsRef        = useRef(null);
   const quoteContainerRef = useRef(null);
@@ -44,13 +43,18 @@ export default function MMDiscosHero() {
 
   useEffect(() => {
     const box    = boxRef.current;
-    const logo   = logoRef.current;
+    const logo   = document.getElementById("mm-global-logo");
     const spacer = spacerRef.current;
     if (!box || !logo || !spacer) return;
 
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const isDesktop = vw >= 720;
+
+    // Resetea el logo al estado de nav (posición CSS de la clase mm-global-logo-nav)
+    const resetLogo = () => {
+      gsap.set(logo, { clearProps: "top,bottom,left,width,padding,opacity" });
+    };
 
     if (!isDesktop) {
       gsap.set(logo, { top: 0, left: 0, width: 250, padding: "1rem 2.5rem", opacity: 1 });
@@ -59,7 +63,7 @@ export default function MMDiscosHero() {
         top: 0, left: 0, transform: "none",
         backgroundColor: "rgba(255,255,255,1)",
       });
-      return;
+      return resetLogo;
     }
 
     const boxW    = box.offsetWidth;
@@ -129,7 +133,7 @@ export default function MMDiscosHero() {
 
     CAROUSEL_IMAGES.forEach((src) => { const i = new Image(); i.src = src; });
 
-    // ── Carrusel: END = cuando el quote ha “entrado” un 15% de su altura por el bottom del viewport
+    // ── Carrusel: END = cuando el quote ha "entrado" un 15% de su altura por el bottom del viewport
     const quoteCarouselEnd = () => {
       const quote = quoteContainerRef.current;
       if (!quote) {
@@ -175,11 +179,9 @@ export default function MMDiscosHero() {
         trigger: el,
         start: "top 95%",
         end: "bottom 5%",
-        // Más suavizado del scroll → menos “saltos” entre frames al animar filtros
         scrub: 5,
         onUpdate: (self) => {
           const sharp = Math.sin(self.progress * Math.PI);
-          // (1 - sharp)^k con k<1: el blur baja más lento al final (más progresivo hacia nítido; menos “salto” visual)
           const k = 0.65;
           const a = Math.pow(Math.max(0, 1 - sharp), k);
           refs.blur.setAttribute("stdDeviation", (12 * a).toFixed(4));
@@ -201,6 +203,7 @@ export default function MMDiscosHero() {
       carouselTrigger.kill();
       t1?.kill();
       t2?.kill();
+      resetLogo();
     };
   }, []);
 
@@ -248,11 +251,6 @@ export default function MMDiscosHero() {
           pointerEvents: "none",
         }}
       />
-
-      {/* ── Logo ──────────────────────────────────────────────── */}
-      <div ref={logoRef} style={{ position: "fixed", zIndex: 9999, pointerEvents: "none", opacity: 0 }}>
-        <img src="/logo/Balearic Sound System Logo.svg" alt="MM Discos" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-      </div>
 
       {/* ── Carrusel ──────────────────────────────────────────── */}
       <div
