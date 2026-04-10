@@ -55,22 +55,29 @@ export default function MMDiscosHeroFinal() {
     // ── Morph-reveal ─────────────────────────────────────────────
     const createMorphReveal = (el, refs) => {
       if (!el || !refs.blur || !refs.morph || !refs.glow) return null;
-      refs.blur.setAttribute("stdDeviation", "12");
-      refs.morph.setAttribute("radius", "4");
-      refs.glow.setAttribute("stdDeviation", "10");
+      refs.blur.setAttribute("stdDeviation", "5");
+      refs.morph.setAttribute("radius", "1.5");
+      refs.glow.setAttribute("stdDeviation", "3.5");
       gsap.set(el, { opacity: 1 });
       return ScrollTrigger.create({
         trigger: el,
         start: "top 95%",
-        end: "bottom 5%",
+        end: "top -5%",
         scrub: 5,
         onUpdate: (self) => {
-          const sharp = Math.sin(self.progress * Math.PI);
-          const k = 0.65;
-          const a = Math.pow(Math.max(0, 1 - sharp), k);
-          refs.blur.setAttribute("stdDeviation", (12 * a).toFixed(4));
-          refs.morph.setAttribute("radius", (4 * a).toFixed(4));
-          refs.glow.setAttribute("stdDeviation", (10 * a).toFixed(4));
+          const p = self.progress;
+          let sharp;
+          if (p <= 0.4) {
+            sharp = p / 0.4;              // entrada: blur → nítido en el 40%
+          } else if (p <= 0.78) {
+            sharp = 1;                    // zona nítida larga
+          } else {
+            sharp = 1 - (p - 0.78) / 0.22; // salida lenta: empieza cuando texto está alto
+          }
+          const a = Math.pow(Math.max(0, 1 - sharp), 1.5);
+          refs.blur.setAttribute("stdDeviation", (5 * a).toFixed(4));
+          refs.morph.setAttribute("radius", (1.5 * a).toFixed(4));
+          refs.glow.setAttribute("stdDeviation", (3.5 * a).toFixed(4));
         },
       });
     };
@@ -266,17 +273,17 @@ export default function MMDiscosHeroFinal() {
       <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }} aria-hidden="true">
         <defs>
           <filter id="morph-artists" x="-15%" y="-60%" width="130%" height="220%" colorInterpolationFilters="sRGB">
-            <feGaussianBlur ref={aBlurRef} in="SourceGraphic" stdDeviation="12" result="blurred" />
-            <feMorphology ref={aMorphRef} operator="dilate" radius="4" in="blurred" result="morphed" />
-            <feGaussianBlur ref={aGlowRef} in="morphed" stdDeviation="10" result="glow" />
-            <feColorMatrix in="glow" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 2.5 0" result="brightGlow" />
+            <feGaussianBlur ref={aBlurRef} in="SourceGraphic" stdDeviation="5" result="blurred" />
+            <feMorphology ref={aMorphRef} operator="dilate" radius="1.5" in="blurred" result="morphed" />
+            <feGaussianBlur ref={aGlowRef} in="morphed" stdDeviation="3.5" result="glow" />
+            <feColorMatrix in="glow" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1.8 0" result="brightGlow" />
             <feMerge><feMergeNode in="brightGlow" /><feMergeNode in="morphed" /></feMerge>
           </filter>
           <filter id="morph-quote" x="-15%" y="-60%" width="130%" height="220%" colorInterpolationFilters="sRGB">
-            <feGaussianBlur ref={qBlurRef} in="SourceGraphic" stdDeviation="12" result="blurred" />
-            <feMorphology ref={qMorphRef} operator="dilate" radius="4" in="blurred" result="morphed" />
-            <feGaussianBlur ref={qGlowRef} in="morphed" stdDeviation="10" result="glow" />
-            <feColorMatrix in="glow" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 2.5 0" result="brightGlow" />
+            <feGaussianBlur ref={qBlurRef} in="SourceGraphic" stdDeviation="5" result="blurred" />
+            <feMorphology ref={qMorphRef} operator="dilate" radius="1.5" in="blurred" result="morphed" />
+            <feGaussianBlur ref={qGlowRef} in="morphed" stdDeviation="3.5" result="glow" />
+            <feColorMatrix in="glow" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1.8 0" result="brightGlow" />
             <feMerge><feMergeNode in="brightGlow" /><feMergeNode in="morphed" /></feMerge>
           </filter>
         </defs>
