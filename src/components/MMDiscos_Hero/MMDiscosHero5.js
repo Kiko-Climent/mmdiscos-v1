@@ -382,16 +382,13 @@ export default function MMDiscosHero5() {
           <p style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: "clamp(1.4rem, 2.8vw, 3.2rem)",
-            fontWeight: 700, lineHeight: 1.05,
+            fontWeight: 700,
+            lineHeight: 1.05,
             letterSpacing: "0.01em",
-            textTransform: "lowercase", textAlign: "left",
+            textTransform: "lowercase",
+            textAlign: "left",
           }}>
-            We played without rules, without thinking about styles or what would
-            come next. One track could be slow, the next dark, then something pop
-            or an impossible guitar, but it all made sense in that moment. The
-            dancefloor didn't ask for coherence, it asked for emotion — and as
-            long as people stayed there, smiling and lost, you knew you were doing
-            it right.
+            {"We played without rules, without thinking about styles or what would come next. One track could be slow, the next dark, then something pop or an impossible guitar, but it all made sense in that moment. The dancefloor didn't ask for coherence, it asked for emotion — and as long as people stayed there, smiling and lost, you knew you were doing it right."}
           </p>
           <p style={{
             fontFamily: "'Host Grotesk', sans-serif",
