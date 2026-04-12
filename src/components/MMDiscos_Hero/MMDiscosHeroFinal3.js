@@ -59,10 +59,20 @@ export default function MMDiscosHeroFinal3() {
     const box    = boxRef.current;
     const logo   = logoRef.current;
     const spacer = spacerRef.current;
+    const videoEl = videoRef.current;
     if (!box || !logo || !spacer) return;
 
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    /** Altura/anchura visibles del hero: alineado con el contenedor del video (100svh), no con innerHeight congelado. */
+    const getHeroViewport = () => {
+      if (videoEl) {
+        const r = videoEl.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) return { vw: r.width, vh: r.height };
+      }
+      return { vw: window.innerWidth, vh: window.innerHeight };
+    };
+
+    const hero = { ...getHeroViewport() };
+    let { vw, vh } = hero;
     const isDesktop = vw >= 720;
 
     /* ── Morph-reveal helper ─────────────────────────────── */
@@ -97,15 +107,6 @@ export default function MMDiscosHeroFinal3() {
     /* ── Orbital convergence setup ───────────────────────── */
     const imageEls = orbitalImgsRef.current.filter(Boolean);
 
-    const centerX = vw / 2;
-    const centerY = vh / 2;
-
-    const diagonal    = Math.sqrt((vw / 2) ** 2 + (vh / 2) ** 2);
-    const imgPx       = isDesktop
-      ? Math.min(420, Math.round(vw * 0.22))
-      : Math.min(200, Math.round(vw * 0.32));
-    const startRadius = diagonal + imgPx * 0.6;
-
     const getAngle = (i) => (i / totalImages) * Math.PI * 2 - Math.PI / 2;
 
     imageEls.forEach((el) => gsap.set(el, { xPercent: -50, yPercent: -50 }));
@@ -115,6 +116,14 @@ export default function MMDiscosHeroFinal3() {
 
     const setOrbitalProgress = (rawP) => {
       const p = Math.max(0, Math.min(1, rawP));
+      const { vw: w, vh: h } = hero;
+      const centerX = w / 2;
+      const centerY = h / 2;
+      const diagonal = Math.sqrt((w / 2) ** 2 + (h / 2) ** 2);
+      const imgPx = isDesktop
+        ? Math.min(420, Math.round(w * 0.22))
+        : Math.min(200, Math.round(w * 0.32));
+      const startRadius = diagonal + imgPx * 0.6;
 
       const easedRadius = Math.pow(p, 1.3);
       const easedAngle  = Math.pow(p, 1.1);
@@ -235,47 +244,66 @@ export default function MMDiscosHeroFinal3() {
 
     /* ── MÓVIL ───────────────────────────────────────────── */
     if (!isDesktop) {
-      const mBoxW       = vw * 0.82;
-      const mBoxH       = mBoxW * (9 / 16);
-      const endLogoW    = 160;
-      const endLogoLeft = (vw - endLogoW) / 2;
+      let mobileTrigger = null;
 
-      gsap.set(box, {
-        width: mBoxW, height: mBoxH,
-        top: "50%", left: "50%",
-        transform: "translate(-50%, -50%)",
-        backgroundColor: "rgba(255,255,255,0.35)",
-      });
-      gsap.set(logo, {
-        width: mBoxW,
-        left:  (vw - mBoxW) / 2,
-        top:   vh / 2 - mBoxH / 2,
-        padding: "1.5rem",
-        opacity: 1,
-      });
+      const applyMobileHeroFrame = (self) => {
+        const p = self.progress;
+        const w = hero.vw;
+        const h = hero.vh;
+        const mBoxW = w * 0.82;
+        const mBoxH = mBoxW * (9 / 16);
+        const endLogoW = 160;
+        const endLogoLeft = (w - endLogoW) / 2;
 
-      const mobileTrigger = ScrollTrigger.create({
-        trigger: spacer,
-        start:   "top top",
-        end:     `+=${vh}px`,
-        scrub:   1,
-        onUpdate: (self) => {
-          const p = self.progress;
-          gsap.set(box, {
-            width:  gsap.utils.interpolate(mBoxW, vw, p),
-            height: gsap.utils.interpolate(mBoxH, vh, p),
-            top: "50%", left: "50%",
-            transform: "translate(-50%, -50%)",
-            backgroundColor: `rgba(255,255,255,${gsap.utils.interpolate(0.35, 1, p)})`,
-          });
-          gsap.set(logo, {
-            top:   gsap.utils.interpolate(vh / 2 - mBoxH / 2, 0, p),
-            left:  gsap.utils.interpolate((vw - mBoxW) / 2, endLogoLeft, p),
-            width: gsap.utils.interpolate(mBoxW, endLogoW, p),
-          });
-          if (videoRef.current) gsap.set(videoRef.current, { opacity: 1 - p });
-        },
-      });
+        gsap.set(box, {
+          width:  gsap.utils.interpolate(mBoxW, w, p),
+          height: gsap.utils.interpolate(mBoxH, h, p),
+          top: "50%", left: "50%",
+          transform: "translate(-50%, -50%)",
+          backgroundColor: `rgba(255,255,255,${gsap.utils.interpolate(0.35, 1, p)})`,
+        });
+        gsap.set(logo, {
+          top:   gsap.utils.interpolate(h / 2 - mBoxH / 2, 0, p),
+          left:  gsap.utils.interpolate((w - mBoxW) / 2, endLogoLeft, p),
+          width: gsap.utils.interpolate(mBoxW, endLogoW, p),
+          padding: "1.5rem",
+          opacity: 1,
+        });
+        if (videoRef.current) gsap.set(videoRef.current, { opacity: 1 - p });
+      };
+
+      const setupMobileTrigger = () => {
+        mobileTrigger?.kill();
+        Object.assign(hero, getHeroViewport());
+
+        mobileTrigger = ScrollTrigger.create({
+          trigger: spacer,
+          start:   "top top",
+          end:     `+=${hero.vh}px`,
+          scrub:   1,
+          onUpdate: applyMobileHeroFrame,
+        });
+
+        applyMobileHeroFrame(mobileTrigger);
+        setOrbitalProgress(orbitalTrigger.progress);
+      };
+
+      setupMobileTrigger();
+
+      let resizeObserver = null;
+      if (videoEl && typeof ResizeObserver !== "undefined") {
+        resizeObserver = new ResizeObserver(() => {
+          setupMobileTrigger();
+          ScrollTrigger.refresh();
+        });
+        resizeObserver.observe(videoEl);
+      }
+
+      const onVisualViewportResize = () => {
+        setupMobileTrigger();
+        ScrollTrigger.refresh();
+      };
+      window.visualViewport?.addEventListener("resize", onVisualViewportResize);
 
       const t1 = createMorphReveal(artistsRef.current, {
         blur: aBlurRef.current, morph: aMorphRef.current, glow: aGlowRef.current,
@@ -285,7 +313,9 @@ export default function MMDiscosHeroFinal3() {
       });
 
       return () => {
-        mobileTrigger.kill();
+        mobileTrigger?.kill();
+        resizeObserver?.disconnect();
+        window.visualViewport?.removeEventListener("resize", onVisualViewportResize);
         orbitalTrigger.kill();
         orbitalVisibilityTrigger.kill();
         t1?.kill();
