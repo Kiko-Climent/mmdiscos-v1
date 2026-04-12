@@ -281,6 +281,8 @@ export default function MMDiscosHeroFinal3() {
           start:   "top top",
           end:     `+=${hero.vh}px`,
           scrub:   1,
+          onLeave:     () => window.dispatchEvent(new Event("mm-hero-logo-settled")),
+          onEnterBack: () => window.dispatchEvent(new Event("mm-hero-logo-reset")),
           onUpdate: applyMobileHeroFrame,
         });
 
@@ -353,6 +355,8 @@ export default function MMDiscosHeroFinal3() {
       start:   "top top",
       end:     `+=${vh}px`,
       scrub:   1,
+      onLeave:      () => window.dispatchEvent(new Event("mm-hero-logo-settled")),
+      onEnterBack:  () => window.dispatchEvent(new Event("mm-hero-logo-reset")),
       onUpdate: (self) => {
         const p = self.progress;
         gsap.set(box, {
