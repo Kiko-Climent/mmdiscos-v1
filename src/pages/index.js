@@ -22,6 +22,8 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useLayoutEffect, useRef } from "react";
 import Lenis from "lenis";
+import MMDiscosHeroFinal2 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal2";
+import MMDiscosHeroFinal3 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal3";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -84,7 +86,7 @@ export default function Home() {
 
       {/* <AnimationReleases10 /> */}
       {/* <MMHoldingScreen /> */}
-      <MMDiscosHeroFinal />
+      <MMDiscosHeroFinal3 />
       <ParallaxGallery2 />
       <AboutSection5 />
     </div>
