@@ -86,7 +86,7 @@ export default function Home() {
 
       {/* <AnimationReleases10 /> */}
       {/* <MMHoldingScreen /> */}
-      <MMDiscosHeroFinal3 />
+      <MMDiscosHeroFinal />
       <ParallaxGallery2 />
       <AboutSection5 />
     </div>
