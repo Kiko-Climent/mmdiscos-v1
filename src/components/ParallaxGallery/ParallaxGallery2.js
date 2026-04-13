@@ -40,9 +40,10 @@ export default function ParallaxGallery2() {
 
     const revealTrigger = ScrollTrigger.create({
       trigger: spacer,
-      start: "top bottom",
-      // Móvil: la cortina (clip-path) completa el recorrido en ~45vh de scroll en lugar de ~100vh
-      end: () => (isMobile() ? "top 55%" : "top top"),
+      // Móvil: retrasamos el inicio al 80% del viewport para evitar que el reveal
+      // solape con la quote section del hero (que termina justo antes del spacer).
+      start: () => (isMobile() ? "top 80%" : "top bottom"),
+      end: () => (isMobile() ? "top 15%" : "top top"),
       scrub: 1,
       invalidateOnRefresh: true,
       onUpdate: (self) => {
