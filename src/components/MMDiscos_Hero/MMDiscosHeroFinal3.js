@@ -252,7 +252,7 @@ export default function MMDiscosHeroFinal3() {
         const h = hero.vh;
         const mBoxW = w * 0.82;
         const mBoxH = mBoxW * (9 / 16);
-        const endLogoW = 160;
+        const endLogoW = 250;
         const endLogoLeft = (w - endLogoW) / 2;
 
         gsap.set(box, {
@@ -266,7 +266,7 @@ export default function MMDiscosHeroFinal3() {
           top:   gsap.utils.interpolate(h / 2 - mBoxH / 2, 0, p),
           left:  gsap.utils.interpolate((w - mBoxW) / 2, endLogoLeft, p),
           width: gsap.utils.interpolate(mBoxW, endLogoW, p),
-          padding: "1.5rem",
+          padding: "2.5rem",
           opacity: 1,
         });
         if (videoRef.current) gsap.set(videoRef.current, { opacity: 1 - p });
@@ -434,20 +434,70 @@ export default function MMDiscosHeroFinal3() {
         style={{
           position: "fixed", top: "50%", left: "50%",
           transform: "translate(-50%, -50%)",
-          width: "35%", aspectRatio: "16/9",
+          width: "25%", aspectRatio: "16/9",
           backgroundColor: "rgba(255,255,255,0.35)",
           backdropFilter: "blur(3px)",
           pointerEvents: "none",
         }}
       />
 
-      {/* ── Logo ─────────────────────────────────────────────── */}
-      <div ref={logoRef} style={{ position: "fixed", zIndex: 9999, pointerEvents: "none", opacity: 0 }}>
+      {/* ── Logo (capas negro/blanco: clip-path sincronizado con la cortina About en _app) ── */}
+      <div
+        id="mm-hero-animated-logo"
+        ref={logoRef}
+        style={{
+          position: "fixed",
+          zIndex: 9999,
+          pointerEvents: "none",
+          opacity: 0,
+          isolation: "isolate",
+        }}
+      >
         <img
           src="/logo/Balearic Sound System Logo.svg"
-          alt="MM Discos"
-          style={{ width: "100%", height: "100%", objectFit: "contain" }}
+          alt=""
+          aria-hidden
+          style={{
+            width: "100%",
+            height: "auto",
+            display: "block",
+            opacity: 0,
+            pointerEvents: "none",
+          }}
         />
+        <div
+          className="logo-layer-black"
+          style={{ position: "absolute", inset: "2.5rem", pointerEvents: "none", clipPath: "inset(0 0 0 0)" }}
+        >
+          <img
+            src="/logo/Balearic Sound System Logo.svg"
+            alt=""
+            aria-hidden
+            style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+          />
+        </div>
+        <div
+          className="logo-layer-white"
+          style={{
+            position: "absolute",
+            inset: "2.5rem",
+            zIndex: 1,
+            pointerEvents: "none",
+            clipPath: "inset(100% 0 0 0)",
+          }}
+        >
+          <img
+            src="/logo/Balearic Sound System Logo.svg"
+            alt="MM Discos"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              display: "block",
+              filter: "invert(1)",
+            }}
+          />
+        </div>
       </div>
 
       {/* ── Orbital images ───────────────────────────────────── */}
@@ -502,7 +552,7 @@ export default function MMDiscosHeroFinal3() {
       <section
         ref={artistsSectionRef}
         style={{
-          position: "relative", zIndex: 10000,
+          position: "relative", zIndex: 9000,
           width: "100%", minHeight: "100svh",
           display: "flex", justifyContent: "center",
           alignItems: "center", padding: "2.5rem 0",
@@ -541,7 +591,7 @@ export default function MMDiscosHeroFinal3() {
       {/* ── Cita ─────────────────────────────────────────────── */}
       <section
         style={{
-          position: "relative", zIndex: 10000,
+          position: "relative", zIndex: 9000,
           width: "100%", height: "100svh",
           display: "flex", justifyContent: "center", alignItems: "center",
         }}

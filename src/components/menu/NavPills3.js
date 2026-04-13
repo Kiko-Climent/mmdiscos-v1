@@ -58,7 +58,7 @@ const NavPills3 = forwardRef(({ visible, logoRef, onReleasesClick, onStatementCl
 
     const rect    = logo.getBoundingClientRect();
     const centerY = rect.top + rect.height / 2;
-    const GAP     = 10;
+    const GAP     = 4;
 
     const posR = { top: centerY, right: window.innerWidth - rect.left + GAP, left: "auto", xPercent: 0, yPercent: -50, x: 0, y: 0 };
     const posS = { top: centerY, left: rect.right + GAP, right: "auto", xPercent: 0, yPercent: -50, x: 0, y: 0 };
@@ -94,10 +94,10 @@ const NavPills3 = forwardRef(({ visible, logoRef, onReleasesClick, onStatementCl
 
   const pillBase = {
     display: "inline-flex", alignItems: "center", justifyContent: "center",
-    padding: "clamp(0.28rem, 0.9vw, 0.45rem) clamp(0.7rem, 1.8vw, 1.35rem)",
+    padding: "clamp(0.22rem, 0.75vw, 0.38rem) clamp(0.6rem, 1.5vw, 1.15rem)",
     borderRadius: "999px",
     backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-    fontSize: "clamp(0.5rem, 0.75vw, 0.78rem)",
+    fontSize: "clamp(0.42rem, 0.62vw, 0.68rem)",
     fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
     fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase",
     textDecoration: "none", cursor: "pointer", userSelect: "none",
