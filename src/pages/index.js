@@ -20,17 +20,24 @@ import MMDiscosHero4 from "@/components/MMDiscos_Hero/MMDiscosHero4";
 import MMDiscosHeroFinal from "@/components/MMDiscos_Hero/MMDiscosHeroFinal";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import Lenis from "lenis";
 import MMDiscosHeroFinal2 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal2";
 import MMDiscosHeroFinal3 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal3";
 import MMDiscosHeroFinal4 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal4";
+import MMHeroMobileFinal from "@/components/MMDiscos_Hero/MMHeroMobileFinal";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function Home() {
 
   const lenisRef = useRef(null);
+
+  // Detecta si el dispositivo es móvil tras el mount (evita mismatch SSR)
+  const [isMobile, setIsMobile] = useState(null);
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 720);
+  }, []);
 
   // useLayoutEffect: antes que los useEffect de los hijos (p. ej. MMHero), para que Lenis + proxy existan cuando se crean los ScrollTriggers
   useLayoutEffect(() => {
@@ -85,9 +92,13 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head> */}
 
-      {/* <AnimationReleases10 /> */}
-      {/* <MMHoldingScreen /> */}
-      <MMDiscosHeroFinal4 />
+      {/* Hero: mobile vs desktop */}
+      {isMobile === null
+        ? null                       // evita flash antes de detectar
+        : isMobile
+          ? <MMHeroMobileFinal />
+          : <MMDiscosHeroFinal3 />
+      }
       <ParallaxGallery2 />
       <AboutSection5 />
     </div>
