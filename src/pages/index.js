@@ -39,11 +39,39 @@ export default function Home() {
     setIsMobile(window.innerWidth < 720);
   }, []);
 
-  // useLayoutEffect: antes que los useEffect de los hijos (p. ej. MMHero), para que Lenis + proxy existan cuando se crean los ScrollTriggers
+  // useLayoutEffect: corre antes de los useEffect de los hijos, garantizando que
+  // el scroll esté configurado antes de que se creen los ScrollTriggers hijos.
+  //
+  // ESTRATEGIA DE SCROLL POR DISPOSITIVO
+  // ─────────────────────────────────────
+  // Desktop  → Lenis smooth scroll + ScrollTrigger proxy.
+  //             El wheel de trackpad/ratón tiene poca inercia, Lenis la añade elegante.
+  //
+  // Móvil    → Scroll NATIVO puro, sin Lenis.
+  //             El touch nativo usa el compositor GPU del SO (hilo separado del JS),
+  //             alcanzando 60/120 fps sin coste en el main thread.
+  //             Lenis lo intercepta y lo mueve al JS thread → compite con GSAP → trompicones.
+  //             ScrollTrigger funciona perfectamente con scroll nativo; no necesita proxy.
   useLayoutEffect(() => {
     history.scrollRestoration = "manual";
     window.scrollTo(0, 0);
 
+    // Detectamos aquí con innerWidth (no con el state isMobile, que aún es null
+    // en este punto porque useEffect corre después de useLayoutEffect).
+    const onMobile = window.innerWidth < 720;
+
+    /* ── MÓVIL: scroll nativo ────────────────────────────────── */
+    if (onMobile) {
+      // lagSmoothing(0): evita que el ticker de GSAP frene cuando la pestaña pierde foco
+      // y luego "salte" al recuperarla; relevante en móvil donde el SO suspende pestañas.
+      gsap.ticker.lagSmoothing(0);
+      ScrollTrigger.refresh();
+      return () => {
+        ScrollTrigger.refresh(true);
+      };
+    }
+
+    /* ── DESKTOP: Lenis + proxy ──────────────────────────────── */
     const lenis = new Lenis();
     lenisRef.current = lenis;
     lenis.scrollTo(0, { immediate: true });

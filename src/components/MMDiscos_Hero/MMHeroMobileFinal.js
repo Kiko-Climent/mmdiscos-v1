@@ -317,7 +317,7 @@ export default function MMHeroMobileFinal() {
       trigger:             artistsProxyRef.current,
       start:               "top top",
       end:                 "bottom top",
-      scrub:               1.5,
+      scrub:               0.8,
       invalidateOnRefresh: true,
       onUpdate: (self) => {
         const p = self.progress;
@@ -346,7 +346,7 @@ export default function MMHeroMobileFinal() {
       start:               "top bottom",  // empieza cuando el proxy entra en viewport
       endTrigger:          carouselSpacerRef.current,
       end:                 "bottom top",
-      scrub:               1.8,           // más reactivo que 2.5
+      scrub:               1.0,
       invalidateOnRefresh: true,
       onLeave:             triggerSinkAnimation,
       onEnterBack:         showOrbital,
@@ -373,7 +373,7 @@ export default function MMHeroMobileFinal() {
         trigger: el,
         start:   "top 95%",
         end:     "top -5%",
-        scrub:   5,
+        scrub:   2,
         onUpdate: (self) => {
           const p = self.progress;
           let sharp;
