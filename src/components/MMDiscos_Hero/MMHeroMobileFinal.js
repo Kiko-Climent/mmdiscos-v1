@@ -324,18 +324,19 @@ export default function MMHeroMobileFinal() {
         // Translación hacia el top
         gsap.set(artistsTextRef.current, { y: -p * vh * 1.2 });
 
-        // Filtro SVG: se intensifica a medida que el texto escapa por arriba
-        // Curva exponente 0.6 para que el efecto arranque pronto
-        const a = Math.pow(p, 0.6);
-        aBlurRef.current?.setAttribute("stdDeviation", (7   * a).toFixed(4));
-        aMorphRef.current?.setAttribute("radius",       (2   * a).toFixed(4));
-        aGlowRef.current?.setAttribute("stdDeviation",  (4   * a).toFixed(4));
+        // Filtro SVG — misma curva que la segunda cita en su fase de salida.
+        // Exponent 0.5 (raíz cuadrada) → efecto arranca muy pronto,
+        // al 25% del scroll ya estamos al 50% de distorsión máxima.
+        const a = Math.pow(p, 0.5);
+        aBlurRef.current?.setAttribute("stdDeviation", (9   * a).toFixed(4));
+        aMorphRef.current?.setAttribute("radius",       (2.5 * a).toFixed(4));
+        aGlowRef.current?.setAttribute("stdDeviation",  (5   * a).toFixed(4));
       },
       onLeaveBack: () => {
         gsap.set(artistsTextRef.current, { y: 0 });
-        aBlurRef.current?.setAttribute("stdDeviation", "0");
-        aMorphRef.current?.setAttribute("radius",       "0");
-        aGlowRef.current?.setAttribute("stdDeviation",  "0");
+        aBlurRef.current?.setAttribute("stdDeviation",  "0");
+        aMorphRef.current?.setAttribute("radius",        "0");
+        aGlowRef.current?.setAttribute("stdDeviation",   "0");
       },
     });
 
@@ -632,20 +633,25 @@ export default function MMHeroMobileFinal() {
       </div>
 
       {/* Primer texto (artistas) — fijo y centrado, sale por el top con scroll */}
+      {/*
+        IMPORTANTE: willChange:"transform" y filter SVG NO pueden coexistir en el mismo
+        elemento en WebKit/Safari mobile (el filtro no renderiza en capas composited).
+        Solución: outer div gestiona el transform (y scrub), inner div lleva el filtro SVG.
+      */}
       <div
         ref={artistsTextRef}
         style={{
           position:      "fixed",
           top:           "50%",
           left:          "50%",
-          // xPercent/yPercent/y gestionados por GSAP (GPU: solo transforms)
           width:         "90%",
           zIndex:        9000,
           pointerEvents: "none",
-          willChange:    "transform",
-          filter:        "url(#morph-artists-mobile)",
+          willChange:    "transform",   // solo transform, sin filter aquí
         }}
       >
+        {/* Inner: el filtro SVG en un elemento NO composited */}
+        <div style={{ filter: "url(#morph-artists-mobile)" }}>
         <p
           style={{
             fontFamily:    "'Barlow Condensed', sans-serif",
@@ -666,6 +672,7 @@ export default function MMHeroMobileFinal() {
             </span>
           ))}
         </p>
+        </div>{/* /inner filter div */}
       </div>
 
       {/* Imágenes orbitales */}
