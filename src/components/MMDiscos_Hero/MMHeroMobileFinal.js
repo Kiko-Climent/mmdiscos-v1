@@ -56,6 +56,11 @@ export default function MMHeroMobileFinal() {
   const carouselSpacerRef   = useRef(null);   // spacer orbital
   const quoteContainerRef   = useRef(null);   // segundo texto
 
+  /* ── SVG filter refs (artists text) ────────────────────────── */
+  const aBlurRef  = useRef(null);
+  const aMorphRef = useRef(null);
+  const aGlowRef  = useRef(null);
+
   /* ── SVG filter refs (quote) ───────────────────────────────── */
   const qBlurRef  = useRef(null);
   const qMorphRef = useRef(null);
@@ -107,7 +112,11 @@ export default function MMHeroMobileFinal() {
     /* ── Estado inicial: texto artistas invisible ───────────── */
     const artistSpans = artistsSpansRef.current.filter(Boolean);
     gsap.set(artistsTextRef.current, { xPercent: -50, yPercent: -50, y: 0 });
-    gsap.set(artistSpans, { opacity: 0, filter: "blur(40px)" });
+    gsap.set(artistSpans, { opacity: 0 });
+    // SVG filter arranca sin distorsión (el texto está invisible de todas formas)
+    aBlurRef.current?.setAttribute("stdDeviation", "0");
+    aMorphRef.current?.setAttribute("radius",       "0");
+    aGlowRef.current?.setAttribute("stdDeviation",  "0");
 
     /* ── Preload orbital ────────────────────────────────────── */
     ORBITAL_IMAGES.forEach((src) => { const img = new Image(); img.src = src; });
@@ -216,17 +225,42 @@ export default function MMHeroMobileFinal() {
     let snapFired = false;
 
     const revealArtistsText = () => {
-      // Avisa al nav que el logo ya está asentado en el top
       window.dispatchEvent(new Event("mm-hero-logo-settled"));
 
-      // Animación tipo FOOTER_LINKS: blur-fade con stagger por nombre
-      gsap.to(artistSpans, {
-        opacity:  1,
-        filter:   "blur(0px)",
-        duration: 1.0,
+      // ── Filtro SVG: arranca muy distorsionado y se limpia mientras aparece el texto
+      aBlurRef.current?.setAttribute("stdDeviation", "7");
+      aMorphRef.current?.setAttribute("radius",       "2");
+      aGlowRef.current?.setAttribute("stdDeviation",  "4");
+
+      const fProxy = { t: 0 };
+      gsap.to(fProxy, {
+        t:        1,
+        duration: 1.4,
         ease:     "power3.out",
-        stagger:  { each: 0.035 },
+        onUpdate() {
+          const a = 1 - fProxy.t;
+          aBlurRef.current?.setAttribute("stdDeviation", (7   * a).toFixed(4));
+          aMorphRef.current?.setAttribute("radius",       (2   * a).toFixed(4));
+          aGlowRef.current?.setAttribute("stdDeviation",  (4   * a).toFixed(4));
+        },
+        onComplete() {
+          aBlurRef.current?.setAttribute("stdDeviation", "0");
+          aMorphRef.current?.setAttribute("radius",       "0");
+          aGlowRef.current?.setAttribute("stdDeviation",  "0");
+        },
       });
+
+      // ── Nombres: aparecen en orden aleatorio (stagger from:random)
+      gsap.fromTo(
+        artistSpans,
+        { opacity: 0 },
+        {
+          opacity:  1,
+          duration: 0.85,
+          ease:     "power3.out",
+          stagger:  { each: 0.04, from: "random" },
+        }
+      );
     };
 
     const fireSnapAnimation = () => {
@@ -286,12 +320,22 @@ export default function MMHeroMobileFinal() {
       scrub:               1.5,
       invalidateOnRefresh: true,
       onUpdate: (self) => {
-        gsap.set(artistsTextRef.current, {
-          y: -self.progress * vh * 1.2,   // px, evita problemas con unidades vh en transform
-        });
+        const p = self.progress;
+        // Translación hacia el top
+        gsap.set(artistsTextRef.current, { y: -p * vh * 1.2 });
+
+        // Filtro SVG: se intensifica a medida que el texto escapa por arriba
+        // Curva exponente 0.6 para que el efecto arranque pronto
+        const a = Math.pow(p, 0.6);
+        aBlurRef.current?.setAttribute("stdDeviation", (7   * a).toFixed(4));
+        aMorphRef.current?.setAttribute("radius",       (2   * a).toFixed(4));
+        aGlowRef.current?.setAttribute("stdDeviation",  (4   * a).toFixed(4));
       },
       onLeaveBack: () => {
         gsap.set(artistsTextRef.current, { y: 0 });
+        aBlurRef.current?.setAttribute("stdDeviation", "0");
+        aMorphRef.current?.setAttribute("radius",       "0");
+        aGlowRef.current?.setAttribute("stdDeviation",  "0");
       },
     });
 
@@ -373,12 +417,33 @@ export default function MMHeroMobileFinal() {
 
   return (
     <>
-      {/* ── SVG morph filter (cita) ────────────────────────────── */}
+      {/* ── SVG morph filters ─────────────────────────────────── */}
       <svg
         style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}
         aria-hidden="true"
       >
         <defs>
+          {/* Filtro: primer texto (artistas) */}
+          <filter
+            id="morph-artists-mobile"
+            x="-15%" y="-60%" width="130%" height="220%"
+            colorInterpolationFilters="sRGB"
+          >
+            <feGaussianBlur ref={aBlurRef} in="SourceGraphic" stdDeviation="0" result="blurred" />
+            <feMorphology ref={aMorphRef} operator="dilate" radius="0" in="blurred" result="morphed" />
+            <feGaussianBlur ref={aGlowRef} in="morphed" stdDeviation="0" result="glow" />
+            <feColorMatrix
+              in="glow" type="matrix"
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1.8 0"
+              result="brightGlow"
+            />
+            <feMerge>
+              <feMergeNode in="brightGlow" />
+              <feMergeNode in="morphed" />
+            </feMerge>
+          </filter>
+
+          {/* Filtro: segundo texto (cita) */}
           <filter
             id="morph-quote-mobile"
             x="-15%" y="-60%" width="130%" height="220%"
@@ -577,7 +642,8 @@ export default function MMHeroMobileFinal() {
           width:         "90%",
           zIndex:        9000,
           pointerEvents: "none",
-          willChange:    "transform",       // salida y:0 → y:-Npx via transform
+          willChange:    "transform",
+          filter:        "url(#morph-artists-mobile)",
         }}
       >
         <p
