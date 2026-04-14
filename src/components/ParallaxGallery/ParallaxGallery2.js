@@ -36,7 +36,13 @@ export default function ParallaxGallery2() {
 
     const isMobile = () => window.innerWidth < 768;
 
-    const refreshAll = () => ScrollTrigger.refresh();
+    // Debounce: la barra del navegador móvil dispara "resize" en cada scroll.
+    // Sin debounce, ScrollTrigger.refresh() bloquearía el main thread mid-scroll.
+    let resizeTimer;
+    const refreshAll = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => ScrollTrigger.refresh(), 150);
+    };
 
     const revealTrigger = ScrollTrigger.create({
       trigger: spacer,
@@ -77,6 +83,7 @@ export default function ParallaxGallery2() {
 
     return () => {
       window.removeEventListener("resize", refreshAll);
+      clearTimeout(resizeTimer);
       trigger.kill();
       revealTrigger.kill();
     };
@@ -88,12 +95,12 @@ export default function ParallaxGallery2() {
     <>
       <style>{`
         .pg2-scroll-spacer {
-          height: 300vh;
+          /* svh = small viewport height (con barra visible) → estable, no cambia al ocultarse la barra */
+          height: 300svh;
         }
         @media (max-width: 767px) {
           .pg2-scroll-spacer {
-            /* Mucho menos recorrido antes de que el About (cortina blur) entre en viewport */
-            height: 140vh;
+            height: 140svh;
           }
           .pg2-wrapper {
             gap: ${GAP_MOBILE} !important;
@@ -182,8 +189,9 @@ export default function ParallaxGallery2() {
 const S = {
   sticky: {
     position: "fixed",
-    top: 0, left: 0,
-    width: "100vw", height: "100vh",
+    // inset:0 → siempre cubre el viewport visible sea cual sea el tamaño de la barra del navegador.
+    // Evita el parpadeo/resize que causaba height:"100vh" cuando la barra se oculta/aparece.
+    inset: 0,
     backgroundColor: "#fff",
     overflow: "hidden",
     zIndex: 0,
@@ -193,7 +201,7 @@ const S = {
     top: "50%", left: "50%",
     transform: "translate(-50%, -50%) scale(1)",
     width: "160vw",
-    height: "100vh",
+    height: "100%",   // relativo al padre (sticky), que usa inset:0
     display: "flex",
     flexDirection: "row",
     alignItems: "center",

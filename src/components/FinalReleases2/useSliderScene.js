@@ -452,6 +452,11 @@ export function useSliderScene({
 
         const tl = gsap.timeline({ onComplete });
 
+        // Target: small row formation (same as intro Phase 1)
+        const FILA_SCALE_IDX = 0.12;
+        const FILA_GAP_IDX   = CARD_W * FILA_SCALE_IDX + 6;
+        const FILA_START_X_IDX = -(SLIDE_COUNT / 2 - 0.5) * FILA_GAP_IDX;
+
         // Stagger from center outward
         const order = [...Array(SLIDE_COUNT).keys()].sort(
           (a, b) => Math.abs(a - lastClosest) - Math.abs(b - lastClosest),
@@ -459,8 +464,9 @@ export function useSliderScene({
 
         order.forEach((i, step) => {
           const delay = step * 0.025;
-          tl.to(meshes[i].position, { x: 0, y: 0, z: 0, duration: 0.8, ease: "power3.inOut" }, delay);
-          tl.to(meshes[i].scale, { x: 1, y: 1, duration: 0.8, ease: "power3.inOut" }, delay);
+          const targetX = FILA_START_X_IDX + i * FILA_GAP_IDX;
+          tl.to(meshes[i].position, { x: targetX, y: 0, z: 0, duration: 0.8, ease: "power3.inOut" }, delay);
+          tl.to(meshes[i].scale, { x: FILA_SCALE_IDX, y: FILA_SCALE_IDX, duration: 0.8, ease: "power3.inOut" }, delay);
         });
       },
 

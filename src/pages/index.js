@@ -125,7 +125,7 @@ export default function Home() {
         ? null                       // evita flash antes de detectar
         : isMobile
           ? <MMHeroMobileFinal />
-          : <MMDiscosHeroFinal3 />
+          : <MMDiscosHeroFinal4 />
       }
       <ParallaxGallery2 />
       <AboutSection5 />

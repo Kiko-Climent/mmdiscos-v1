@@ -28,16 +28,3 @@ export const PANEL_LINE_HEIGHT = 1.15;
 export const PANEL_TEXT        = "#000";
 export const PANEL_GAP_TIGHT   = 1;
 export const INFO_W_FRAC       = 0.38;
-
-
-// ─── Responsive overrides ─────────────────────────────────────────────────────
-export function getResponsiveGeometry(viewportW) {
-    const isMobile = viewportW < 640;
-  
-    return {
-      cardW:    isMobile ? 200 : CARD_W,
-      cardH:    isMobile ? 200 : CARD_H,
-      spacing:  isMobile ? 210 : SPACING,   // más grande que cardW para que los laterales se vean
-      thumbScale: isMobile ? 0.08 : THUMB_SCALE,
-    };
-  }

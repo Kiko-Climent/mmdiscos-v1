@@ -227,6 +227,18 @@ export default function MMHeroMobileFinal() {
     const revealArtistsText = () => {
       window.dispatchEvent(new Event("mm-hero-logo-settled"));
 
+      // El snap ha terminado: la caja es opaca → el backdropFilter no aporta nada visualmente
+      // pero obliga al browser a repintar toda la pantalla en cada frame de scroll → eliminarlo.
+      box.style.backdropFilter        = "none";
+      box.style.webkitBackdropFilter  = "none";
+
+      // El video está enterrado bajo la caja opaca blanca → pausarlo y ocultarlo libera
+      // recursos GPU (decodificación de vídeo) para el resto de animaciones de scroll.
+      if (videoEl) {
+        videoEl.pause();
+        videoEl.style.display = "none";
+      }
+
       // ── Filtro SVG: arranca muy distorsionado y se limpia mientras aparece el texto
       aBlurRef.current?.setAttribute("stdDeviation", "7");
       aMorphRef.current?.setAttribute("radius",       "2");
@@ -304,9 +316,11 @@ export default function MMHeroMobileFinal() {
     window.addEventListener("wheel",     fireSnapAnimation, { passive: true });
     window.addEventListener("touchmove", fireSnapAnimation, { passive: true });
 
-    // Refresca GSAP ScrollTrigger ahora que el DOM mobile está montado
-    // (el hero se monta en un segundo render tras detectar isMobile)
-    ScrollTrigger.refresh();
+    // Double-RAF: espera 2 frames para que el browser haya hecho layout completo
+    // de los scroll spacers antes de que ScrollTrigger calcule posiciones de triggers.
+    // Sin esto, los triggers de ParallaxGallery2 y About (montados antes que el hero)
+    // podrían estar mal posicionados.
+    requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh()));
 
     /* ── Texto artistas: salida por el top con scrub ─────────── */
     //  trigger: artistsProxy (empieza en 60svh de scroll, dura 70svh)
@@ -394,21 +408,14 @@ export default function MMHeroMobileFinal() {
       glow:  qGlowRef.current,
     });
 
-    /* ── visualViewport resize (barra del navegador móvil) ───── */
-    const onVVResize = () => {
-      hero.vw = window.innerWidth;
-      hero.vh = frozenVH;
-      if (videoContainerRef.current) {
-        videoContainerRef.current.style.height = `${frozenVH}px`;
-      }
-      ScrollTrigger.refresh();
-    };
-    window.visualViewport?.addEventListener("resize", onVVResize);
+    // El handler de visualViewport se elimina: llamaba a ScrollTrigger.refresh() en mitad
+    // del scroll (cuando la barra del navegador se oculta) → pausa notable en la animación.
+    // Los scroll spacers usan svh (small viewport = estable), así que no necesitan refresh
+    // cuando la barra del navegador cambia de tamaño.
 
     return () => {
       window.removeEventListener("wheel",     fireSnapAnimation);
       window.removeEventListener("touchmove", fireSnapAnimation);
-      window.visualViewport?.removeEventListener("resize", onVVResize);
       textExitTrigger.kill();
       orbitalTrigger.kill();
       orbitalVisibilityTrigger.kill();
@@ -647,7 +654,8 @@ export default function MMHeroMobileFinal() {
           width:         "90%",
           zIndex:        9000,
           pointerEvents: "none",
-          willChange:    "transform",   // solo transform, sin filter aquí
+          // Sin will-change: el browser promueve la capa automáticamente durante la animación.
+          // will-change permanente + SVG filter en child → conflicto de compositing en WebKit.
         }}
       >
         {/* Inner: el filtro SVG en un elemento NO composited */}
@@ -680,13 +688,12 @@ export default function MMHeroMobileFinal() {
         ref={orbitalContainerRef}
         style={{
           position:      "fixed",
-          top: 0, left: 0,
-          width:         "100%",
-          height:        "100svh",
+          inset:         0,   // cubre siempre el viewport visible sin depender de vh/svh
           zIndex:        8000,
           pointerEvents: "none",
           opacity:       0,
-          willChange:    "opacity",         // fade in/out del contenedor
+          // Sin will-change: 9 imágenes × will-change:transform + contenedor will-change:opacity
+          // = 10 capas GPU permanentes → presión de memoria → drops de frames en móvil.
         }}
       >
         {ORBITAL_IMAGES.map((src, i) => (
@@ -698,14 +705,12 @@ export default function MMHeroMobileFinal() {
             }}
             style={{
               position:    "absolute",
-              // Ancla en el centro del contenedor — GSAP mueve con x/y (transforms, GPU)
               left:        "50%",
               top:         "50%",
-              // Imágenes más grandes: de ~120px → ~280px
               width:       "clamp(200px, 56vw, 340px)",
               aspectRatio: "1 / 1",
-              // Solo transform: sin reflow de left/top en cada frame
-              willChange:  "transform",
+              // Sin will-change: GSAP aplica transform directamente → GPU composite automático
+              // durante la animación sin capa permanente (ahorra RAM GPU en móvil).
             }}
           >
             <img
