@@ -119,9 +119,12 @@ export default function MMHeroMobileFinal() {
     const SPIRAL_TURNS = 1.5;
     const totalRot     = SPIRAL_TURNS * Math.PI * 2;
 
-    // Centrado una sola vez vía xPercent/yPercent (CSS transform, GPU).
-    // El movimiento orbital usa x/y (también transforms) — sin tocar left/top.
-    imageEls.forEach((el) => gsap.set(el, { xPercent: -50, yPercent: -50 }));
+    // Centrado una sola vez vía xPercent/yPercent (GPU transform).
+    // Clip inicial: cada imagen está oculta (wipe desde la derecha).
+    // La revelación NO usa opacity — clipPath wipe por imagen.
+    imageEls.forEach((el) => {
+      gsap.set(el, { xPercent: -50, yPercent: -50, clipPath: "inset(0% 100% 0% 0%)" });
+    });
 
     const setOrbitalProgress = (rawP) => {
       const p        = Math.max(0, Math.min(1, rawP));
@@ -170,8 +173,8 @@ export default function MMHeroMobileFinal() {
       const tl = gsap.timeline({
         onComplete: () => {
           gsap.set(orbitalContainerRef.current, { opacity: 0 });
-          gsap.set(others, { opacity: 1 });
-          gsap.set(survivor, { scale: 1, opacity: 1 });
+          gsap.set(others, { opacity: 1, clipPath: "inset(0% 0% 0% 0%)" });
+          gsap.set(survivor, { scale: 1, opacity: 1, clipPath: "inset(0% 0% 0% 0%)" });
           sinkActiveRef.current = false;
         },
       });
@@ -188,12 +191,24 @@ export default function MMHeroMobileFinal() {
       tl.to(survivor, { scale: 0, opacity: 0, duration: 0.9, ease: "power3.in" });
     };
 
-    const showOrbital = () =>
-      gsap.to(orbitalContainerRef.current, { opacity: 1, duration: 0.5, ease: "power2.out" });
+    const showOrbital = () => {
+      gsap.set(orbitalContainerRef.current, { opacity: 1 });
+      gsap.fromTo(
+        imageEls,
+        { clipPath: "inset(0% 100% 0% 0%)" },
+        {
+          clipPath: "inset(0% 0% 0% 0%)",
+          duration: 0.55,
+          ease:     "expo.out",
+          stagger:  { each: 0.055, from: "random" },
+        }
+      );
+    };
 
     const hideOrbital = () => {
       if (!sinkActiveRef.current) {
         gsap.set(orbitalContainerRef.current, { opacity: 0 });
+        gsap.set(imageEls, { clipPath: "inset(0% 100% 0% 0%)" });
       }
     };
 
@@ -222,30 +237,34 @@ export default function MMHeroMobileFinal() {
 
       const tl = gsap.timeline({ onComplete: revealArtistsText });
 
-      // Box expande hasta cubrir toda la pantalla
+      // Fase 0 — video sale antes de que el blanco lo tape
+      if (videoEl) {
+        tl.to(videoEl, { opacity: 0, duration: 0.18, ease: "expo.in" }, 0);
+      }
+
+      // Fase 1 — box expande el ancho (corte horizontal rápido)
       tl.to(box, {
-        width:           vw,
-        height:          vh,
-        xPercent:        -50,
-        yPercent:        -50,
-        backgroundColor: "rgba(255,255,255,1)",
-        duration:        0.65,
-        ease:            "power3.inOut",
+        width:    vw,
+        duration: 0.22,
+        ease:     "expo.out",
       }, 0);
 
-      // Logo escala y sube al center-top
+      // Fase 2 — box abre la altura y sella con blanco opaco
+      tl.to(box, {
+        height:          vh,
+        backgroundColor: "rgba(255,255,255,1)",
+        duration:        0.38,
+        ease:            "expo.out",
+      }, 0.18);
+
+      // Fase 3 — logo desliza al center-top con el mismo impulso expo
       tl.to(logo, {
         top:      0,
         left:     endLogoLeft,
         width:    endLogoW,
-        duration: 0.65,
-        ease:     "power3.inOut",
-      }, 0);
-
-      // Video se desvanece
-      if (videoEl) {
-        tl.to(videoEl, { opacity: 0, duration: 0.4, ease: "power2.in" }, 0);
-      }
+        duration: 0.42,
+        ease:     "expo.out",
+      }, 0.22);
     };
 
     window.addEventListener("wheel",     fireSnapAnimation, { passive: true });
