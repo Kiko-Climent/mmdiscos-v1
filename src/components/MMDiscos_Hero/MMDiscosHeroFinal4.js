@@ -131,8 +131,6 @@ export default function MMDiscosHeroFinal4() {
     const setOrbitalProgress = (rawP) => {
       const p = Math.max(0, Math.min(1, rawP));
       const { vw: w, vh: h } = hero;
-      const centerX = w / 2;
-      const centerY = h / 2;
       const diagonal = Math.sqrt((w / 2) ** 2 + (h / 2) ** 2);
       const imgPx = isDesktop
         ? Math.min(420, Math.round(w * 0.22))
@@ -150,9 +148,10 @@ export default function MMDiscosHeroFinal4() {
         const currentAngle = baseAngle + totalRotation * easedAngle;
         const radius       = startRadius * (1 - easedRadius);
 
+        // x/y desde el centro (left:50%/top:50% en CSS) → GPU transform, cero layout reflow
         gsap.set(el, {
-          left:  centerX + Math.cos(currentAngle) * radius,
-          top:   centerY + Math.sin(currentAngle) * radius,
+          x: Math.cos(currentAngle) * radius,
+          y: Math.sin(currentAngle) * radius,
           scale,
         });
       });
@@ -565,10 +564,13 @@ export default function MMDiscosHeroFinal4() {
               if (i === SURVIVOR_INDEX) survivorRef.current = el;
             }}
             style={{
-              position: "absolute",
+              position:    "absolute",
+              left:        "50%",
+              top:         "50%",
+              // xPercent/yPercent:-50 aplicados por GSAP para centrar;
+              // x/y offset aplicados por setOrbitalProgress (GPU transform, cero reflow).
               width:       "clamp(140px, 22vw, 420px)",
               aspectRatio: "1 / 1",
-              willChange:  "transform, left, top",
             }}
           >
             <img
