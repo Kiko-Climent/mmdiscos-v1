@@ -91,23 +91,37 @@ export default function MMHeroMobileFinal() {
     const endLogoW    = 250;  // igual que .mm-global-logo-nav → mismo tamaño en todas las páginas
     const endLogoLeft = (vw - endLogoW) / 2;
 
-    /* ── Estado inicial: box pequeño centrado ───────────────── */
+    /* ── Estado inicial: box ────────────────────────────────── */
+    // Tamaño completo fijo; escala inicial = tamaño visual del box.
+    // Animar scaleX/scaleY en el snap → GPU puro, cero width/height.
+    const startScaleX = mBoxW / vw;
+    const startScaleY = mBoxH / vh;
+
     gsap.set(box, {
-      width:           mBoxW,
-      height:          mBoxH,
+      width:           vw,
+      height:          vh,
       xPercent:        -50,
       yPercent:        -50,
+      scaleX:          startScaleX,
+      scaleY:          startScaleY,
       backgroundColor: "rgba(255,255,255,0.35)",
     });
 
-    /* ── Estado inicial: logo alineado con el box ───────────── */
-    // Usamos x/y (transform) en lugar de top/left → GPU, sin layout reflow.
+    /* ── Estado inicial: logo ────────────────────────────────── */
+    // width fijo (250px), transformOrigin "top center" → pivot en (vw/2, y).
+    // El borde superior sigue exactamente a `y`; el horizontal siempre en vw/2.
+    // Solo animamos y + scale → cero width/x en el snap.
+    const startScale = mBoxW / endLogoW;
+    const startY     = vh / 2 - mBoxH / 2;  // visual top del logo = top del box
+
     gsap.set(logo, {
-      x:       (vw - mBoxW) / 2,
-      y:       vh / 2 - mBoxH / 2,
-      width:   mBoxW,
-      padding: "2.5rem",
-      opacity: 1,
+      x:               endLogoLeft,
+      y:               startY,
+      width:           endLogoW,
+      padding:         "2.5rem",
+      opacity:         1,
+      scale:           startScale,
+      transformOrigin: "top center",
     });
 
     /* ── Estado inicial: texto artistas invisible ───────────── */
@@ -291,26 +305,25 @@ export default function MMHeroMobileFinal() {
         tl.to(videoEl, { opacity: 0, duration: 0.18, ease: "expo.in" }, 0);
       }
 
-      // Fase 1 — box expande el ancho (corte horizontal rápido)
+      // Fase 1 — box expande el ancho (corte horizontal rápido) via scaleX
       tl.to(box, {
-        width:    vw,
+        scaleX:   1,
         duration: 0.22,
         ease:     "expo.out",
       }, 0);
 
-      // Fase 2 — box abre la altura y sella con blanco opaco
+      // Fase 2 — box abre la altura y sella con blanco opaco via scaleY
       tl.to(box, {
-        height:          vh,
+        scaleY:          1,
         backgroundColor: "rgba(255,255,255,1)",
         duration:        0.38,
         ease:            "expo.out",
       }, 0.18);
 
-      // Fase 3 — logo desliza al center-top (x/y transform, sin layout reflow)
+      // Fase 3 — logo sube al top-center: solo y + scale (cero width/x)
       tl.to(logo, {
-        x:        endLogoLeft,
         y:        0,
-        width:    endLogoW,
+        scale:    1,
         duration: 0.42,
         ease:     "expo.out",
       }, 0.22);
@@ -559,15 +572,13 @@ export default function MMHeroMobileFinal() {
         </video>
       </div>
 
-      {/* Box blanco — crece hasta cubrir toda la pantalla en el snap */}
+      {/* Box blanco — width/height/scale gestionados 100% por GSAP */}
       <div
         ref={boxRef}
         style={{
           position:        "fixed",
           top:             "50%",
           left:            "50%",
-          // transform gestionado 100% por GSAP (xPercent/yPercent)
-          width:           "82vw",
           backgroundColor: "rgba(255,255,255,0.35)",
           backdropFilter:  "blur(3px)",
           pointerEvents:   "none",

@@ -338,48 +338,67 @@ export default function MMDiscosHeroFinal4() {
     }
 
     /* ── DESKTOP ─────────────────────────────────────────── */
-    const boxW    = box.offsetWidth;
-    const boxH    = box.offsetHeight;
-    const boxLeft = (vw - boxW) / 2;
-    const boxTop  = (vh - boxH) / 2;
-
-    gsap.set(logo, {
-      left:    boxLeft,
-      width:   boxW,
-      padding: "2.5rem",
-      top:     "auto",
-      bottom:  vh - (boxTop + boxH),
-    });
-
-    const logoRect   = logo.getBoundingClientRect();
-    const startTop   = logoRect.top;
-    const startLeft  = boxLeft;
-    const startWidth = boxW;
-    gsap.set(logo, { top: startTop, bottom: "auto", opacity: 1 });
+    // Dimensiones del box calculadas matemáticamente (no leemos offsetWidth,
+    // porque GSAP va a sobreescribir width/height de todas formas).
+    const boxW   = vw * 0.25;        // CSS: width "25%"
+    const boxH   = boxW * (9 / 16);  // CSS: aspectRatio "16/9"
+    const boxTop = (vh - boxH) / 2;  // coordenada Y inicial del box
 
     const endWidth = 250;
-    const endLeft  = (vw - endWidth) / 2;
-    const endTop   = 0;
-    gsap.set(box, { width: boxW, height: boxH });
+    const endLeft  = (vw - endWidth) / 2;  // = calc(50% - 125px)
+
+    // Box: tamaño completo fijo en el DOM, escala inicial = tamaño visual del box.
+    // Animar scaleX/scaleY → GPU puro, cero width/height durante el scrub.
+    const startScaleX = boxW / vw;
+    const startScaleY = boxH / vh;
+
+    gsap.set(box, {
+      width:    vw,
+      height:   vh,
+      xPercent: -50,
+      yPercent: -50,
+      scaleX:   startScaleX,
+      scaleY:   startScaleY,
+    });
+
+    // Logo: width fijo (250px = endWidth), transformOrigin "top center".
+    // El pivot queda en (vw/2, y) → el borde superior sigue exactamente a `y`,
+    // y el centro horizontal siempre en vw/2 independientemente del scale.
+    // Solo animamos y + scale → cero top/left/width durante el scrub.
+    const startScale = boxW / endWidth;
+
+    gsap.set(logo, {
+      x:               endLeft,
+      y:               0,
+      width:           endWidth,
+      padding:         "2.5rem",
+      scale:           1,
+      opacity:         1,
+      transformOrigin: "top center",
+    });
+    // startY: visual top del logo = boxTop. Con pivot "top center", el top
+    // del elemento = y, independientemente del scale.
+    gsap.set(logo, { y: boxTop, scale: startScale });
 
     const logoTrigger = ScrollTrigger.create({
       trigger: spacer,
       start:   "top top",
       end:     `+=${vh}px`,
       scrub:   1,
-      onLeave:      () => window.dispatchEvent(new Event("mm-hero-logo-settled")),
-      onEnterBack:  () => window.dispatchEvent(new Event("mm-hero-logo-reset")),
+      onLeave:     () => window.dispatchEvent(new Event("mm-hero-logo-settled")),
+      onEnterBack: () => window.dispatchEvent(new Event("mm-hero-logo-reset")),
       onUpdate: (self) => {
         const p = self.progress;
+        // Box: solo scale — cero width/height — GPU composite puro
         gsap.set(box, {
-          width:           gsap.utils.interpolate(boxW, vw, p),
-          height:          gsap.utils.interpolate(boxH, vh, p),
+          scaleX:          gsap.utils.interpolate(startScaleX, 1, p),
+          scaleY:          gsap.utils.interpolate(startScaleY, 1, p),
           backgroundColor: `rgba(255,255,255,${gsap.utils.interpolate(0.35, 1, p)})`,
         });
+        // Logo: solo y + scale — cero top/left/width — GPU composite puro
         gsap.set(logo, {
-          top:   gsap.utils.interpolate(startTop, endTop, p),
-          left:  gsap.utils.interpolate(startLeft, endLeft, p),
-          width: gsap.utils.interpolate(startWidth, endWidth, p),
+          y:     gsap.utils.interpolate(boxTop, 0, p),
+          scale: gsap.utils.interpolate(startScale, 1, p),
         });
         if (videoRef.current) gsap.set(videoRef.current, { opacity: 1 - p });
       },
@@ -451,27 +470,31 @@ export default function MMDiscosHeroFinal4() {
       </div>
 
       {/* ── Box blanco ───────────────────────────────────────── */}
+      {/* width/height/transform: gestionados 100% por GSAP (scaleX/scaleY + xPercent/yPercent) */}
       <div
         ref={boxRef}
         style={{
-          position: "fixed", top: "50%", left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "25%", aspectRatio: "16/9",
+          position:        "fixed",
+          top:             "50%",
+          left:            "50%",
           backgroundColor: "rgba(255,255,255,0.35)",
-          backdropFilter: "blur(3px)",
-          pointerEvents: "none",
+          backdropFilter:  "blur(3px)",
+          pointerEvents:   "none",
         }}
       />
 
       {/* ── Logo ─────────────────────────────────────────────── */}
+      {/* top:0/left:0 anclan el origen; x/y/scale gestionados por GSAP */}
       <div
         id="mm-hero-animated-logo"
         ref={logoRef}
         style={{
-          position: "fixed",
-          zIndex: 9999,
+          position:  "fixed",
+          top:       0,
+          left:      0,
+          zIndex:    9999,
           pointerEvents: "none",
-          opacity: 0,
+          opacity:   0,
           isolation: "isolate",
         }}
       >

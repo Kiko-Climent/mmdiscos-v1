@@ -226,27 +226,38 @@ export default function MMHeroDesktopMobile() {
     // MOBILE BRANCH
     // ════════════════════════════════════════════════════════════════
     if (isMobile) {
-      // Box initial: small centered rectangle
-      const mBoxW      = vw * 0.82;
-      const mBoxH      = mBoxW * (9 / 16);
-      const endLogoW   = 250;  // igual que .mm-global-logo-nav → mismo tamaño en todas las páginas
+      const mBoxW       = vw * 0.82;
+      const mBoxH       = mBoxW * (9 / 16);
+      const endLogoW    = 250;  // igual que .mm-global-logo-nav → mismo tamaño en todas las páginas
       const endLogoLeft = (vw - endLogoW) / 2;
 
+      // Box: tamaño completo fijo, escala inicial = tamaño visual del box.
+      const startScaleX = mBoxW / vw;
+      const startScaleY = mBoxH / vh;
+
       gsap.set(box, {
-        width:           mBoxW,
-        height:          mBoxH,
+        width:           vw,
+        height:          vh,
         xPercent:        -50,
         yPercent:        -50,
+        scaleX:          startScaleX,
+        scaleY:          startScaleY,
         backgroundColor: "rgba(255,255,255,0.35)",
       });
 
-      // Logo anchored at top:0/left:0 in CSS; x/y = GPU transform, no layout reflow.
+      // Logo: width fijo (250px), transformOrigin "top center" → pivot en (vw/2, y).
+      // Solo animamos y + scale → cero width/x en el snap.
+      const startScale = mBoxW / endLogoW;
+      const startY     = vh / 2 - mBoxH / 2;
+
       gsap.set(logo, {
-        x:       (vw - mBoxW) / 2,
-        y:       vh / 2 - mBoxH / 2,
-        width:   mBoxW,
-        padding: "2.5rem",
-        opacity: 1,
+        x:               endLogoLeft,
+        y:               startY,
+        width:           endLogoW,
+        padding:         "2.5rem",
+        opacity:         1,
+        scale:           startScale,
+        transformOrigin: "top center",
       });
 
       // Artist spans: initially hidden (revealed after snap)
@@ -361,12 +372,12 @@ export default function MMHeroDesktopMobile() {
 
         if (videoEl) tl.to(videoEl, { opacity: 0, duration: 0.18, ease: "expo.in" }, 0);
 
-        // Box expands width first (horizontal cut), then height
-        tl.to(box, { width: vw, duration: 0.22, ease: "expo.out" }, 0);
-        tl.to(box, { height: vh, backgroundColor: "rgba(255,255,255,1)", duration: 0.38, ease: "expo.out" }, 0.18);
+        // Box: scaleX primero (corte horizontal), luego scaleY → cero width/height
+        tl.to(box, { scaleX: 1, duration: 0.22, ease: "expo.out" }, 0);
+        tl.to(box, { scaleY: 1, backgroundColor: "rgba(255,255,255,1)", duration: 0.38, ease: "expo.out" }, 0.18);
 
-        // Logo slides to top-center via x/y (GPU transform, no layout reflow)
-        tl.to(logo, { x: endLogoLeft, y: 0, width: endLogoW, duration: 0.42, ease: "expo.out" }, 0.22);
+        // Logo: solo y + scale → cero width/x
+        tl.to(logo, { y: 0, scale: 1, duration: 0.42, ease: "expo.out" }, 0.22);
       };
 
       window.addEventListener("wheel",     fireSnapAnimation, { passive: true });
@@ -391,25 +402,42 @@ export default function MMHeroDesktopMobile() {
     const spacer = spacerRef.current;
     if (!spacer) return;
 
-    // Box starts at 25vw × 16:9, centered.
-    const boxW    = box.offsetWidth;
-    const boxH    = box.offsetHeight;
-    const boxLeft = (vw - boxW) / 2;
-    const boxTop  = (vh - boxH) / 2;
+    // Dimensiones calculadas matemáticamente (no offsetWidth/offsetHeight).
+    const boxW   = vw * 0.25;
+    const boxH   = boxW * (9 / 16);
+    const boxTop = (vh - boxH) / 2;
+
     const endWidth = 250;
     const endLeft  = (vw - endWidth) / 2;
 
-    // Logo anchored at top:0/left:0 in CSS; initial position aligns with box top-left.
-    // Uses x/y (GPU transform) — no top/left layout reflow during scrub animation.
-    gsap.set(logo, {
-      x:       boxLeft,
-      y:       boxTop,
-      width:   boxW,
-      padding: "2.5rem",
-      opacity: 1,
+    // Box: tamaño completo fijo, escala inicial → GPU puro en el scrub.
+    const startScaleX = boxW / vw;
+    const startScaleY = boxH / vh;
+
+    gsap.set(box, {
+      width:    vw,
+      height:   vh,
+      xPercent: -50,
+      yPercent: -50,
+      scaleX:   startScaleX,
+      scaleY:   startScaleY,
     });
 
-    // Box/logo scrub: expands to fill viewport as user scrolls through spacer.
+    // Logo: width fijo (250px), transformOrigin "top center".
+    const startScale = boxW / endWidth;
+
+    gsap.set(logo, {
+      x:               endLeft,
+      y:               0,
+      width:           endWidth,
+      padding:         "2.5rem",
+      scale:           1,
+      opacity:         1,
+      transformOrigin: "top center",
+    });
+    gsap.set(logo, { y: boxTop, scale: startScale });
+
+    // Box/logo scrub: solo scaleX/scaleY y y/scale → cero width/height/top/left.
     const logoTrigger = ScrollTrigger.create({
       trigger: spacer,
       start:   "top top",
@@ -420,15 +448,13 @@ export default function MMHeroDesktopMobile() {
       onUpdate: (self) => {
         const p = self.progress;
         gsap.set(box, {
-          width:           gsap.utils.interpolate(boxW, vw, p),
-          height:          gsap.utils.interpolate(boxH, vh, p),
+          scaleX:          gsap.utils.interpolate(startScaleX, 1, p),
+          scaleY:          gsap.utils.interpolate(startScaleY, 1, p),
           backgroundColor: `rgba(255,255,255,${gsap.utils.interpolate(0.35, 1, p)})`,
         });
-        // x/y transforms — GPU composite, no reflow
         gsap.set(logo, {
-          x:     gsap.utils.interpolate(boxLeft, endLeft, p),
           y:     gsap.utils.interpolate(boxTop, 0, p),
-          width: gsap.utils.interpolate(boxW, endWidth, p),
+          scale: gsap.utils.interpolate(startScale, 1, p),
         });
         if (videoEl) gsap.set(videoEl, { opacity: 1 - p });
       },
@@ -658,18 +684,13 @@ export default function MMHeroDesktopMobile() {
         </video>
       </div>
 
-      {/* Box — expands to fill screen on snap (mobile) or scrub (desktop) */}
+      {/* Box — width/height/transform gestionados 100% por GSAP (scaleX/scaleY + xPercent/yPercent) */}
       <div
         ref={boxRef}
         style={{
           position:        "fixed",
           top:             "50%",
           left:            "50%",
-          // CSS transform centers the box; GSAP uses xPercent/yPercent on mobile
-          // and leaves this CSS transform intact on desktop (width/height only).
-          transform:       "translate(-50%, -50%)",
-          width:           isMobile ? "82vw" : "25%",
-          aspectRatio:     isMobile ? undefined : "16/9",
           backgroundColor: "rgba(255,255,255,0.35)",
           backdropFilter:  "blur(3px)",
           pointerEvents:   "none",
