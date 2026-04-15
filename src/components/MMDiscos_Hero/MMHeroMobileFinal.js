@@ -101,9 +101,10 @@ export default function MMHeroMobileFinal() {
     });
 
     /* ── Estado inicial: logo alineado con el box ───────────── */
+    // Usamos x/y (transform) en lugar de top/left → GPU, sin layout reflow.
     gsap.set(logo, {
-      top:     vh / 2 - mBoxH / 2,
-      left:    (vw - mBoxW) / 2,
+      x:       (vw - mBoxW) / 2,
+      y:       vh / 2 - mBoxH / 2,
       width:   mBoxW,
       padding: "2.5rem",
       opacity: 1,
@@ -239,10 +240,12 @@ export default function MMHeroMobileFinal() {
         videoEl.style.display = "none";
       }
 
-      // ── Filtro SVG: arranca muy distorsionado y se limpia mientras aparece el texto
-      aBlurRef.current?.setAttribute("stdDeviation", "7");
-      aMorphRef.current?.setAttribute("radius",       "2");
-      aGlowRef.current?.setAttribute("stdDeviation",  "4");
+      // ── Filtro SVG: arranca distorsionado y se limpia mientras aparece el texto.
+      // Valores reducidos vs versión anterior (7/2/4 → 4/1.2/2.5) para aliviar
+      // la carga GPU en el momento en que también se animan los spans del texto.
+      aBlurRef.current?.setAttribute("stdDeviation", "4");
+      aMorphRef.current?.setAttribute("radius",       "1.2");
+      aGlowRef.current?.setAttribute("stdDeviation",  "2.5");
 
       const fProxy = { t: 0 };
       gsap.to(fProxy, {
@@ -251,9 +254,9 @@ export default function MMHeroMobileFinal() {
         ease:     "power3.out",
         onUpdate() {
           const a = 1 - fProxy.t;
-          aBlurRef.current?.setAttribute("stdDeviation", (7   * a).toFixed(4));
-          aMorphRef.current?.setAttribute("radius",       (2   * a).toFixed(4));
-          aGlowRef.current?.setAttribute("stdDeviation",  (4   * a).toFixed(4));
+          aBlurRef.current?.setAttribute("stdDeviation", (4   * a).toFixed(4));
+          aMorphRef.current?.setAttribute("radius",       (1.2 * a).toFixed(4));
+          aGlowRef.current?.setAttribute("stdDeviation",  (2.5 * a).toFixed(4));
         },
         onComplete() {
           aBlurRef.current?.setAttribute("stdDeviation", "0");
@@ -303,10 +306,10 @@ export default function MMHeroMobileFinal() {
         ease:            "expo.out",
       }, 0.18);
 
-      // Fase 3 — logo desliza al center-top con el mismo impulso expo
+      // Fase 3 — logo desliza al center-top (x/y transform, sin layout reflow)
       tl.to(logo, {
-        top:      0,
-        left:     endLogoLeft,
+        x:        endLogoLeft,
+        y:        0,
         width:    endLogoW,
         duration: 0.42,
         ease:     "expo.out",
@@ -335,16 +338,16 @@ export default function MMHeroMobileFinal() {
       invalidateOnRefresh: true,
       onUpdate: (self) => {
         const p = self.progress;
-        // Translación hacia el top
+        // Translación hacia el top (transform GPU, sin reflow)
         gsap.set(artistsTextRef.current, { y: -p * vh * 1.2 });
 
-        // Filtro SVG — misma curva que la segunda cita en su fase de salida.
-        // Exponent 0.5 (raíz cuadrada) → efecto arranca muy pronto,
-        // al 25% del scroll ya estamos al 50% de distorsión máxima.
+        // Filtro SVG — valores reducidos (9/2.5/5 → 5/1.5/3) para evitar el
+        // pico de carga GPU que coincide con la aparición del orbital (9 clipPath).
+        // Exponent 0.5 (raíz cuadrada) → efecto arranca pronto pero con menor intensidad.
         const a = Math.pow(p, 0.5);
-        aBlurRef.current?.setAttribute("stdDeviation", (9   * a).toFixed(4));
-        aMorphRef.current?.setAttribute("radius",       (2.5 * a).toFixed(4));
-        aGlowRef.current?.setAttribute("stdDeviation",  (5   * a).toFixed(4));
+        aBlurRef.current?.setAttribute("stdDeviation", (5   * a).toFixed(4));
+        aMorphRef.current?.setAttribute("radius",       (1.5 * a).toFixed(4));
+        aGlowRef.current?.setAttribute("stdDeviation",  (3   * a).toFixed(4));
       },
       onLeaveBack: () => {
         gsap.set(artistsTextRef.current, { y: 0 });
@@ -580,6 +583,8 @@ export default function MMHeroMobileFinal() {
         ref={logoRef}
         style={{
           position:  "fixed",
+          top:       0,
+          left:      0,
           zIndex:    9999,
           pointerEvents: "none",
           isolation: "isolate",

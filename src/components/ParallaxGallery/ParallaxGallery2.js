@@ -36,14 +36,6 @@ export default function ParallaxGallery2() {
 
     const isMobile = () => window.innerWidth < 768;
 
-    // Debounce: la barra del navegador móvil dispara "resize" en cada scroll.
-    // Sin debounce, ScrollTrigger.refresh() bloquearía el main thread mid-scroll.
-    let resizeTimer;
-    const refreshAll = () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => ScrollTrigger.refresh(), 150);
-    };
-
     const revealTrigger = ScrollTrigger.create({
       trigger: spacer,
       // Móvil: retrasamos el inicio al 80% del viewport para evitar que el reveal
@@ -78,12 +70,7 @@ export default function ParallaxGallery2() {
       },
     });
 
-    window.addEventListener("resize", refreshAll);
-    refreshAll();
-
     return () => {
-      window.removeEventListener("resize", refreshAll);
-      clearTimeout(resizeTimer);
       trigger.kill();
       revealTrigger.kill();
     };
