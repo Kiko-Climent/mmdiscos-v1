@@ -88,7 +88,7 @@ export default function MMHeroMobileFinal() {
     /* ── Dimensiones iniciales ──────────────────────────────── */
     const mBoxW       = vw * 0.82;
     const mBoxH       = mBoxW * (9 / 16);
-    const endLogoW    = 200;
+    const endLogoW    = 250;  // igual que .mm-global-logo-nav → mismo tamaño en todas las páginas
     const endLogoLeft = (vw - endLogoW) / 2;
 
     /* ── Estado inicial: box pequeño centrado ───────────────── */
