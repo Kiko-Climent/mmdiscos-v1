@@ -125,38 +125,45 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
             </div>
           </div>
 
-          {/* Right column: tracklist only */}
+          {/* Right column: tracklist pushed right, text left-aligned.
+              The longest title's right edge aligns with the hero's right edge. */}
           <div
             style={{
               flex: 1,
-              overflow: "auto",
+              display: "flex",
+              justifyContent: "flex-end",
+              overflow: "hidden",
               minWidth: 0,
             }}
           >
-            {focusedData.tracklist?.map((track, i) => (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  alignItems: "baseline",
-                  lineHeight: PANEL_LINE_HEIGHT,
-                  fontSize: PANEL_FONT_SIZE,
-                  color: PANEL_TEXT,
-                }}
-              >
-                <span
-                  style={txt({
-                    minWidth: 18,
-                    letterSpacing: "0.06em",
-                    fontVariantNumeric: "tabular-nums",
-                    flexShrink: 0,
-                  })}
+            {/* maxWidth:"100%" hace que títulos largos hagan salto de línea
+                en lugar de desbordar y cortarse por la izquierda */}
+            <div style={{ maxWidth: "100%", overflowWrap: "break-word" }}>
+              {focusedData.tracklist?.map((track, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "baseline",
+                    lineHeight: PANEL_LINE_HEIGHT,
+                    fontSize: PANEL_FONT_SIZE,
+                    color: PANEL_TEXT,
+                  }}
                 >
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span style={txt({ letterSpacing: "0.04em" })}>{track}</span>
-              </div>
-            ))}
+                  <span
+                    style={txt({
+                      minWidth: 18,
+                      letterSpacing: "0.06em",
+                      fontVariantNumeric: "tabular-nums",
+                      flexShrink: 0,
+                    })}
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span style={txt({ letterSpacing: "0.04em" })}>{track}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </>
       )}
