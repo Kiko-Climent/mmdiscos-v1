@@ -20,7 +20,7 @@ import MMDiscosHero4 from "@/components/MMDiscos_Hero/MMDiscosHero4";
 import MMDiscosHeroFinal from "@/components/MMDiscos_Hero/MMDiscosHeroFinal";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useLayoutEffect, useRef, useEffect } from "react";
+import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import Lenis from "lenis";
 import MMDiscosHeroFinal2 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal2";
 import MMDiscosHeroFinal3 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal3";
@@ -36,6 +36,11 @@ ScrollTrigger.config({ ignoreMobileResize: true });
 
 export default function Home() {
   const lenisRef = useRef(null);
+
+  const [isMobile, setIsMobile] = useState(null);
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 720);
+  }, []);
 
   // useLayoutEffect: corre antes de los useEffect de los hijos, garantizando que
   // el scroll esté configurado antes de que se creen los ScrollTriggers hijos.
@@ -125,8 +130,13 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head> */}
 
-      {/* Hero: componente unificado — detecta device internamente */}
-      <MMHeroDesktopMobile />
+      {/* Hero: mobile vs desktop */}
+      {isMobile === null
+        ? null
+        : isMobile
+          ? <MMHeroMobileFinal />
+          : <MMDiscosHeroFinal4 />
+      }
       <ParallaxGallery2 />
       <AboutSection5 />
     </div>
