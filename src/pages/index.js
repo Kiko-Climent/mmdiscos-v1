@@ -20,12 +20,13 @@ import MMDiscosHero4 from "@/components/MMDiscos_Hero/MMDiscosHero4";
 import MMDiscosHeroFinal from "@/components/MMDiscos_Hero/MMDiscosHeroFinal";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useLayoutEffect, useRef, useState, useEffect } from "react";
+import { useLayoutEffect, useRef, useEffect } from "react";
 import Lenis from "lenis";
 import MMDiscosHeroFinal2 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal2";
 import MMDiscosHeroFinal3 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal3";
 import MMDiscosHeroFinal4 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal4";
 import MMHeroMobileFinal from "@/components/MMDiscos_Hero/MMHeroMobileFinal";
+import MMHeroDesktopMobile from "@/components/MMDiscos_Hero/MMHeroDesktopMobile";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -34,14 +35,7 @@ gsap.registerPlugin(ScrollTrigger);
 ScrollTrigger.config({ ignoreMobileResize: true });
 
 export default function Home() {
-
   const lenisRef = useRef(null);
-
-  // Detecta si el dispositivo es móvil tras el mount (evita mismatch SSR)
-  const [isMobile, setIsMobile] = useState(null);
-  useEffect(() => {
-    setIsMobile(window.innerWidth < 720);
-  }, []);
 
   // useLayoutEffect: corre antes de los useEffect de los hijos, garantizando que
   // el scroll esté configurado antes de que se creen los ScrollTriggers hijos.
@@ -131,13 +125,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head> */}
 
-      {/* Hero: mobile vs desktop */}
-      {isMobile === null
-        ? null                       // evita flash antes de detectar
-        : isMobile
-          ? <MMHeroMobileFinal />
-          : <MMDiscosHeroFinal4 />
-      }
+      {/* Hero: componente unificado — detecta device internamente */}
+      <MMHeroDesktopMobile />
       <ParallaxGallery2 />
       <AboutSection5 />
     </div>
