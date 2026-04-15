@@ -71,6 +71,99 @@ export function InfoPanel({ forwardRef, panelLayout, infoW, focusedData }) {
   );
 }
 
+// ─── MobilePanel — metadata left · tracklist right · no credits ──────────────
+
+export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
+  return (
+    <div
+      ref={forwardRef}
+      style={{
+        position: "absolute",
+        left: panelLayout.left,
+        top: panelLayout.top,
+        width: infoW,
+        height: panelLayout.height,
+        opacity: 0,
+        pointerEvents: "none",
+        zIndex: 3,
+        display: "flex",
+        gap: 24,
+        overflow: "hidden",
+      }}
+    >
+      {focusedData && (
+        <>
+          {/* Left column: metadata fields */}
+          <div
+            style={{
+              flex: "0 0 auto",
+              width: "42%",
+              display: "flex",
+              flexDirection: "column",
+              gap: 14,
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
+              <p style={txt({ letterSpacing: "0.06em", textTransform: "uppercase" })}>
+                {focusedData.artist}
+              </p>
+              <p style={txt({ letterSpacing: "0.04em" })}>{focusedData.title}</p>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
+              <p style={txt({ letterSpacing: "0.04em" })}>{focusedData.year}</p>
+              <p style={txt({ letterSpacing: "0.06em", textTransform: "uppercase" })}>
+                {focusedData.ref}
+              </p>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
+              <p style={txt({ letterSpacing: "0.04em" })}>{focusedData.format}</p>
+              {focusedData.vinyl && (
+                <p style={txt({ letterSpacing: "0.04em" })}>{focusedData.vinyl}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Right column: tracklist only */}
+          <div
+            style={{
+              flex: 1,
+              overflow: "auto",
+              minWidth: 0,
+            }}
+          >
+            {focusedData.tracklist?.map((track, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  lineHeight: PANEL_LINE_HEIGHT,
+                  fontSize: PANEL_FONT_SIZE,
+                  color: PANEL_TEXT,
+                }}
+              >
+                <span
+                  style={txt({
+                    minWidth: 18,
+                    letterSpacing: "0.06em",
+                    fontVariantNumeric: "tabular-nums",
+                    flexShrink: 0,
+                  })}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span style={txt({ letterSpacing: "0.04em" })}>{track}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ─── TrackPanel ───────────────────────────────────────────────────────────────
 
 export function TrackPanel({ forwardRef, panelLayout, trackLeft, trackW, focusedData }) {

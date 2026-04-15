@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useSliderScene } from "./useSliderScene";
-import { InfoPanel, TrackPanel } from "./panels";
+import { InfoPanel, TrackPanel, MobilePanel } from "./panels";
 import IndexView from "./IndexView";
 import { PADDING_PX, INFO_W_FRAC } from "./constants";
 import { CENTER_IDX, SLIDE_COUNT, TITLES } from "./releaseMap";
@@ -45,9 +45,17 @@ export default function FinalReleases2() {
     });
   };
 
-  const infoW     = Math.max(120, panelLayout.availableW * INFO_W_FRAC - panelLayout.gap * 0.5);
+  const isMobile  = viewportSize.w > 0 && viewportSize.w < 768;
+
+  // Mobile: InfoPanel ocupa todo el ancho disponible bajo el hero; TrackPanel oculto
+  // Desktop: InfoPanel izquierda, TrackPanel derecha
+  const infoW     = isMobile
+    ? panelLayout.availableW
+    : Math.max(120, panelLayout.availableW * INFO_W_FRAC - panelLayout.gap * 0.5);
   const trackLeft = panelLayout.left + infoW + panelLayout.gap;
-  const trackW    = Math.max(0, panelLayout.availableW - infoW - panelLayout.gap - PADDING_PX * 2);
+  const trackW    = isMobile
+    ? 0
+    : Math.max(0, panelLayout.availableW - infoW - panelLayout.gap - PADDING_PX * 2);
 
   return (
     <div
@@ -69,19 +77,30 @@ export default function FinalReleases2() {
       />
 
       {/* Focus-mode panels */}
-      <InfoPanel
-        forwardRef={infoPanelRef}
-        panelLayout={panelLayout}
-        infoW={infoW}
-        focusedData={focusedData}
-      />
-      <TrackPanel
-        forwardRef={trackPanelRef}
-        panelLayout={panelLayout}
-        trackLeft={trackLeft}
-        trackW={trackW}
-        focusedData={focusedData}
-      />
+      {isMobile ? (
+        <MobilePanel
+          forwardRef={infoPanelRef}
+          panelLayout={panelLayout}
+          infoW={infoW}
+          focusedData={focusedData}
+        />
+      ) : (
+        <>
+          <InfoPanel
+            forwardRef={infoPanelRef}
+            panelLayout={panelLayout}
+            infoW={infoW}
+            focusedData={focusedData}
+          />
+          <TrackPanel
+            forwardRef={trackPanelRef}
+            panelLayout={panelLayout}
+            trackLeft={trackLeft}
+            trackW={trackW}
+            focusedData={focusedData}
+          />
+        </>
+      )}
 
       {/* Index overlay */}
       <div

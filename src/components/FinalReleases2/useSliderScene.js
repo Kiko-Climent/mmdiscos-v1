@@ -22,20 +22,6 @@ function wrapCarouselOffset(offset, trackWidth) {
   return ((((offset + half) % trackWidth) + trackWidth) % trackWidth) - half;
 }
 
-function calcFinalPos(i, scroll, W) {
-  const trackWidth = SLIDE_COUNT * SPACING;
-  const offset = wrapCarouselOffset(i * SPACING - scroll, trackWidth);
-  const absDist = Math.abs(offset);
-  const t = Math.min(absDist / (W * 1.1), 1.0);
-  const tEased = Math.pow(t, 0.75);
-  return {
-    x: offset,
-    y: -tEased * 140,
-    z: -tEased * 900,
-    scale: 1.06 - tEased * 0.45,
-  };
-}
-
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useSliderScene({
@@ -67,6 +53,31 @@ export function useSliderScene({
     let W = window.innerWidth;
     let H = window.innerHeight;
 
+    // ── Mobile overrides ─────────────────────────────────────────────────────
+    // Detect once at mount; layout stays consistent within a session.
+    const isMobile = W < 768;
+    const CW = isMobile ? 200 : CARD_W;   // card width  (world units ≈ px)
+    const CH = isMobile ? 200 : CARD_H;   // card height
+    const SP = isMobile ? 190 : SPACING;  // inter-card spacing
+
+    // Focus layout constants for mobile
+    const MOBILE_COLUMN_GAP = 20;  // gap between thumb column and hero
+
+    // Local calcFinalPos that uses the effective SP/CW values
+    function calcFinalPos(i, scroll, screenW) {
+      const tw = SLIDE_COUNT * SP;
+      const offset = wrapCarouselOffset(i * SP - scroll, tw);
+      const absDist = Math.abs(offset);
+      const t = Math.min(absDist / (screenW * 1.1), 1.0);
+      const tEased = Math.pow(t, 0.75);
+      return {
+        x: offset,
+        y: -tEased * 140,
+        z: -tEased * 900,
+        scale: 1.06 - tEased * 0.45,
+      };
+    }
+
     // ── Renderer ────────────────────────────────────────────────────────────
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -81,10 +92,32 @@ export function useSliderScene({
 
     // ── Panel layout computation ────────────────────────────────────────────
 
-    function computePanelLayout() {
-      const thumbW = CARD_W * THUMB_SCALE;
-      const heroW = CARD_W * HERO_SCALE;
-      const heroH = CARD_H * HERO_SCALE;
+    // heroInfo: { x, y, z, scale } — optional, used on mobile to place panel below hero
+    function computePanelLayout(heroInfo) {
+      if (isMobile && heroInfo) {
+        const heroW = CW * heroInfo.scale;
+        const heroH = CH * heroInfo.scale;
+
+        // Hero horizontal bounds in screen coords (world X: 0 = screen center)
+        const heroLeftScreen  = heroInfo.x - heroW / 2 + W / 2;
+        const heroRightScreen = heroInfo.x + heroW / 2 + W / 2;
+
+        // Hero bottom edge in screen coords (world Y: 0 = screen center, Y-up)
+        const heroBottomScreen = H / 2 - (heroInfo.y - heroH / 2);
+
+        return {
+          left:       heroLeftScreen,
+          top:        heroBottomScreen + PADDING_PX,
+          height:     H - heroBottomScreen - PADDING_PX * 2,
+          availableW: heroRightScreen - heroLeftScreen,
+          gap:        PADDING_PX,
+        };
+      }
+
+      // Desktop layout — panel to the right of the hero
+      const thumbW = CW * THUMB_SCALE;
+      const heroW = CW * HERO_SCALE;
+      const heroH = CH * HERO_SCALE;
       const colGap = Math.max(COLUMN_GAP_MIN, heroW * COLUMN_GAP_FRAC);
       const tCenterX = -W / 2 + PADDING_PX + thumbW / 2;
       const xHero = tCenterX + thumbW / 2 + colGap + heroW / 2;
@@ -107,8 +140,8 @@ export function useSliderScene({
       const halfW = Math.tan(vFov / 2) * camera.aspect * camZ;
 
       const marginWorld = (PADDING_PX / W) * (2 * halfW);
-      const thumbW = CARD_W * THUMB_SCALE;
-      const thumbH = CARD_H * THUMB_SCALE;
+      const thumbW = CW * THUMB_SCALE;
+      const thumbH = CH * THUMB_SCALE;
       const thumbLeftEdge = -halfW + marginWorld;
       const thumbHCenterX = thumbLeftEdge + thumbW / 2;
 
@@ -125,7 +158,27 @@ export function useSliderScene({
         thumbPositions[idx] = { x: thumbHCenterX, y, z: FOCUS_THUMB_Z };
       }
 
-      const heroW = CARD_W * HERO_SCALE;
+      if (isMobile) {
+        // Hero width fills from right of thumb column to right edge (symmetric padding)
+        const heroLeftEdge  = thumbHCenterX + thumbW / 2 + MOBILE_COLUMN_GAP;
+        const heroRightEdge = halfW - marginWorld;          // = W/2 - PADDING_PX
+        const heroW_m       = heroRightEdge - heroLeftEdge;
+        const heroScale     = heroW_m / CW;                 // CW = CH → square card
+        const heroH_m       = CH * heroScale;
+        const xHero         = heroLeftEdge + heroW_m / 2;
+
+        // Top of hero aligns with top of topmost thumbnail
+        const topThumbCenterY = ((m - 1) / 2) * step;
+        const topThumbTopY    = topThumbCenterY + thumbH / 2;
+        const yHero           = topThumbTopY - heroH_m / 2;
+
+        return {
+          thumbPositions,
+          hero: { x: xHero, y: yHero, z: 0, scale: heroScale },
+        };
+      }
+
+      const heroW = CW * HERO_SCALE;
       const columnGap = Math.max(COLUMN_GAP_MIN, heroW * COLUMN_GAP_FRAC);
       const xHero = thumbHCenterX + thumbW / 2 + columnGap + heroW / 2;
 
@@ -141,7 +194,7 @@ export function useSliderScene({
     const meshes = [];
 
     IMAGES.forEach((src, i) => {
-      const geo = new THREE.PlaneGeometry(CARD_W, CARD_H);
+      const geo = new THREE.PlaneGeometry(CW, CH);
       const mat = new THREE.ShaderMaterial({
         vertexShader: vert,
         fragmentShader: frag,
@@ -166,13 +219,13 @@ export function useSliderScene({
 
     let introComplete = false;
     let currentIndex = CENTER_IDX;
-    let scrollTarget = CENTER_IDX * SPACING;
-    let scrollCurrent = CENTER_IDX * SPACING;
+    let scrollTarget = CENTER_IDX * SP;
+    let scrollCurrent = CENTER_IDX * SP;
     let lastSlideTime = 0;
     let activeIndex = -1;
     let hoveredIndex = -1;
     let lastClosest = CENTER_IDX;
-    const trackWidth = SLIDE_COUNT * SPACING;
+    const trackWidth = SLIDE_COUNT * SP;
     const mouse = new THREE.Vector2();
     const raycaster = new THREE.Raycaster();
 
@@ -214,7 +267,7 @@ export function useSliderScene({
       focusedIndex = lastClosest;
 
       const L = getLeftColumnAndHero(focusedIndex);
-      const layout = computePanelLayout();
+      const layout = computePanelLayout(L.hero);
       const imgKey = IMAGES[((focusedIndex % SLIDE_COUNT) + SLIDE_COUNT) % SLIDE_COUNT];
       const data = RELEASE_MAP[imgKey] || null;
       setFocusedData(data);
@@ -278,11 +331,13 @@ export function useSliderScene({
           if (infoPanelRef.current) {
             gsap.fromTo(
               infoPanelRef.current,
-              { opacity: 0, x: 14 },
-              { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" },
+              isMobile ? { opacity: 0, y: 10 } : { opacity: 0, x: 14 },
+              isMobile
+                ? { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
+                : { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" },
             );
           }
-          if (trackPanelRef.current) {
+          if (!isMobile && trackPanelRef.current) {
             gsap.fromTo(
               trackPanelRef.current,
               { opacity: 0, x: 14 },
@@ -298,9 +353,12 @@ export function useSliderScene({
       focusTransitioning = true;
 
       if (infoPanelRef.current) {
-        gsap.to(infoPanelRef.current, { opacity: 0, x: 14, duration: 0.22, ease: "power2.in" });
+        gsap.to(infoPanelRef.current, isMobile
+          ? { opacity: 0, y: 10, duration: 0.22, ease: "power2.in" }
+          : { opacity: 0, x: 14, duration: 0.22, ease: "power2.in" },
+        );
       }
-      if (trackPanelRef.current) {
+      if (!isMobile && trackPanelRef.current) {
         gsap.to(trackPanelRef.current, { opacity: 0, x: 14, duration: 0.22, ease: "power2.in" });
       }
 
@@ -354,7 +412,7 @@ export function useSliderScene({
       if (now - lastSlideTime < SLIDE_COOLDOWN) return;
       lastSlideTime = now;
       currentIndex += delta;
-      scrollTarget = currentIndex * SPACING;
+      scrollTarget = currentIndex * SP;
     }
 
     // ── Carousel layout ─────────────────────────────────────────────────────
@@ -364,7 +422,7 @@ export function useSliderScene({
       let closestIndex = 0;
 
       meshes.forEach((mesh, i) => {
-        const offset = wrapCarouselOffset(i * SPACING - scroll, trackWidth);
+        const offset = wrapCarouselOffset(i * SP - scroll, trackWidth);
         const absDist = Math.abs(offset);
         const t = Math.min(absDist / (W * 1.1), 1.0);
         const tEased = Math.pow(t, 0.75);
@@ -412,17 +470,12 @@ export function useSliderScene({
     // ── View-transition API (exposed via sceneApiRef) ───────────────────────
 
     sceneApiRef.current = {
-      /**
-       * Animate all cards to center (stacked). The frontmost card is the one
-       * that was closest when the user clicked "Index".
-       */
       animateToCenter(onComplete) {
         if (!introComplete) {
           onComplete?.();
           return;
         }
 
-        // Force-exit focus mode if active
         if (focusMode || focusTransitioning) {
           focusMode = false;
           focusTransitioning = false;
@@ -439,25 +492,21 @@ export function useSliderScene({
           gsap.killTweensOf(m.scale);
         });
 
-        // Fade out bottom UI
         gsap.to(
           [titleRef.current, counterRef.current].filter(Boolean),
           { opacity: 0, duration: 0.3, ease: "power2.in" },
         );
 
-        // The card that was closest goes on top
         meshes.forEach((m, i) => {
           m.renderOrder = i === lastClosest ? 10 : 0;
         });
 
         const tl = gsap.timeline({ onComplete });
 
-        // Target: small row formation (same as intro Phase 1)
         const FILA_SCALE_IDX = 0.12;
-        const FILA_GAP_IDX   = CARD_W * FILA_SCALE_IDX + 6;
+        const FILA_GAP_IDX   = CW * FILA_SCALE_IDX + 6;
         const FILA_START_X_IDX = -(SLIDE_COUNT / 2 - 0.5) * FILA_GAP_IDX;
 
-        // Stagger from center outward
         const order = [...Array(SLIDE_COUNT).keys()].sort(
           (a, b) => Math.abs(a - lastClosest) - Math.abs(b - lastClosest),
         );
@@ -470,16 +519,13 @@ export function useSliderScene({
         });
       },
 
-      /**
-       * Animate cards from center back to pyramid carousel positions.
-       */
       animateToPyramid(onComplete) {
         meshes.forEach((m) => {
           gsap.killTweensOf(m.position);
           gsap.killTweensOf(m.scale);
         });
 
-        const scroll = currentIndex * SPACING;
+        const scroll = currentIndex * SP;
         scrollCurrent = scroll;
         scrollTarget = scroll;
 
@@ -488,7 +534,6 @@ export function useSliderScene({
             viewLocked = false;
             meshes.forEach((m) => { m.renderOrder = 0; });
 
-            // Restore bottom UI
             activeIndex = -1;
             if (titleRef.current) {
               titleRef.current.textContent = TITLES[lastClosest];
@@ -505,7 +550,6 @@ export function useSliderScene({
           },
         });
 
-        // Stagger from outer inward
         const order = [...Array(SLIDE_COUNT).keys()].sort(
           (a, b) => Math.abs(b - lastClosest) - Math.abs(a - lastClosest),
         );
@@ -542,16 +586,46 @@ export function useSliderScene({
       touchAccum += touchStartX - e.touches[0].clientX;
       touchStartX = e.touches[0].clientX;
     };
-    const onTouchEnd = () => {
+    const onTouchEnd = (e) => {
       touchBlockClickUntil = Date.now() + 450;
       if (!introComplete || viewLocked) return;
       if (focusTransitioning) { touchAccum = 0; return; }
+
       if (focusMode) {
-        if (Math.abs(touchAccum) > 30) exitFocus();
+        if (Math.abs(touchAccum) > 30) {
+          // Swipe → salir del detalle
+          exitFocus();
+        } else {
+          // Tap en focus mode → salir si se toca la imagen hero
+          const touch = e.changedTouches[0];
+          const rect = canvas.getBoundingClientRect();
+          const tapX = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+          const tapY = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+          raycaster.setFromCamera(new THREE.Vector2(tapX, tapY), camera);
+          const hits = raycaster.intersectObjects(meshes);
+          if (hits.length > 0 && hits[0].object.userData.index === focusedIndex) {
+            exitFocus();
+          }
+        }
         touchAccum = 0;
         return;
       }
-      if (Math.abs(touchAccum) > 30) goTo(touchAccum > 0 ? 1 : -1);
+
+      if (Math.abs(touchAccum) > 30) {
+        // Swipe → navegar
+        goTo(touchAccum > 0 ? 1 : -1);
+      } else {
+        // Tap → entrar al detalle si se toca la imagen central
+        const touch = e.changedTouches[0];
+        const rect = canvas.getBoundingClientRect();
+        const tapX = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+        const tapY = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(new THREE.Vector2(tapX, tapY), camera);
+        const hits = raycaster.intersectObjects(meshes);
+        if (hits.length > 0 && hits[0].object.userData.index === lastClosest) {
+          enterFocus();
+        }
+      }
       touchAccum = 0;
     };
 
@@ -610,7 +684,8 @@ export function useSliderScene({
         }
       }
 
-      if (!viewLocked) {
+      // Hover raycasting — desktop only (no ripple on mobile)
+      if (!isMobile && !viewLocked) {
         raycaster.setFromCamera(mouse, camera);
         const hits = raycaster.intersectObjects(meshes);
 
@@ -644,7 +719,7 @@ export function useSliderScene({
     if (titleRef.current) titleRef.current.style.opacity = "0";
     if (counterRef.current) counterRef.current.style.opacity = "0";
 
-    const INTRO_SCROLL = CENTER_IDX * SPACING;
+    const INTRO_SCROLL = CENTER_IDX * SP;
     const getFinalPos = (i) => calcFinalPos(i, INTRO_SCROLL, W);
 
     const CARD_SMALL = 0.12;
@@ -660,7 +735,7 @@ export function useSliderScene({
     const introTl = gsap.timeline();
 
     const FILA_SCALE = 0.12;
-    const FILA_GAP = CARD_W * FILA_SCALE + 6;
+    const FILA_GAP = CW * FILA_SCALE + 6;
     const FILA_START_X = -(SLIDE_COUNT / 2 - 0.5) * FILA_GAP;
 
     meshes.forEach((mesh, i) => {
@@ -710,7 +785,7 @@ export function useSliderScene({
 
       if (focusMode && !focusTransitioning) {
         const L = getLeftColumnAndHero(focusedIndex);
-        setPanelLayout(computePanelLayout());
+        setPanelLayout(computePanelLayout(L.hero));
         meshes.forEach((mesh, i) => {
           if (i === focusedIndex) {
             mesh.position.set(L.hero.x, L.hero.y, L.hero.z);
