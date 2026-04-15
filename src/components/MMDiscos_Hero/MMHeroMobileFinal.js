@@ -89,6 +89,7 @@ export default function MMHeroMobileFinal() {
     const mBoxW       = vw * 0.82;
     const mBoxH       = mBoxW * (9 / 16);
     const endLogoW    = 250;  // igual que .mm-global-logo-nav → mismo tamaño en todas las páginas
+    const endLogoPad    = "1rem 2.5rem 2.5rem"; // mismo padding que .mm-global-logo-nav
     const endLogoLeft = (vw - endLogoW) / 2;
 
     /* ── Estado inicial: box ────────────────────────────────── */
@@ -108,21 +109,27 @@ export default function MMHeroMobileFinal() {
     });
 
     /* ── Estado inicial: logo ────────────────────────────────── */
-    // width fijo (250px), transformOrigin "top center" → pivot en (vw/2, y).
-    // El borde superior sigue exactamente a `y`; el horizontal siempre en vw/2.
-    // Solo animamos y + scale → cero width/x en el snap.
-    const startScale = mBoxW / endLogoW;
-    const startY     = vh / 2 - mBoxH / 2;  // visual top del logo = top del box
-
-    gsap.set(logo, {
-      x:               endLogoLeft,
-      y:               startY,
-      width:           endLogoW,
-      padding:         "2.5rem",
-      opacity:         1,
-      scale:           startScale,
-      transformOrigin: "top center",
-    });
+    // Medimos el rect del blur (box) y encajamos el logo escalado dentro — misma fuente que pinta el blur.
+    const syncLogoToBlurBox = () => {
+      gsap.set(logo, {
+        x:               endLogoLeft,
+        y:               0,
+        width:           endLogoW,
+        padding:         endLogoPad,
+        opacity:         1,
+        scale:           1,
+        transformOrigin: "top center",
+      });
+      const B = box.getBoundingClientRect();
+      const L = logo.getBoundingClientRect();
+      if (B.width <= 0 || B.height <= 0 || L.width <= 0 || L.height <= 0) return;
+      const startScale = B.width / L.width;
+      const scaledH = L.height * startScale;
+      const startY = B.top + (B.height - scaledH) / 2;
+      gsap.set(logo, { y: startY, scale: startScale });
+    };
+    syncLogoToBlurBox();
+    requestAnimationFrame(syncLogoToBlurBox);
 
     /* ── Estado inicial: texto artistas invisible ───────────── */
     const artistSpans = artistsSpansRef.current.filter(Boolean);
@@ -619,7 +626,7 @@ export default function MMHeroMobileFinal() {
           className="logo-layer-black"
           style={{
             position:  "absolute",
-            inset:     "2.5rem",
+            inset:     "1rem 2.5rem 2.5rem 2.5rem",
             pointerEvents: "none",
             clipPath:  "inset(0 0 0 0)",
           }}
@@ -635,7 +642,7 @@ export default function MMHeroMobileFinal() {
           className="logo-layer-white"
           style={{
             position:  "absolute",
-            inset:     "2.5rem",
+            inset:     "1rem 2.5rem 2.5rem 2.5rem",
             zIndex:    1,
             pointerEvents: "none",
             clipPath:  "inset(100% 0 0 0)",

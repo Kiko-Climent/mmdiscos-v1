@@ -149,13 +149,14 @@ body::-webkit-scrollbar {
   transition: top 0s, bottom 0s; /* no transition — GSAP/Flip handles it */
 }
 
-/* Global persistent nav logo — position managed by CSS; GSAP overrides inline during hero animation */
+/* Global persistent nav logo — position managed by CSS; GSAP overrides inline during hero animation.
+   Misma caja que el logo del hero al terminar la animación (MMHeroMobileFinal / MMDiscosHeroFinal4). */
 .mm-global-logo-nav {
   position: fixed;
   top: 0;
   left: calc(50% - 125px);
   width: 250px;
-  padding: 2.5rem;
+  padding: 1rem 2.5rem 2.5rem;
   z-index: 9999;
 }
 

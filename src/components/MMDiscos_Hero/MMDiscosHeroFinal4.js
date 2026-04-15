@@ -26,10 +26,16 @@ const SVH_PER_IMAGE = 15;
 // Índice de la imagen que sobrevive y se hunde al vacío
 const SURVIVOR_INDEX = ORBITAL_IMAGES.length - 1;
 
+/** Misma caja que `.mm-global-logo-nav` en globals.css — debe coincidir al terminar la animación. */
+const GLOBAL_LOGO_PADDING = "1rem 2.5rem 2.5rem";
+const GLOBAL_LOGO_LAYER_INSET = "1rem 2.5rem 2.5rem 2.5rem";
+
 export default function MMDiscosHeroFinal4() {
   const spacerRef          = useRef(null);
   const boxRef             = useRef(null);
   const logoRef            = useRef(null);
+  /** Top inicial del logo (móvil) para centrarlo en el rectángulo blur; se recalcula en setupMobileTrigger. */
+  const mobileLogoStartTopRef = useRef(0);
   const videoRef           = useRef(null);
   const videoContainerRef  = useRef(null); // FIX: ref separado para el contenedor del video
   const artistsSectionRef  = useRef(null);
@@ -257,10 +263,10 @@ export default function MMDiscosHeroFinal4() {
           backgroundColor: `rgba(255,255,255,${gsap.utils.interpolate(0.35, 1, p)})`,
         });
         gsap.set(logo, {
-          top:   gsap.utils.interpolate(h / 2 - mBoxH / 2, 0, p),
+          top:   gsap.utils.interpolate(mobileLogoStartTopRef.current, 0, p),
           left:  gsap.utils.interpolate((w - mBoxW) / 2, endLogoLeft, p),
           width: gsap.utils.interpolate(mBoxW, endLogoW, p),
-          padding: "2.5rem",
+          padding: GLOBAL_LOGO_PADDING,
           opacity: 1,
         });
         if (videoRef.current) gsap.set(videoRef.current, { opacity: 1 - p });
@@ -281,6 +287,34 @@ export default function MMDiscosHeroFinal4() {
           videoContainerRef.current.style.height = `${frozenVH}px`;
         }
 
+        const mBoxWm = hero.vw * 0.82;
+        const mBoxHm = mBoxWm * (9 / 16);
+        const setMobileStartTop = () => {
+          gsap.set(box, {
+            width: mBoxWm,
+            height: mBoxHm,
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "rgba(255,255,255,0.35)",
+          });
+          gsap.set(logo, {
+            top: 0,
+            left: (hero.vw - mBoxWm) / 2,
+            width: mBoxWm,
+            padding: GLOBAL_LOGO_PADDING,
+            opacity: 1,
+          });
+          const B = box.getBoundingClientRect();
+          const L = logo.getBoundingClientRect();
+          if (B.height > 0 && L.height > 0) {
+            mobileLogoStartTopRef.current = B.top + (B.height - L.height) / 2;
+          } else {
+            mobileLogoStartTopRef.current = hero.vh / 2 - mBoxHm / 2;
+          }
+        };
+        setMobileStartTop();
+
         mobileTrigger = ScrollTrigger.create({
           trigger: spacer,
           start:   "top top",
@@ -293,6 +327,12 @@ export default function MMDiscosHeroFinal4() {
 
         applyMobileHeroFrame(mobileTrigger);
         setOrbitalProgress(orbitalTrigger.progress);
+
+        requestAnimationFrame(() => {
+          setMobileStartTop();
+          applyMobileHeroFrame(mobileTrigger);
+          ScrollTrigger.refresh();
+        });
       };
 
       setupMobileTrigger();
@@ -341,7 +381,6 @@ export default function MMDiscosHeroFinal4() {
     // porque GSAP va a sobreescribir width/height de todas formas).
     const boxW   = vw * 0.25;        // CSS: width "25%"
     const boxH   = boxW * (9 / 16);  // CSS: aspectRatio "16/9"
-    const boxTop = (vh - boxH) / 2;  // coordenada Y inicial del box
 
     const endWidth = 250;
     const endLeft  = (vw - endWidth) / 2;  // = calc(50% - 125px)
@@ -364,20 +403,31 @@ export default function MMDiscosHeroFinal4() {
     // El pivot queda en (vw/2, y) → el borde superior sigue exactamente a `y`,
     // y el centro horizontal siempre en vw/2 independientemente del scale.
     // Solo animamos y + scale → cero top/left/width durante el scrub.
-    const startScale = boxW / endWidth;
-
-    gsap.set(logo, {
-      x:               endLeft,
-      y:               0,
-      width:           endWidth,
-      padding:         "2.5rem",
-      scale:           1,
-      opacity:         1,
-      transformOrigin: "top center",
+    let startScale = boxW / endWidth;
+    let startY = 0;
+    const syncLogoToBlurBox = () => {
+      gsap.set(logo, {
+        x:               endLeft,
+        y:               0,
+        width:           endWidth,
+        padding:         GLOBAL_LOGO_PADDING,
+        scale:           1,
+        opacity:         1,
+        transformOrigin: "top center",
+      });
+      const B = box.getBoundingClientRect();
+      const L = logo.getBoundingClientRect();
+      if (B.width <= 0 || B.height <= 0 || L.width <= 0 || L.height <= 0) return;
+      startScale = B.width / L.width;
+      const scaledH = L.height * startScale;
+      startY = B.top + (B.height - scaledH) / 2;
+      gsap.set(logo, { y: startY, scale: startScale });
+    };
+    syncLogoToBlurBox();
+    requestAnimationFrame(() => {
+      syncLogoToBlurBox();
+      ScrollTrigger.refresh();
     });
-    // startY: visual top del logo = boxTop. Con pivot "top center", el top
-    // del elemento = y, independientemente del scale.
-    gsap.set(logo, { y: boxTop, scale: startScale });
 
     const logoTrigger = ScrollTrigger.create({
       trigger: spacer,
@@ -396,7 +446,7 @@ export default function MMDiscosHeroFinal4() {
         });
         // Logo: solo y + scale — cero top/left/width — GPU composite puro
         gsap.set(logo, {
-          y:     gsap.utils.interpolate(boxTop, 0, p),
+          y:     gsap.utils.interpolate(startY, 0, p),
           scale: gsap.utils.interpolate(startScale, 1, p),
         });
         if (videoRef.current) gsap.set(videoRef.current, { opacity: 1 - p });
@@ -511,7 +561,7 @@ export default function MMDiscosHeroFinal4() {
         />
         <div
           className="logo-layer-black"
-          style={{ position: "absolute", inset: "2.5rem", pointerEvents: "none", clipPath: "inset(0 0 0 0)" }}
+          style={{ position: "absolute", inset: GLOBAL_LOGO_LAYER_INSET, pointerEvents: "none", clipPath: "inset(0 0 0 0)" }}
         >
           <img
             src="/logo/Balearic Sound System Logo.svg"
@@ -524,7 +574,7 @@ export default function MMDiscosHeroFinal4() {
           className="logo-layer-white"
           style={{
             position: "absolute",
-            inset: "2.5rem",
+            inset: GLOBAL_LOGO_LAYER_INSET,
             zIndex: 1,
             pointerEvents: "none",
             clipPath: "inset(100% 0 0 0)",
