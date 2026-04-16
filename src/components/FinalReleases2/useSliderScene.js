@@ -63,21 +63,30 @@ export function useSliderScene({
     // Focus layout constants for mobile
     const MOBILE_COLUMN_GAP = 20;  // gap between thumb column and hero
 
-    // Cached nav bottom (screen Y) for mobile safe zone — updated on enterFocus / resize.
-    // We measure the bottom of the last child (the menu links div), not the nav container,
-    // because the container has a large bottom padding that would push things too far down.
-    // We also add the menu's own marginTop so the gap below the links equals the gap
-    // between logo and links.
-    let mobileNavBottom = 0;
+    // Two cached screen-Y values for the mobile focus layout — updated on enterFocus / resize.
+    // mobileThumbsTopPx : top of the thumbnails column = same distance from screen top as the logo
+    //                     (the nav's padding-top, so it mirrors the logo's own top margin).
+    // mobileHeroTopPx   : top of the hero image = bottom of the menu links + the links' marginTop
+    //                     (same gap that separates logo from links).
+    let mobileThumbsTopPx = 0;
+    let mobileHeroTopPx   = 0;
     function updateNavBottom() {
       const navEl = document.getElementById("mm-global-logo");
       if (!navEl) return;
+
+      // Thumbnails top — same as logo's top edge (nav padding-top from screen top)
+      const logoEl = navEl.firstElementChild;
+      mobileThumbsTopPx = logoEl
+        ? logoEl.getBoundingClientRect().top
+        : parseFloat(getComputedStyle(navEl).paddingTop) || 0;
+
+      // Hero top — below the menu links + same gap as logo→links (links' marginTop)
       const linksEl = navEl.lastElementChild;
       if (linksEl) {
         const menuGap = parseFloat(getComputedStyle(linksEl).marginTop) || 0;
-        mobileNavBottom = linksEl.getBoundingClientRect().bottom + menuGap;
+        mobileHeroTopPx = linksEl.getBoundingClientRect().bottom + menuGap;
       } else {
-        mobileNavBottom = navEl.getBoundingClientRect().bottom;
+        mobileHeroTopPx = navEl.getBoundingClientRect().bottom;
       }
     }
 
@@ -169,38 +178,44 @@ export function useSliderScene({
       }
       const m = indices.length;
       const step = thumbH + THUMB_GAP_Y;
-      const thumbPositions = {};
-      for (let k = 0; k < m; k++) {
-        const idx = indices[k];
-        const y = ((m - 1) / 2 - k) * step;
-        thumbPositions[idx] = { x: thumbHCenterX, y, z: FOCUS_THUMB_Z };
-      }
 
       if (isMobile) {
-        // Hero width fills from right of thumb column to right edge (symmetric padding)
+        // Thumbnails: top-justified with the same distance from screen top as the logo
+        const thumbsTopWorld  = H / 2 - mobileThumbsTopPx;
+        const thumbTopCenterY = thumbsTopWorld - thumbH / 2;
+        const thumbPositions  = {};
+        for (let k = 0; k < m; k++) {
+          thumbPositions[indices[k]] = {
+            x: thumbHCenterX,
+            y: thumbTopCenterY - k * step,
+            z: FOCUS_THUMB_Z,
+          };
+        }
+
+        // Hero width fills from right of thumb column to right edge
         const heroLeftEdge  = thumbHCenterX + thumbW / 2 + MOBILE_COLUMN_GAP;
-        const heroRightEdge = halfW - marginWorld;          // = W/2 - PADDING_PX
+        const heroRightEdge = halfW - marginWorld;
         const heroW_m       = heroRightEdge - heroLeftEdge;
-        const heroScale     = heroW_m / CW;                 // CW = CH → square card
+        const heroScale     = heroW_m / CW;
         const heroH_m       = CH * heroScale;
         const xHero         = heroLeftEdge + heroW_m / 2;
 
-        // Top of hero aligns with top of topmost thumbnail
-        const topThumbCenterY = ((m - 1) / 2) * step;
-        const topThumbTopY    = topThumbCenterY + thumbH / 2;
-
-        // Safe zone: align hero top with the nav/menu bottom (+ same gap as logo→links).
-        // Thumbnails are NOT shifted — they use all available vertical space freely.
-        const navSafeWorld = H / 2 - mobileNavBottom;
-        const heroTopNatural = topThumbTopY; // hero top aligns with top of thumb column
-        const yShift = Math.max(0, heroTopNatural - navSafeWorld);
-
-        const yHero = heroTopNatural - yShift - heroH_m / 2;
+        // Hero top anchored below the menu links (same gap as logo→links)
+        const heroTopWorld = H / 2 - mobileHeroTopPx;
+        const yHero        = heroTopWorld - heroH_m / 2;
 
         return {
           thumbPositions,
           hero: { x: xHero, y: yHero, z: 0, scale: heroScale },
         };
+      }
+
+      // Desktop — thumbnails centered vertically
+      const thumbPositions = {};
+      for (let k = 0; k < m; k++) {
+        const idx = indices[k];
+        const y = ((m - 1) / 2 - k) * step;
+        thumbPositions[idx] = { x: thumbHCenterX, y, z: FOCUS_THUMB_Z };
       }
 
       const heroW = CW * HERO_SCALE;
