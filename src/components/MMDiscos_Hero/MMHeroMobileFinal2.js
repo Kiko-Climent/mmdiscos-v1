@@ -81,17 +81,25 @@ export default function MMHeroMobileFinal2() {
     if (!box || !logo) return;
 
     /* ── Bloqueo de scroll durante la animación snap ─────────── */
-    // En móvil con scroll nativo, overflow:hidden bloquea el momentum
-    // del touch para que el primer gesto no haga avanzar la página.
-    const lockScroll = () => {
-      document.documentElement.style.overflow = "hidden";
-      document.body.style.overflow            = "hidden";
+    // overflow:hidden no bloquea el momentum táctil de iOS.
+    // La única forma fiable es un listener touchmove/wheel con passive:false
+    // que llame preventDefault() — así el browser ignora la inercia del dedo.
+    let scrollBlocked = true;
+
+    const blockScrollHandler = (e) => {
+      if (scrollBlocked) e.preventDefault();
     };
+
+    // passive:false es imprescindible para poder llamar preventDefault en iOS
+    document.addEventListener("touchmove", blockScrollHandler, { passive: false });
+    document.addEventListener("wheel",     blockScrollHandler, { passive: false });
+
     const unlockScroll = () => {
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow            = "";
+      if (!scrollBlocked) return;
+      scrollBlocked = false;
+      document.removeEventListener("touchmove", blockScrollHandler);
+      document.removeEventListener("wheel",     blockScrollHandler);
     };
-    lockScroll();
 
     /* ── Viewport congelado ──────────────────────────────────── */
     const frozenVH = window.innerHeight;
