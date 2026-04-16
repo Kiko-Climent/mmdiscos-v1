@@ -2,6 +2,7 @@ import "@/styles/globals.css";
 import "@/styles/about.css";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
 import Menu from "@/components/menu/Menu";
 
 /** Cortina About: borde superior de `.about-section` frente al logo animado. */
@@ -46,6 +47,77 @@ export default function App({ Component, pageProps }) {
 
   const logoRef = useRef(null);
   const [menuVisible, setMenuVisible] = useState(!isHome);
+
+  // ── Page transition curtain ───────────────────────────────────────────────
+  const curtainRef      = useRef(null);
+  const coverDoneRef    = useRef(false);
+  const revealPendingRef = useRef(false);
+
+  // Initial reveal when landing directly on /releases
+  useEffect(() => {
+    if (!router.pathname.startsWith("/releases")) return;
+    // Small delay so FinalReleases2 / useSliderScene can register
+    // the mm-page-revealed listener before we dispatch it.
+    const timer = setTimeout(() => {
+      if (!curtainRef.current) return;
+      gsap.to(curtainRef.current, {
+        yPercent: -100,
+        duration: 0.85,
+        ease: "expo.out",
+        onComplete: () => window.dispatchEvent(new CustomEvent("mm-page-revealed")),
+      });
+    }, 150);
+    return () => clearTimeout(timer);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Route-change transitions — curtain only when arriving at /releases
+  useEffect(() => {
+    function doReveal() {
+      revealPendingRef.current = false;
+      gsap.to(curtainRef.current, {
+        yPercent: -100,
+        duration: 0.85,
+        ease: "expo.out",
+        onComplete: () => window.dispatchEvent(new CustomEvent("mm-page-revealed")),
+      });
+    }
+
+    function onStart(url) {
+      if (!url.startsWith("/releases")) return;
+      coverDoneRef.current  = false;
+      revealPendingRef.current = false;
+      gsap.set(curtainRef.current, { yPercent: 100 });
+      gsap.to(curtainRef.current, {
+        yPercent: 0,
+        duration: 0.5,
+        ease: "power2.inOut",
+        onComplete: () => {
+          coverDoneRef.current = true;
+          if (revealPendingRef.current) doReveal();
+        },
+      });
+    }
+
+    function onComplete(url) {
+      if (!url.startsWith("/releases")) return;
+      if (coverDoneRef.current) doReveal();
+      else revealPendingRef.current = true;
+    }
+
+    function onError() {
+      // Navigation cancelled — slide curtain away
+      gsap.to(curtainRef.current, { yPercent: 100, duration: 0.4, ease: "power2.in" });
+    }
+
+    router.events.on("routeChangeStart",    onStart);
+    router.events.on("routeChangeComplete", onComplete);
+    router.events.on("routeChangeError",    onError);
+    return () => {
+      router.events.off("routeChangeStart",    onStart);
+      router.events.off("routeChangeComplete", onComplete);
+      router.events.off("routeChangeError",    onError);
+    };
+  }, [router.events]);
 
   // Sincroniza visibilidad al cambiar de ruta
   useEffect(() => {
@@ -125,6 +197,25 @@ export default function App({ Component, pageProps }) {
       </div>
 
       <Component {...pageProps} />
+
+      {/* Page transition curtain — slides up from below to cover, then exits upward */}
+      <div
+        ref={curtainRef}
+        aria-hidden
+        style={{
+          position:        "fixed",
+          inset:           0,
+          zIndex:          9999,
+          background:      "#fff",
+          pointerEvents:   "none",
+          willChange:      "transform",
+          // On /releases: starts covering (revealed by the initial useEffect).
+          // On every other page: parked off-screen above so it's invisible.
+          transform: router.pathname.startsWith("/releases")
+            ? "translateY(0%)"
+            : "translateY(-100%)",
+        }}
+      />
     </>
   );
 }

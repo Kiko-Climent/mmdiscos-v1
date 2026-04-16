@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import * as THREE from "three";
 import gsap from "gsap";
 import { vert, frag } from "./shaders";
@@ -38,7 +38,10 @@ export function useSliderScene({
   });
   const [viewportSize, setViewportSize] = useState({ w: 0, h: 0 });
 
-  useLayoutEffect(() => {
+  // useEffect (not useLayoutEffect) — safe for SSR in Pages Router.
+  // viewportSize starts as { w:0, h:0 } and is set after first paint; the
+  // component already handles this with its "100vh" fallback.
+  useEffect(() => {
     const sync = () =>
       setViewportSize({ w: window.innerWidth, h: window.innerHeight });
     sync();
@@ -226,7 +229,82 @@ export function useSliderScene({
       };
     }
 
-    // ── Meshes ──────────────────────────────────────────────────────────────
+    // ── Intro gate ───────────────────────────────────────────────────────────
+    // The intro timeline only fires when BOTH conditions are met:
+    //   1. mm-page-revealed event received (curtain has fully opened)
+    //   2. All textures have loaded
+    // A 3-second fallback fires the intro regardless (direct loads, slow networks).
+
+    let loadedCount    = 0;
+    let pageRevealed   = false;
+    let introStarted   = false;
+    let unmounted      = false;
+    let introTl        = null;
+
+    const CARD_SMALL  = 0.12;
+    const ENTRY_START = -W * 0.65;
+
+    function tryStartIntro() {
+      if (unmounted || introStarted) return;
+      if (!pageRevealed) return;
+      if (loadedCount < SLIDE_COUNT) return;
+
+      introStarted = true;
+
+      // Re-confirm off-screen start positions in case something drifted
+      meshes.forEach((mesh) => {
+        mesh.position.set(ENTRY_START, 0, 0);
+        mesh.scale.set(CARD_SMALL, CARD_SMALL, 1);
+      });
+
+      const INTRO_SCROLL = CENTER_IDX * SP;
+      const getFinalPos  = (i) => calcFinalPos(i, INTRO_SCROLL, W);
+
+      introTl = gsap.timeline();
+
+      // Phase 1 — cards slide in from the left as a horizontal row
+      const FILA_SCALE = 0.12;
+      const FILA_GAP   = CW * FILA_SCALE + 6;
+      const FILA_START_X = -(SLIDE_COUNT / 2 - 0.5) * FILA_GAP;
+
+      meshes.forEach((mesh, i) => {
+        introTl.to(
+          mesh.position,
+          { x: FILA_START_X + i * FILA_GAP, y: 0, z: 0, duration: 0.5, ease: "power2.out" },
+          i * 0.055,
+        );
+      });
+
+      // Phase 2 — explode into pyramid carousel
+      const PHASE2_START = SLIDE_COUNT * 0.055 + 0.5 + 0.35;
+
+      meshes.forEach((mesh, i) => {
+        const pos = getFinalPos(i);
+        introTl.to(
+          mesh.position,
+          { x: pos.x, y: pos.y, z: pos.z, duration: 1.1, ease: "power3.inOut" },
+          PHASE2_START + i * 0.03,
+        );
+        introTl.to(
+          mesh.scale,
+          { x: pos.scale, y: pos.scale, duration: 1.1, ease: "power3.inOut" },
+          PHASE2_START + i * 0.03,
+        );
+      });
+
+      // Phase 3 — fade in title + counter
+      const PHASE3_START = PHASE2_START + 0.75;
+      introTl.to(
+        [titleRef.current, counterRef.current].filter(Boolean),
+        { opacity: 1, duration: 0.6, ease: "power2.out" },
+        PHASE3_START + 0.1,
+      );
+
+      const INTRO_END = PHASE2_START + 1.1 + SLIDE_COUNT * 0.03 + 0.05;
+      introTl.call(() => { introComplete = true; }, [], INTRO_END);
+    }
+
+    // ── Meshes ───────────────────────────────────────────────────────────────
 
     const loader = new THREE.TextureLoader();
     const meshes = [];
@@ -246,6 +324,8 @@ export function useSliderScene({
       loader.load(src, (tex) => {
         tex.minFilter = THREE.LinearFilter;
         mat.uniforms.uTexture.value = tex;
+        loadedCount++;
+        tryStartIntro();
       });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.userData = { index: i };
@@ -753,64 +833,37 @@ export function useSliderScene({
       renderer.render(scene, camera);
     }
 
-    // ── Intro animation ─────────────────────────────────────────────────────
+    // ── Initial setup + render loop ──────────────────────────────────────────
+    // Park all meshes off-screen left. They stay here until tryStartIntro fires.
 
     if (titleRef.current) titleRef.current.style.opacity = "0";
     if (counterRef.current) counterRef.current.style.opacity = "0";
-
-    const INTRO_SCROLL = CENTER_IDX * SP;
-    const getFinalPos = (i) => calcFinalPos(i, INTRO_SCROLL, W);
-
-    const CARD_SMALL = 0.12;
-    const ENTRY_START = -W * 0.65;
 
     meshes.forEach((mesh) => {
       mesh.position.set(ENTRY_START, 0, 0);
       mesh.scale.set(CARD_SMALL, CARD_SMALL, 1);
     });
 
+    // Start render loop immediately so Three.js is warm when the intro fires
     animate();
 
-    const introTl = gsap.timeline();
+    // ── mm-page-revealed listener + fallback ──────────────────────────────────
 
-    const FILA_SCALE = 0.12;
-    const FILA_GAP = CW * FILA_SCALE + 6;
-    const FILA_START_X = -(SLIDE_COUNT / 2 - 0.5) * FILA_GAP;
+    const onPageRevealed = () => {
+      pageRevealed = true;
+      tryStartIntro();
+    };
+    // { once: true } — auto-removes after first call
+    window.addEventListener("mm-page-revealed", onPageRevealed, { once: true });
 
-    meshes.forEach((mesh, i) => {
-      introTl.to(
-        mesh.position,
-        { x: FILA_START_X + i * FILA_GAP, y: 0, z: 0, duration: 0.5, ease: "power2.out" },
-        i * 0.055,
-      );
-    });
-
-    const PHASE2_START = SLIDE_COUNT * 0.055 + 0.5 + 0.35;
-
-    meshes.forEach((mesh, i) => {
-      const pos = getFinalPos(i);
-      introTl.to(
-        mesh.position,
-        { x: pos.x, y: pos.y, z: pos.z, duration: 1.1, ease: "power3.inOut" },
-        PHASE2_START + i * 0.03,
-      );
-      introTl.to(
-        mesh.scale,
-        { x: pos.scale, y: pos.scale, duration: 1.1, ease: "power3.inOut" },
-        PHASE2_START + i * 0.03,
-      );
-    });
-
-    const PHASE3_START = PHASE2_START + 0.75;
-
-    introTl.to(
-      [titleRef.current, counterRef.current].filter(Boolean),
-      { opacity: 1, duration: 0.6, ease: "power2.out" },
-      PHASE3_START + 0.1,
-    );
-
-    const INTRO_END = PHASE2_START + 1.1 + SLIDE_COUNT * 0.03 + 0.05;
-    introTl.call(() => { introComplete = true; }, [], INTRO_END);
+    // Fallback: if the event never arrives (direct load without curtain,
+    // or extremely slow routing), fire the intro after 3 s regardless.
+    const fallbackTimer = setTimeout(() => {
+      if (!pageRevealed) {
+        pageRevealed = true;
+        tryStartIntro();
+      }
+    }, 3000);
 
     // ── Resize ──────────────────────────────────────────────────────────────
 
@@ -846,8 +899,11 @@ export function useSliderScene({
     // ── Cleanup ─────────────────────────────────────────────────────────────
 
     return () => {
+      unmounted = true;
       cancelAnimationFrame(rafId);
-      introTl.kill();
+      clearTimeout(fallbackTimer);
+      window.removeEventListener("mm-page-revealed", onPageRevealed);
+      if (introTl) introTl.kill();
       meshes.forEach((m) => {
         gsap.killTweensOf(m.position);
         gsap.killTweensOf(m.scale);
