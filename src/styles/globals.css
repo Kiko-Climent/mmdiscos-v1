@@ -150,7 +150,8 @@ body::-webkit-scrollbar {
 }
 
 /* Global persistent nav logo — position managed by CSS; GSAP overrides inline during hero animation.
-   Misma caja que el logo del hero al terminar la animación (MMHeroMobileFinal / MMDiscosHeroFinal4). */
+   Misma caja que el logo del hero al terminar la animación (MMHeroMobileFinal / MMDiscosHeroFinal4).
+   Desktop: 250px; móvil (<720px): 200px — debe coincidir con LOGO_END_WIDTH_* en los héroes. */
 .mm-global-logo-nav {
   position: fixed;
   top: 0;
@@ -158,6 +159,16 @@ body::-webkit-scrollbar {
   width: 250px;
   padding: 1rem 2.5rem 2.5rem;
   z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@media (max-width: 719px) {
+  .mm-global-logo-nav {
+    left: calc(50% - 100px);
+    width: 200px;
+  }
 }
 
 /* Applied dynamically: logo.classList.add(styles.logoPinned) */

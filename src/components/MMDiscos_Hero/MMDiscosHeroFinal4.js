@@ -30,12 +30,18 @@ const SURVIVOR_INDEX = ORBITAL_IMAGES.length - 1;
 const GLOBAL_LOGO_PADDING = "1rem 2.5rem 2.5rem";
 const GLOBAL_LOGO_LAYER_INSET = "1rem 2.5rem 2.5rem 2.5rem";
 
+/** Ancho final del logo: desktop 250px (globals), móvil 200px (media query `.mm-global-logo-nav`). */
+const LOGO_END_WIDTH_DESKTOP = 250;
+const LOGO_END_WIDTH_MOBILE = 200;
+
+/** Factor de ajuste fino sobre el fitScale (< 1 = pequeño margen interior, = 1 = toca los bordes).
+ *  Se multiplica por Math.min(fitW, fitH) para que el logo encuadre perfectamente dentro del blur box. */
+const LOGO_FIT_FACTOR = 0.96;
+
 export default function MMDiscosHeroFinal4() {
   const spacerRef          = useRef(null);
   const boxRef             = useRef(null);
   const logoRef            = useRef(null);
-  /** Top inicial del logo (móvil) para centrarlo en el rectángulo blur; se recalcula en setupMobileTrigger. */
-  const mobileLogoStartTopRef = useRef(0);
   const videoRef           = useRef(null);
   const videoContainerRef  = useRef(null); // FIX: ref separado para el contenedor del video
   const artistsSectionRef  = useRef(null);
@@ -241,33 +247,67 @@ export default function MMDiscosHeroFinal4() {
       onLeaveBack: hideOrbital,
     });
 
-    /* ── MÓVIL ───────────────────────────────────────────── */
+    /* ── MÓVIL ─────────────────────────────────────────────
+       Misma estrategia que desktop: box = vw×vh + scaleX/scaleY; logo = ancho fijo + y + scale (GPU). */
     if (!isDesktop) {
       let mobileTrigger = null;
+      const w = () => hero.vw;
+      const h = () => hero.vh;
+      let mobileStartScaleX = 1;
+      let mobileStartScaleY = 1;
+      let mobileLogoStartY = 0;
+      let mobileLogoStartScale = 1;
+
+      const syncMobileLogoToBlurBox = () => {
+        const ww = w();
+        const hh = h();
+        const mBoxWm = ww * 0.90;
+        const mBoxHm = mBoxWm * (9 / 16);
+        mobileStartScaleX = mBoxWm / ww;
+        mobileStartScaleY = mBoxHm / hh;
+        const endLogoW    = LOGO_END_WIDTH_MOBILE;
+        const endLogoLeft = (ww - endLogoW) / 2;
+
+        gsap.set(box, {
+          width:           ww,
+          height:          hh,
+          xPercent:        -50,
+          yPercent:        -50,
+          scaleX:          mobileStartScaleX,
+          scaleY:          mobileStartScaleY,
+          backgroundColor: "rgba(255,255,255,0.35)",
+        });
+
+        // width/padding/transformOrigin: propiedades de layout → CSS directo, nunca animadas por GSAP
+        logo.style.width           = `${endLogoW}px`;
+        logo.style.padding         = GLOBAL_LOGO_PADDING;
+        logo.style.transformOrigin = "top center";
+        // GSAP solo para transforms (x, y, scale) y opacity
+        gsap.set(logo, { x: endLogoLeft, y: 0, scale: 1, opacity: 1 });
+
+        const B = box.getBoundingClientRect();
+        const L = logo.getBoundingClientRect();
+        if (B.width <= 0 || B.height <= 0 || L.width <= 0 || L.height <= 0) return;
+        // fitScale: la dimensión más restrictiva controla la escala → logo siempre dentro del blur box
+        mobileLogoStartScale = Math.min(B.width / L.width, B.height / L.height) * LOGO_FIT_FACTOR;
+        const scaledH = L.height * mobileLogoStartScale;
+        mobileLogoStartY = B.top + (B.height - scaledH) / 2;
+        gsap.set(logo, { y: mobileLogoStartY, scale: mobileLogoStartScale });
+      };
 
       const applyMobileHeroFrame = (self) => {
         const p = self.progress;
-        // FIX: usa hero.vw / hero.vh que ahora siempre tienen el valor congelado
-        const w = hero.vw;
-        const h = hero.vh;
-        const mBoxW = w * 0.82;
-        const mBoxH = mBoxW * (9 / 16);
-        const endLogoW = 250;
-        const endLogoLeft = (w - endLogoW) / 2;
+        const ww = w();
+        const hh = h();
 
         gsap.set(box, {
-          width:  gsap.utils.interpolate(mBoxW, w, p),
-          height: gsap.utils.interpolate(mBoxH, h, p),
-          top: "50%", left: "50%",
-          transform: "translate(-50%, -50%)",
+          scaleX:          gsap.utils.interpolate(mobileStartScaleX, 1, p),
+          scaleY:          gsap.utils.interpolate(mobileStartScaleY, 1, p),
           backgroundColor: `rgba(255,255,255,${gsap.utils.interpolate(0.35, 1, p)})`,
         });
         gsap.set(logo, {
-          top:   gsap.utils.interpolate(mobileLogoStartTopRef.current, 0, p),
-          left:  gsap.utils.interpolate((w - mBoxW) / 2, endLogoLeft, p),
-          width: gsap.utils.interpolate(mBoxW, endLogoW, p),
-          padding: GLOBAL_LOGO_PADDING,
-          opacity: 1,
+          y:     gsap.utils.interpolate(mobileLogoStartY, 0, p),
+          scale: gsap.utils.interpolate(mobileLogoStartScale, 1, p),
         });
         if (videoRef.current) gsap.set(videoRef.current, { opacity: 1 - p });
       };
@@ -287,33 +327,7 @@ export default function MMDiscosHeroFinal4() {
           videoContainerRef.current.style.height = `${frozenVH}px`;
         }
 
-        const mBoxWm = hero.vw * 0.82;
-        const mBoxHm = mBoxWm * (9 / 16);
-        const setMobileStartTop = () => {
-          gsap.set(box, {
-            width: mBoxWm,
-            height: mBoxHm,
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            backgroundColor: "rgba(255,255,255,0.35)",
-          });
-          gsap.set(logo, {
-            top: 0,
-            left: (hero.vw - mBoxWm) / 2,
-            width: mBoxWm,
-            padding: GLOBAL_LOGO_PADDING,
-            opacity: 1,
-          });
-          const B = box.getBoundingClientRect();
-          const L = logo.getBoundingClientRect();
-          if (B.height > 0 && L.height > 0) {
-            mobileLogoStartTopRef.current = B.top + (B.height - L.height) / 2;
-          } else {
-            mobileLogoStartTopRef.current = hero.vh / 2 - mBoxHm / 2;
-          }
-        };
-        setMobileStartTop();
+        syncMobileLogoToBlurBox();
 
         mobileTrigger = ScrollTrigger.create({
           trigger: spacer,
@@ -329,7 +343,7 @@ export default function MMDiscosHeroFinal4() {
         setOrbitalProgress(orbitalTrigger.progress);
 
         requestAnimationFrame(() => {
-          setMobileStartTop();
+          syncMobileLogoToBlurBox();
           applyMobileHeroFrame(mobileTrigger);
           ScrollTrigger.refresh();
         });
@@ -379,10 +393,10 @@ export default function MMDiscosHeroFinal4() {
     /* ── DESKTOP ─────────────────────────────────────────── */
     // Dimensiones del box calculadas matemáticamente (no leemos offsetWidth,
     // porque GSAP va a sobreescribir width/height de todas formas).
-    const boxW   = vw * 0.25;        // CSS: width "25%"
-    const boxH   = boxW * (9 / 16);  // CSS: aspectRatio "16/9"
+    const boxW   = vw * 0.30;        // blur box inicial (30% del viewport)
+    const boxH   = boxW * (9 / 16);  // ratio 16/9
 
-    const endWidth = 250;
+    const endWidth = LOGO_END_WIDTH_DESKTOP;
     const endLeft  = (vw - endWidth) / 2;  // = calc(50% - 125px)
 
     // Box: tamaño completo fijo en el DOM, escala inicial = tamaño visual del box.
@@ -399,26 +413,23 @@ export default function MMDiscosHeroFinal4() {
       scaleY:   startScaleY,
     });
 
-    // Logo: width fijo (250px = endWidth), transformOrigin "top center".
-    // El pivot queda en (vw/2, y) → el borde superior sigue exactamente a `y`,
+    // Logo: pivot en "top center" → el borde superior sigue exactamente a `y`,
     // y el centro horizontal siempre en vw/2 independientemente del scale.
     // Solo animamos y + scale → cero top/left/width durante el scrub.
     let startScale = boxW / endWidth;
     let startY = 0;
     const syncLogoToBlurBox = () => {
-      gsap.set(logo, {
-        x:               endLeft,
-        y:               0,
-        width:           endWidth,
-        padding:         GLOBAL_LOGO_PADDING,
-        scale:           1,
-        opacity:         1,
-        transformOrigin: "top center",
-      });
+      // width/padding/transformOrigin: propiedades de layout → CSS directo, nunca animadas por GSAP
+      logo.style.width           = `${endWidth}px`;
+      logo.style.padding         = GLOBAL_LOGO_PADDING;
+      logo.style.transformOrigin = "top center";
+      // GSAP solo para transforms (x, y, scale) y opacity
+      gsap.set(logo, { x: endLeft, y: 0, scale: 1, opacity: 1 });
       const B = box.getBoundingClientRect();
       const L = logo.getBoundingClientRect();
       if (B.width <= 0 || B.height <= 0 || L.width <= 0 || L.height <= 0) return;
-      startScale = B.width / L.width;
+      // fitScale: la dimensión más restrictiva controla la escala → logo siempre dentro del blur box
+      startScale = Math.min(B.width / L.width, B.height / L.height) * LOGO_FIT_FACTOR;
       const scaledH = L.height * startScale;
       startY = B.top + (B.height - scaledH) / 2;
       gsap.set(logo, { y: startY, scale: startScale });

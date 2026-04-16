@@ -2,24 +2,18 @@ import "@/styles/globals.css";
 import "@/styles/about.css";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import NavPills3 from "@/components/menu/NavPills3";
+import Menu from "@/components/menu/Menu";
 
-/** Cortina About: borde superior de `.about-section` frente al logo (misma lógica que MMHeroWithReleases6). */
-function syncHeroLogoAboutCurtain(navPillsRef) {
+/** Cortina About: borde superior de `.about-section` frente al logo animado. */
+function syncHeroLogoAboutCurtain() {
   const about = document.querySelector(".about-section");
   const logoRoot = document.getElementById("mm-hero-animated-logo");
   const logoBlack = logoRoot?.querySelector(".logo-layer-black");
   const logoWhite = logoRoot?.querySelector(".logo-layer-white");
 
-  const vh = window.innerHeight;
-
-  if (about) {
-    const ab = about.getBoundingClientRect();
-    navPillsRef.current?.updateCurtain(ab.top, vh, ab.bottom);
-  }
-
   if (!about || !logoRoot || !logoBlack || !logoWhite) return;
 
+  const vh = window.innerHeight;
   const ab = about.getBoundingClientRect();
   const curtainTop = ab.top;
 
@@ -48,21 +42,20 @@ export default function App({ Component, pageProps }) {
   const router  = useRouter();
   const isHome  = router.pathname === "/";
 
-  const logoRef     = useRef(null);
-  const navPillsRef = useRef(null);
-  const [pillsVisible, setPillsVisible] = useState(!isHome);
+  const logoRef = useRef(null);
+  const [menuVisible, setMenuVisible] = useState(!isHome);
 
   // Sincroniza visibilidad al cambiar de ruta
   useEffect(() => {
-    setPillsVisible(!isHome);
+    setMenuVisible(!isHome);
   }, [isHome]);
 
-  // En home: escucha eventos del hero para mostrar/ocultar las pills
+  // En home: escucha eventos del hero para mostrar/ocultar el menu
   useEffect(() => {
     if (!isHome) return;
 
-    const onSettled = () => setPillsVisible(true);
-    const onReset   = () => setPillsVisible(false);
+    const onSettled = () => setMenuVisible(true);
+    const onReset   = () => setMenuVisible(false);
 
     window.addEventListener("mm-hero-logo-settled", onSettled);
     window.addEventListener("mm-hero-logo-reset",   onReset);
@@ -72,8 +65,7 @@ export default function App({ Component, pageProps }) {
     };
   }, [isHome]);
 
-  // Home: cortina About vs logo + pills. RAF nativo (no depende de GSAP ni de import async);
-  // Lenis no dispara scroll nativo de forma fiable, así que un frame loop es lo más estable.
+  // Home: cortina About vs logo animado. RAF nativo, más estable que eventos de scroll.
   useEffect(() => {
     if (!isHome) return;
 
@@ -82,11 +74,11 @@ export default function App({ Component, pageProps }) {
 
     const loop = () => {
       if (stopped) return;
-      syncHeroLogoAboutCurtain(navPillsRef);
+      syncHeroLogoAboutCurtain();
       rafId = requestAnimationFrame(loop);
     };
 
-    syncHeroLogoAboutCurtain(navPillsRef);
+    syncHeroLogoAboutCurtain();
     rafId = requestAnimationFrame(loop);
 
     return () => {
@@ -103,40 +95,32 @@ export default function App({ Component, pageProps }) {
     }
   };
 
-  const handleReleasesClick = () => router.push("/releases");
-
-  const handleStatementClick = () => {
-    if (isHome) {
-      document.getElementById("statement")?.scrollIntoView({ behavior: "smooth" });
-    } else {
-      router.push("/#statement");
-    }
-  };
-
   return (
     <>
-      {/* Logo global persistente — en home el hero lo controla via GSAP; en el resto ya está visible */}
+      {/* Logo global persistente — el div siempre visible para que Menu pueda aparecer dentro.
+          En home el hero animado (#mm-hero-animated-logo) cubre visualmente este logo,
+          por eso solo el <img> lleva opacity:0 en home (no el contenedor). */}
       <div
         ref={logoRef}
         id="mm-global-logo"
         className="mm-global-logo-nav"
-        style={{ opacity: isHome ? 0 : 1, pointerEvents: isHome ? "none" : "auto", cursor: "pointer" }}
-        onClick={handleLogoClick}
+        style={{ pointerEvents: menuVisible || !isHome ? "auto" : "none" }}
       >
         <img
           src="/logo/Balearic Sound System Logo.svg"
           alt="MM Discos"
-          style={{ width: "100%", height: "100%", objectFit: "contain" }}
+          onClick={handleLogoClick}
+          style={{
+            width:        "100%",
+            height:       "100%",
+            objectFit:    "contain",
+            opacity:      isHome ? 0 : 1,
+            cursor:       "pointer",
+            pointerEvents: "auto",
+          }}
         />
+        <Menu visible={menuVisible} />
       </div>
-
-      <NavPills3
-        ref={navPillsRef}
-        visible={pillsVisible}
-        logoRef={logoRef}
-        onReleasesClick={handleReleasesClick}
-        onStatementClick={handleStatementClick}
-      />
 
       <Component {...pageProps} />
     </>

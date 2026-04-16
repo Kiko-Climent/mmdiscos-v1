@@ -21,6 +21,12 @@ const ORBITAL_IMAGES = [
 const SVH_PER_IMAGE   = 8;   // menos scroll por imagen → animación más rápida
 const SURVIVOR_INDEX  = ORBITAL_IMAGES.length - 1;
 
+/** Ancho final del logo en móvil — alineado con `.mm-global-logo-nav` (max-width: 719px) en globals.css. */
+const LOGO_END_WIDTH_MOBILE = 200;
+/** Factor de ajuste fino sobre el fitScale (< 1 = pequeño margen interior, = 1 = toca los bordes).
+ *  Se multiplica por Math.min(fitW, fitH) para que el logo encuadre perfectamente dentro del blur box. */
+const LOGO_FIT_FACTOR = 0.96;
+
 // Nombres divididos para el stagger tipo FOOTER_LINKS
 const ARTISTS = [
   "Asa Tate", "Daichi", "Nic Jalusi", "Pleasure Voyage", "Mogwaa", "Statues",
@@ -86,9 +92,9 @@ export default function MMHeroMobileFinal() {
     const vh = frozenVH;
 
     /* ── Dimensiones iniciales ──────────────────────────────── */
-    const mBoxW       = vw * 0.82;
+    const mBoxW       = vw * 0.90;
     const mBoxH       = mBoxW * (9 / 16);
-    const endLogoW    = 250;  // igual que .mm-global-logo-nav → mismo tamaño en todas las páginas
+    const endLogoW    = LOGO_END_WIDTH_MOBILE;
     const endLogoPad    = "1rem 2.5rem 2.5rem"; // mismo padding que .mm-global-logo-nav
     const endLogoLeft = (vw - endLogoW) / 2;
 
@@ -111,25 +117,24 @@ export default function MMHeroMobileFinal() {
     /* ── Estado inicial: logo ────────────────────────────────── */
     // Medimos el rect del blur (box) y encajamos el logo escalado dentro — misma fuente que pinta el blur.
     const syncLogoToBlurBox = () => {
-      gsap.set(logo, {
-        x:               endLogoLeft,
-        y:               0,
-        width:           endLogoW,
-        padding:         endLogoPad,
-        opacity:         1,
-        scale:           1,
-        transformOrigin: "top center",
-      });
+      // width/padding/transformOrigin: propiedades de layout → CSS directo, nunca animadas por GSAP
+      logo.style.width           = `${endLogoW}px`;
+      logo.style.padding         = endLogoPad;
+      logo.style.transformOrigin = "top center";
+      // GSAP solo para transforms (x, y, scale) y opacity
+      gsap.set(logo, { x: endLogoLeft, y: 0, opacity: 1, scale: 1 });
       const B = box.getBoundingClientRect();
       const L = logo.getBoundingClientRect();
       if (B.width <= 0 || B.height <= 0 || L.width <= 0 || L.height <= 0) return;
-      const startScale = B.width / L.width;
-      const scaledH = L.height * startScale;
-      const startY = B.top + (B.height - scaledH) / 2;
+      // fitScale: la dimensión más restrictiva controla la escala → logo siempre dentro del blur box
+      const startScale = Math.min(B.width / L.width, B.height / L.height) * LOGO_FIT_FACTOR;
+      const scaledH    = L.height * startScale;
+      const startY     = B.top + (B.height - scaledH) / 2;
       gsap.set(logo, { y: startY, scale: startScale });
     };
     syncLogoToBlurBox();
-    requestAnimationFrame(syncLogoToBlurBox);
+    // Doble RAF: asegura que el browser ha completado el layout antes de medir rects
+    requestAnimationFrame(() => { syncLogoToBlurBox(); });
 
     /* ── Estado inicial: texto artistas invisible ───────────── */
     const artistSpans = artistsSpansRef.current.filter(Boolean);
