@@ -63,6 +63,13 @@ export function useSliderScene({
     // Focus layout constants for mobile
     const MOBILE_COLUMN_GAP = 20;  // gap between thumb column and hero
 
+    // Cached nav bottom (screen Y) for mobile safe zone — updated on enterFocus / resize
+    let mobileNavBottom = 0;
+    function updateNavBottom() {
+      const navEl = document.getElementById("mm-global-logo");
+      if (navEl) mobileNavBottom = navEl.getBoundingClientRect().bottom;
+    }
+
     // Local calcFinalPos that uses the effective SP/CW values
     function calcFinalPos(i, scroll, screenW) {
       const tw = SLIDE_COUNT * SP;
@@ -170,7 +177,20 @@ export function useSliderScene({
         // Top of hero aligns with top of topmost thumbnail
         const topThumbCenterY = ((m - 1) / 2) * step;
         const topThumbTopY    = topThumbCenterY + thumbH / 2;
-        const yHero           = topThumbTopY - heroH_m / 2;
+
+        // Safe zone: push the layout below the global nav+menu bar.
+        // navSafeWorld = world-Y of the nav bottom edge (with a small gap).
+        // If topThumbTopY > navSafeWorld the whole stack is too high → shift it down.
+        const navSafeWorld = H / 2 - mobileNavBottom;
+        const yShift = Math.max(0, topThumbTopY - navSafeWorld);
+
+        if (yShift > 0) {
+          for (const key of Object.keys(thumbPositions)) {
+            thumbPositions[key] = { ...thumbPositions[key], y: thumbPositions[key].y - yShift };
+          }
+        }
+
+        const yHero = topThumbTopY - yShift - heroH_m / 2;
 
         return {
           thumbPositions,
@@ -266,6 +286,7 @@ export function useSliderScene({
       focusTransitioning = true;
       focusedIndex = lastClosest;
 
+      if (isMobile) updateNavBottom();
       const L = getLeftColumnAndHero(focusedIndex);
       const layout = computePanelLayout(L.hero);
       const imgKey = IMAGES[((focusedIndex % SLIDE_COUNT) + SLIDE_COUNT) % SLIDE_COUNT];
@@ -778,6 +799,7 @@ export function useSliderScene({
     const onResize = () => {
       W = window.innerWidth;
       H = window.innerHeight;
+      if (isMobile) updateNavBottom();
       renderer.setSize(W, H);
       camera.aspect = W / H;
       camera.position.z = getCamZ();
