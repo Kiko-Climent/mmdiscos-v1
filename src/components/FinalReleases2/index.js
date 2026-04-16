@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useSliderScene } from "./useSliderScene";
 import { InfoPanel, TrackPanel, MobilePanel } from "./panels";
 import IndexView from "./IndexView";
@@ -44,6 +44,19 @@ export default function FinalReleases2() {
       setTransitioning(false);
     });
   };
+
+  // Toggle ref — always points to the latest handler, avoids stale closures
+  const toggleIndexRef = useRef(null);
+  toggleIndexRef.current = () => {
+    if (isIndex) goToSlider();
+    else goToIndex();
+  };
+
+  useEffect(() => {
+    const handler = () => toggleIndexRef.current?.();
+    window.addEventListener("mm-releases-toggle-index", handler);
+    return () => window.removeEventListener("mm-releases-toggle-index", handler);
+  }, []);
 
   const isMobile  = viewportSize.w > 0 && viewportSize.w < 768;
 
@@ -129,43 +142,6 @@ export default function FinalReleases2() {
           zIndex: 2,
         }}
       />
-
-      {/* Top bar */}
-      <div
-        className="absolute top-0 left-0 right-0 flex items-center justify-between"
-        style={{ padding: "28px 36px", zIndex: 30 }}
-      >
-        <span
-          style={{
-            fontSize: 9,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: "#000",
-            opacity: 0.4,
-          }}
-        >
-          MM Discos
-        </span>
-
-        <button
-          onClick={isIndex ? goToSlider : goToIndex}
-          disabled={transitioning}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: transitioning ? "default" : "pointer",
-            fontSize: 9,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: "#000",
-            opacity: transitioning ? 0.3 : 0.6,
-            padding: 0,
-            transition: "opacity 0.2s",
-          }}
-        >
-          {isIndex ? "Slider" : "Index"}
-        </button>
-      </div>
 
       {/* Bottom UI */}
       <div

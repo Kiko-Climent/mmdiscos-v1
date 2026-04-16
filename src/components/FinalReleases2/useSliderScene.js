@@ -63,11 +63,22 @@ export function useSliderScene({
     // Focus layout constants for mobile
     const MOBILE_COLUMN_GAP = 20;  // gap between thumb column and hero
 
-    // Cached nav bottom (screen Y) for mobile safe zone — updated on enterFocus / resize
+    // Cached nav bottom (screen Y) for mobile safe zone — updated on enterFocus / resize.
+    // We measure the bottom of the last child (the menu links div), not the nav container,
+    // because the container has a large bottom padding that would push things too far down.
+    // We also add the menu's own marginTop so the gap below the links equals the gap
+    // between logo and links.
     let mobileNavBottom = 0;
     function updateNavBottom() {
       const navEl = document.getElementById("mm-global-logo");
-      if (navEl) mobileNavBottom = navEl.getBoundingClientRect().bottom;
+      if (!navEl) return;
+      const linksEl = navEl.lastElementChild;
+      if (linksEl) {
+        const menuGap = parseFloat(getComputedStyle(linksEl).marginTop) || 0;
+        mobileNavBottom = linksEl.getBoundingClientRect().bottom + menuGap;
+      } else {
+        mobileNavBottom = navEl.getBoundingClientRect().bottom;
+      }
     }
 
     // Local calcFinalPos that uses the effective SP/CW values
@@ -178,19 +189,13 @@ export function useSliderScene({
         const topThumbCenterY = ((m - 1) / 2) * step;
         const topThumbTopY    = topThumbCenterY + thumbH / 2;
 
-        // Safe zone: push the layout below the global nav+menu bar.
-        // navSafeWorld = world-Y of the nav bottom edge (with a small gap).
-        // If topThumbTopY > navSafeWorld the whole stack is too high → shift it down.
+        // Safe zone: align hero top with the nav/menu bottom (+ same gap as logo→links).
+        // Thumbnails are NOT shifted — they use all available vertical space freely.
         const navSafeWorld = H / 2 - mobileNavBottom;
-        const yShift = Math.max(0, topThumbTopY - navSafeWorld);
+        const heroTopNatural = topThumbTopY; // hero top aligns with top of thumb column
+        const yShift = Math.max(0, heroTopNatural - navSafeWorld);
 
-        if (yShift > 0) {
-          for (const key of Object.keys(thumbPositions)) {
-            thumbPositions[key] = { ...thumbPositions[key], y: thumbPositions[key].y - yShift };
-          }
-        }
-
-        const yHero = topThumbTopY - yShift - heroH_m / 2;
+        const yHero = heroTopNatural - yShift - heroH_m / 2;
 
         return {
           thumbPositions,

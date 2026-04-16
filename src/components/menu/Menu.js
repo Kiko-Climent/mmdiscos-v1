@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/router";
 import gsap from "gsap";
 import Link from "next/link";
 
@@ -10,6 +11,16 @@ import Link from "next/link";
  */
 const Menu = ({ visible }) => {
   const containerRef = useRef(null);
+  const router = useRouter();
+  const isReleases = router.pathname === "/releases";
+
+  const handleLinkClick = (e, label) => {
+    e.stopPropagation();
+    if (label === "index" && isReleases) {
+      e.preventDefault();
+      window.dispatchEvent(new CustomEvent("mm-releases-toggle-index"));
+    }
+  };
 
   useEffect(() => {
     const container = containerRef.current;
@@ -57,7 +68,7 @@ const Menu = ({ visible }) => {
         <Link
           key={label}
           href={href}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => handleLinkClick(e, label)}
           style={{
             fontFamily:     "'Helvetica Neue', Helvetica, Arial, sans-serif",
             fontSize:       "clamp(0.42rem, 0.62vw, 0.68rem)",
