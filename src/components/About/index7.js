@@ -24,7 +24,7 @@ const FOOTER_LINKS_MOBILE = [
 const FOOTER_THRESHOLD = 0.97;
 const EXIT_SCROLL      = 500;
 
-export default function AboutSection6() {
+export default function AboutSection7() {
   const sectionRef    = useRef(null);
   const innerRef      = useRef(null);  // about-inner — recibe padding-top dinámico
   const wordsRef      = useRef([]);
@@ -216,7 +216,7 @@ export default function AboutSection6() {
           ))}
         </p>
 
-        <div className="about-footer absolute bottom-0 left-0 w-full flex flex-col pb-4 gap-0.5">
+        <div className="about-footer w-full flex flex-col pb-4 gap-0.5">
           {/* SVG con efecto de revelación orgánica */}
           <div className="px-5 md:px-8">
             <CopyrightSVG ref={copyrightRef} />
