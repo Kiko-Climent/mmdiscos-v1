@@ -5,9 +5,7 @@
     top: 0;
     width: 100%;
     height: 100vh;
-    background-color: #ffffff;
     display: flex;
-    align-items: center;
 
     /* z-index: por encima de ParallaxGallery (0) pero por debajo de Footer (1000) */
     z-index: 50;
@@ -15,20 +13,25 @@
     /* Oculta las palabras mientras viajan desde la derecha */
     overflow: clip;
 
-    background-color: rgba(255, 255, 255, 0.08);  /* blanco muy sutil */
-    backdrop-filter: blur(18px) saturate(160%);    /* el efecto glass */
-    -webkit-backdrop-filter: blur(18px) saturate(160%); /* Safari */
-
+    background-color: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
   }
-  
+
   /* ─── Inner container ─────────────────────────────────────────── */
-  
+
   .about-inner {
+    align-self: stretch;      /* ocupa toda la altura de la section */
+    position: relative;       /* ancla el about-footer absolute */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;  /* centra el texto verticalmente */
     padding-left: 2rem;
     padding-right: 2rem;
     width: 100%;
+    /* padding-top inyectado por JS para respetar el área del logo */
   }
-  
+
   @media (max-width: 768px) {
     .about-inner {
       padding-left: 1.25rem;

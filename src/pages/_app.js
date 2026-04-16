@@ -205,7 +205,7 @@ export default function App({ Component, pageProps }) {
         style={{
           position:        "fixed",
           inset:           0,
-          zIndex:          9999,
+          zIndex:          9000,
           background:      "#fff",
           pointerEvents:   "none",
           willChange:      "transform",

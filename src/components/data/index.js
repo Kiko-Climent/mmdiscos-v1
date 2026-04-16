@@ -292,8 +292,30 @@ export const DataReleases = [
       "Pacific Coliseum - Reading Stars",
       "Keikee - Spacebirds"
     ],
-    bandcamp: "https://mmdiscos.bandcamp.com/track/keikee-spacebirds",
+    bandcamp: "https://mmdiscos.bandcamp.com/album/socarrat-vol-2-10-years-of-mm-discos",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/socarrat-vol-2"
+  },
+  // MOGWAA DEL MAR
+  { 
+    artist: "Mogwaa",
+    artist_name: "Mogwaa",
+    title: "Del Mar",
+    image: "/img9.jpg",
+    year: "2022",
+    format: "AIFF, FLAC, MP3, WAV",
+    vinyl: "12\" 33 ⅓ RPM",
+    type: "Mini Album",
+    ref: "mmd021",
+    tracklist: [
+      "Where the Wave Begins",
+      "Kalimotxo",
+      "Sonrisa del Mar",
+      "Jade Wade",
+      "Crackle",
+      "Tabarca"
+    ],
+    bandcamp: "https://mogwaa.bandcamp.com/album/del-mar",
+    soundcloud: "https://soundcloud.com/mmdiscos/sets/mogwaa-del-mar-mini-album"
   },
   
 ]
