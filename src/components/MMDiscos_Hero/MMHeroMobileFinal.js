@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -79,7 +79,7 @@ export default function MMHeroMobileFinal() {
 
   const totalImages = ORBITAL_IMAGES.length;
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const box     = boxRef.current;
     const logo    = logoRef.current;
     const videoEl = videoRef.current;
