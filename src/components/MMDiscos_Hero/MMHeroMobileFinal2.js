@@ -80,6 +80,19 @@ export default function MMHeroMobileFinal2() {
     const videoEl = videoRef.current;
     if (!box || !logo) return;
 
+    /* ── Bloqueo de scroll durante la animación snap ─────────── */
+    // En móvil con scroll nativo, overflow:hidden bloquea el momentum
+    // del touch para que el primer gesto no haga avanzar la página.
+    const lockScroll = () => {
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow            = "hidden";
+    };
+    const unlockScroll = () => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow            = "";
+    };
+    lockScroll();
+
     /* ── Viewport congelado ──────────────────────────────────── */
     const frozenVH = window.innerHeight;
     const frozenVW = window.innerWidth;
@@ -155,10 +168,10 @@ export default function MMHeroMobileFinal2() {
     const totalRot     = SPIRAL_TURNS * Math.PI * 2;
 
     // Centrado una sola vez vía xPercent/yPercent (GPU transform).
-    // Clip inicial: cada imagen está oculta (wipe desde la derecha).
-    // La revelación NO usa opacity — clipPath wipe por imagen.
+    // Las imágenes empiezan a escala 0 — se revelan escalándose a medida que
+    // se acercan a su posición final en la órbita, sin clip-path ni opacity.
     imageEls.forEach((el) => {
-      gsap.set(el, { xPercent: -50, yPercent: -50, clipPath: "inset(0% 100% 0% 0%)" });
+      gsap.set(el, { xPercent: -50, yPercent: -50, scale: 0 });
     });
 
     const setOrbitalProgress = (rawP) => {
@@ -166,19 +179,21 @@ export default function MMHeroMobileFinal2() {
       const { vw: w, vh: h } = hero;
       const diagonal = Math.sqrt((w / 2) ** 2 + (h / 2) ** 2);
 
-      // startR > diagonal garantiza que todas las imágenes (incluidas las del eje Y,
-      // que necesitan radio > vh/2) empiezan fuera de la pantalla visible.
+      // startR > diagonal garantiza que todas las imágenes empiezan fuera de pantalla.
       const startR   = diagonal * 1.3;
 
       const eR = Math.pow(p, 1.3);
       const eA = Math.pow(p, 1.1);
-      const eS = Math.pow(p, 0.55);
-      const sc = 0.08 + 0.92 * eS;
 
       imageEls.forEach((el, i) => {
         const base  = getAngle(i);
         const angle = base + totalRot * eA;
         const r     = startR * (1 - eR);
+
+        // Escala crece según la cercanía al centro: 0 cuando está lejos, ~1 en órbita.
+        // Esto crea el efecto de que cada imagen "nace" mientras gira y se acerca.
+        const nearness = 1 - r / startR; // 0 → lejos, 1 → en posición final
+        const sc       = Math.pow(nearness, 0.6);
 
         gsap.set(el, {
           x:     Math.cos(angle) * r,
@@ -206,8 +221,8 @@ export default function MMHeroMobileFinal2() {
       const tl = gsap.timeline({
         onComplete: () => {
           gsap.set(orbitalContainerRef.current, { opacity: 0 });
-          gsap.set(others, { opacity: 1, clipPath: "inset(0% 0% 0% 0%)" });
-          gsap.set(survivor, { scale: 1, opacity: 1, clipPath: "inset(0% 0% 0% 0%)" });
+          gsap.set(others, { opacity: 1 });
+          gsap.set(survivor, { scale: 1, opacity: 1 });
           sinkActiveRef.current = false;
         },
       });
@@ -225,23 +240,15 @@ export default function MMHeroMobileFinal2() {
     };
 
     const showOrbital = () => {
+      // Las escalas las gestiona setOrbitalProgress; solo hace falta mostrar el contenedor.
       gsap.set(orbitalContainerRef.current, { opacity: 1 });
-      gsap.fromTo(
-        imageEls,
-        { clipPath: "inset(0% 100% 0% 0%)" },
-        {
-          clipPath: "inset(0% 0% 0% 0%)",
-          duration: 0.55,
-          ease:     "expo.out",
-          stagger:  { each: 0.055, from: "random" },
-        }
-      );
     };
 
     const hideOrbital = () => {
       if (!sinkActiveRef.current) {
         gsap.set(orbitalContainerRef.current, { opacity: 0 });
-        gsap.set(imageEls, { clipPath: "inset(0% 100% 0% 0%)" });
+        // Resetear escala a 0 para que la próxima entrada arranque desde invisible.
+        imageEls.forEach((el) => gsap.set(el, { scale: 0 }));
       }
     };
 
@@ -249,6 +256,8 @@ export default function MMHeroMobileFinal2() {
     let snapFired = false;
 
     const revealArtistsText = () => {
+      // Desbloquear el scroll — la animación snap ha terminado
+      unlockScroll();
       window.dispatchEvent(new Event("mm-hero-logo-settled"));
 
       // El snap ha terminado: la caja es opaca → el backdropFilter no aporta nada visualmente
@@ -381,10 +390,11 @@ export default function MMHeroMobileFinal2() {
       onUpdate:            (self) => setOrbitalProgress(self.progress),
     });
 
-    // Las imágenes se muestran en cuanto el texto empieza a salir por el top
+    // Las imágenes aparecen cuando el texto lleva ~50% de su salida,
+    // así el filtro del texto arranca primero y la orbital llega después.
     const orbitalVisibilityTrigger = ScrollTrigger.create({
       trigger:     artistsProxyRef.current,
-      start:       "top top",
+      start:       "center top",
       onEnter:     showOrbital,
       onLeaveBack: hideOrbital,
     });
@@ -422,6 +432,7 @@ export default function MMHeroMobileFinal2() {
     });
 
     return () => {
+      unlockScroll();
       window.removeEventListener("wheel",     fireSnapAnimation);
       window.removeEventListener("touchmove", fireSnapAnimation);
       textExitTrigger.kill();
@@ -485,8 +496,9 @@ export default function MMHeroMobileFinal2() {
            FLUJO NORMAL DE SCROLL — crea la altura de la página
            ═══════════════════════════════════════════════════════════ */}
 
-      {/* Zona snap: 100svh absorbe scroll mientras la animación corre */}
-      <div ref={snapBufferRef} style={{ height: "100svh", pointerEvents: "none" }} />
+      {/* Zona snap: 30svh — el scroll está bloqueado durante la animación,
+           este buffer solo separa visualmente el snap del inicio del texto */}
+      <div ref={snapBufferRef} style={{ height: "30svh", pointerEvents: "none" }} />
 
       {/* Proxy artistas: 100svh — salida del texto y arranque orbital */}
       <div ref={artistsProxyRef} style={{ height: "100svh", pointerEvents: "none" }} />
