@@ -21,11 +21,11 @@
   /* ─── Inner container ─────────────────────────────────────────── */
 
   .about-inner {
-    align-self: stretch;      /* ocupa toda la altura de la section */
-    position: relative;       /* ancla el about-footer absolute */
+    align-self: stretch;          /* ocupa toda la altura de la section */
+    position: relative;
     display: flex;
     flex-direction: column;
-    justify-content: center;  /* centra el texto verticalmente */
+    justify-content: space-between; /* texto arriba (bajo logo), footer abajo */
     padding-left: 2rem;
     padding-right: 2rem;
     width: 100%;

@@ -216,7 +216,7 @@ export default function AboutSection6() {
           ))}
         </p>
 
-        <div className="about-footer absolute bottom-0 left-0 w-full flex flex-col pb-4 gap-0.5">
+        <div className="about-footer w-full flex flex-col pb-4 gap-0.5">
           {/* SVG con efecto de revelación orgánica */}
           <div className="px-5 md:px-8">
             <CopyrightSVG ref={copyrightRef} />
