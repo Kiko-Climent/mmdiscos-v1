@@ -389,10 +389,12 @@ export default function MMHeroMobileFinal() {
         // Translación hacia el top — quickSetter: sin overhead de parseo por frame
         qsTextY(-p * vh * 1.2);
 
-        // Filtro SVG: retrasado al 40% del progreso para que no coincida con el
-        // reveal orbital (xPercent stagger). Ambas cargas GPU quedan separadas en el tiempo.
-        const fp = Math.max(0, (p - 0.4) / 0.6);   // 0→1 entre progreso 40% y 100%
-        const a  = Math.pow(fp, 0.5);
+        // Filtro SVG: arranca desde p=0, progresivo con el scroll.
+        // El orbital empieza al 50% del proxy (start:"50% top"), cuando el SVG
+        // lleva ~35svh de scroll y ya está claramente activo (~70% de su efecto).
+        // La GPU tiene margen: el reveal orbital (overflow+xPercent) es composited
+        // y ya no compite con clipPath como antes.
+        const a = Math.pow(p, 0.5);
         aBlurRef.current?.setAttribute("stdDeviation", (5   * a).toFixed(4));
         aMorphRef.current?.setAttribute("radius",       (1.5 * a).toFixed(4));
         aGlowRef.current?.setAttribute("stdDeviation",  (3   * a).toFixed(4));
@@ -406,12 +408,13 @@ export default function MMHeroMobileFinal() {
     });
 
     /* ── ScrollTrigger orbital ───────────────────────────────── */
-    // start: "top top" (en vez de "top bottom") — el orbital no empieza a calcular posición
-    // hasta que el proxy llega al top del viewport (scroll ≈ 60svh). Con "top bottom" el
-    // trigger se activaba en scroll ≈ 0 porque el proxy está a 60svh < 100svh del viewport.
+    // start: "50% top" — el orbital arranca cuando el 50% del proxy llega al top del viewport.
+    // Con artistsProxy de 80svh y snapBuffer de 5svh, eso es scroll ≈ 5 + 40 = 45svh.
+    // En ese punto el textExitTrigger lleva ~40svh de progreso → SVG al ~71% (pow(0.5, 0.5)).
+    // El usuario ve: texto subiendo con SVG activo → luego aparece el orbital. Fluido.
     const orbitalTrigger = ScrollTrigger.create({
       trigger:             artistsProxyRef.current,
-      start:               "top top",
+      start:               "50% top",
       endTrigger:          carouselSpacerRef.current,
       end:                 "bottom top",
       scrub:               1.0,
@@ -427,7 +430,7 @@ export default function MMHeroMobileFinal() {
     // El orbital se dispara cuando el snap complete (ver revealArtistsText).
     const orbitalVisibilityTrigger = ScrollTrigger.create({
       trigger:     artistsProxyRef.current,
-      start:       "top top",
+      start:       "50% top",
       onEnter: () => {
         if (snapCompletedRef.current) {
           showOrbital();
@@ -534,11 +537,15 @@ export default function MMHeroMobileFinal() {
           FLUJO NORMAL DE SCROLL — crea la altura de la página
           ═══════════════════════════════════════════════════════════ */}
 
-      {/* Zona snap: 60svh absorbe scroll mientras la animación corre */}
-      <div ref={snapBufferRef} style={{ height: "60svh", pointerEvents: "none" }} />
+      {/* Zona snap: 5svh — solo para evitar que el textExit dispare en el mismo instante
+          que el snap. El snap se activa por evento wheel/touchmove (no por posición),
+          así que no necesita un buffer largo. */}
+      <div ref={snapBufferRef} style={{ height: "5svh", pointerEvents: "none" }} />
 
-      {/* Proxy artistas: 70svh — salida del texto y arranque orbital */}
-      <div ref={artistsProxyRef} style={{ height: "70svh", pointerEvents: "none" }} />
+      {/* Proxy artistas: 80svh — salida completa del texto + SVG progresivo.
+          El orbital arranca al 50% de este proxy (ver start:"50% top" en los triggers),
+          cuando el SVG ya lleva ~35svh de scroll y está perceptiblemente activo. */}
+      <div ref={artistsProxyRef} style={{ height: "80svh", pointerEvents: "none" }} />
 
       {/* Spacer orbital */}
       <div
