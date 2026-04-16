@@ -377,9 +377,12 @@ export default function MMHeroMobileFinal2() {
     });
 
     /* ── ScrollTrigger orbital ───────────────────────────────── */
+    // Empieza en "top top" (igual que el textExitTrigger) para que el progreso
+    // sea 0 justo cuando el texto empieza a salir. Así las imágenes arrancan
+    // siempre en escala 0, independientemente de cuándo se hagan visibles.
     const orbitalTrigger = ScrollTrigger.create({
       trigger:             artistsProxyRef.current,
-      start:               "top bottom",
+      start:               "top top",
       endTrigger:          carouselSpacerRef.current,
       end:                 "bottom top",
       scrub:               1.0,
@@ -390,11 +393,12 @@ export default function MMHeroMobileFinal2() {
       onUpdate:            (self) => setOrbitalProgress(self.progress),
     });
 
-    // Las imágenes aparecen cuando el texto lleva ~50% de su salida,
-    // así el filtro del texto arranca primero y la orbital llega después.
+    // Las imágenes se hacen visibles cuando el texto lleva ~20% de su salida:
+    // el texto aún está en pantalla pero ya está en movimiento, y la orbital
+    // solo lleva un ~20% de progreso → las imágenes arrancan pequeñas y crecen.
     const orbitalVisibilityTrigger = ScrollTrigger.create({
       trigger:     artistsProxyRef.current,
-      start:       "center top",
+      start:       "20% top",
       onEnter:     showOrbital,
       onLeaveBack: hideOrbital,
     });
