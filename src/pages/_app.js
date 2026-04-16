@@ -34,6 +34,8 @@ function syncHeroLogoAboutCurtain() {
   else if (curtainTop >= logoBottom) cutPercent = 100;
   else cutPercent = ((curtainTop - logoTop) / logoHeight) * 100;
 
+  if (!Number.isFinite(cutPercent)) return;
+
   logoBlack.style.clipPath = `inset(0 0 ${100 - cutPercent}% 0)`;
   logoWhite.style.clipPath = `inset(${cutPercent}% 0 0 0)`;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -79,7 +79,7 @@ export default function MMHeroMobileFinal() {
 
   const totalImages = ORBITAL_IMAGES.length;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const box     = boxRef.current;
     const logo    = logoRef.current;
     const videoEl = videoRef.current;
@@ -622,7 +622,7 @@ export default function MMHeroMobileFinal() {
           autoPlay muted loop playsInline
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         >
-          <source src="/video/MM Hero BG_1.mp4" type="video/mp4" />
+          <source src={encodeURI("/video/MM Hero BG_1.mp4")} type="video/mp4" />
         </video>
       </div>
 

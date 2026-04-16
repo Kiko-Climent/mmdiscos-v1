@@ -145,7 +145,7 @@ export default function ParallaxGallery2() {
                               transformOrigin: "center center",
                             }}
                           >
-                            <source src="/video/Video MM Header.mp4" type="video/mp4" />
+                            <source src={encodeURI("/video/Video MM Header.mp4")} type="video/mp4" />
                           </video>
                         </div>
                       ) : (
