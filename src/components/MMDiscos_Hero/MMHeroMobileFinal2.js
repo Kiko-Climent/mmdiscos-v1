@@ -81,22 +81,35 @@ export default function MMHeroMobileFinal2() {
     if (!box || !logo) return;
 
     /* ── Bloqueo de scroll durante la animación snap ─────────── */
-    // overflow:hidden no bloquea el momentum táctil de iOS.
-    // La única forma fiable es un listener touchmove/wheel con passive:false
-    // que llame preventDefault() — así el browser ignora la inercia del dedo.
+    // Android + ScrollTrigger.normalizeScroll(true): GSAP captura el delta del gesto
+    // completo y lo aplica frame a frame aunque bloqueemos con preventDefault().
+    // Solución en dos capas:
+    //   1. preventDefault() en touchmove/wheel → bloquea el scroll nativo del browser.
+    //   2. gsap.ticker → fuerza scrollY = 0 cada frame, deshaciendo lo que
+    //      GSAP pueda haber aplicado con su normalizeScroll.
     let scrollBlocked = true;
 
     const blockScrollHandler = (e) => {
       if (scrollBlocked) e.preventDefault();
     };
 
-    // passive:false es imprescindible para poder llamar preventDefault en iOS
+    // passive:false imprescindible para que preventDefault() tenga efecto
     document.addEventListener("touchmove", blockScrollHandler, { passive: false });
     document.addEventListener("wheel",     blockScrollHandler, { passive: false });
+
+    // Ticker: 60fps mientras dura la animación snap.
+    // Si el normalizeScroll de GSAP avanzó el scroll, lo revertimos al instante.
+    const lockTicker = () => {
+      if (scrollBlocked && window.scrollY > 0) {
+        window.scrollTo(0, 0);
+      }
+    };
+    gsap.ticker.add(lockTicker);
 
     const unlockScroll = () => {
       if (!scrollBlocked) return;
       scrollBlocked = false;
+      gsap.ticker.remove(lockTicker);
       document.removeEventListener("touchmove", blockScrollHandler);
       document.removeEventListener("wheel",     blockScrollHandler);
     };
