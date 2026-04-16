@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -79,11 +79,20 @@ export default function MMHeroMobileFinal() {
 
   const totalImages = ORBITAL_IMAGES.length;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const box     = boxRef.current;
     const logo    = logoRef.current;
     const videoEl = videoRef.current;
-    if (!box || !logo) return;
+    const artistsProxy   = artistsProxyRef.current;
+    const carouselSpacer = carouselSpacerRef.current;
+    const artistsText    = artistsTextRef.current;
+    const orbitalRoot    = orbitalContainerRef.current;
+
+    if (!box || !logo || !artistsProxy || !carouselSpacer || !artistsText || !orbitalRoot) return;
+
+    const imageEls  = orbitalImgsRef.current.filter(Boolean);
+    const revealEls = orbitalRevealRef.current.filter(Boolean);
+    if (imageEls.length !== totalImages || revealEls.length !== totalImages) return;
 
     /* ── Viewport congelado ──────────────────────────────────── */
     const frozenVH = window.innerHeight;
@@ -142,7 +151,7 @@ export default function MMHeroMobileFinal() {
 
     /* ── Estado inicial: texto artistas invisible ───────────── */
     const artistSpans = artistsSpansRef.current.filter(Boolean);
-    gsap.set(artistsTextRef.current, { xPercent: -50, yPercent: -50, y: 0 });
+    gsap.set(artistsText, { xPercent: -50, yPercent: -50, y: 0 });
     gsap.set(artistSpans, { opacity: 0 });
     // SVG filter arranca sin distorsión (el texto está invisible de todas formas)
     aBlurRef.current?.setAttribute("stdDeviation", "0");
@@ -153,8 +162,6 @@ export default function MMHeroMobileFinal() {
     ORBITAL_IMAGES.forEach((src) => { const img = new Image(); img.src = src; });
 
     /* ── Orbital: elementos y quickSetters ──────────────────── */
-    const imageEls  = orbitalImgsRef.current.filter(Boolean);
-    const revealEls = orbitalRevealRef.current.filter(Boolean);
     const hero      = { vw, vh };
     const getAngle  = (i) => (i / totalImages) * Math.PI * 2 - Math.PI / 2;
     const SPIRAL_TURNS = 1.5;
@@ -200,7 +207,7 @@ export default function MMHeroMobileFinal() {
     };
 
     setOrbitalProgress(0);
-    gsap.set(orbitalContainerRef.current, { opacity: 0 });
+    gsap.set(orbitalRoot, { opacity: 0 });
 
     /* ── Sink animation (survivor) ──────────────────────────── */
     const triggerSinkAnimation = () => {
@@ -211,12 +218,12 @@ export default function MMHeroMobileFinal() {
       const survivor = survivorRef.current;
       if (!survivor) return;
 
-      gsap.set(orbitalContainerRef.current, { opacity: 1 });
+      gsap.set(orbitalRoot, { opacity: 1 });
       gsap.set(others, { opacity: 0 });
 
       const tl = gsap.timeline({
         onComplete: () => {
-          gsap.set(orbitalContainerRef.current, { opacity: 0 });
+          gsap.set(orbitalRoot, { opacity: 0 });
           gsap.set(others, { opacity: 1 });
           gsap.set(survivor, { scale: 1, opacity: 1 });
           // Reveal divs: vuelven al estado de "oculto" listo para un re-enter
@@ -238,7 +245,7 @@ export default function MMHeroMobileFinal() {
     };
 
     const showOrbital = () => {
-      gsap.set(orbitalContainerRef.current, { opacity: 1 });
+      gsap.set(orbitalRoot, { opacity: 1 });
       // will-change activo solo durante el reveal, no permanentemente.
       // overflow:hidden + xPercent → 100% GPU composited en iOS Safari
       revealEls.forEach((el) => { el.style.willChange = "transform"; });
@@ -259,7 +266,7 @@ export default function MMHeroMobileFinal() {
 
     const hideOrbital = () => {
       if (!sinkActiveRef.current) {
-        gsap.set(orbitalContainerRef.current, { opacity: 0 });
+        gsap.set(orbitalRoot, { opacity: 0 });
         gsap.set(revealEls, { xPercent: 100 });
       }
     };
@@ -372,14 +379,14 @@ export default function MMHeroMobileFinal() {
     /* ── quickSetter para la Y del texto (scrub por frame) ───── */
     // gsap.set en onUpdate = full API = parseo + normalización cada frame → lento.
     // quickSetter escribe directo al transform cache → sin overhead.
-    const qsTextY = gsap.quickSetter(artistsTextRef.current, "y", "px");
+    const qsTextY = gsap.quickSetter(artistsText, "y", "px");
 
     /* ── Texto artistas: salida por el top con scrub ─────────── */
     //  trigger: artistsProxy (empieza en 60svh de scroll, dura 70svh)
     //  start:   "top top"    → proxy llega al top del viewport (scroll ≈ 60vh)
     //  end:     "bottom top" → proxy sale completamente (scroll ≈ 130vh)
     const textExitTrigger = ScrollTrigger.create({
-      trigger:             artistsProxyRef.current,
+      trigger:             artistsProxy,
       start:               "top top",
       end:                 "bottom top",
       scrub:               0.8,
@@ -413,9 +420,9 @@ export default function MMHeroMobileFinal() {
     // En ese punto el textExitTrigger lleva ~40svh de progreso → SVG al ~71% (pow(0.5, 0.5)).
     // El usuario ve: texto subiendo con SVG activo → luego aparece el orbital. Fluido.
     const orbitalTrigger = ScrollTrigger.create({
-      trigger:             artistsProxyRef.current,
+      trigger:             artistsProxy,
       start:               "50% top",
-      endTrigger:          carouselSpacerRef.current,
+      endTrigger:          carouselSpacer,
       end:                 "bottom top",
       scrub:               1.0,
       invalidateOnRefresh: true,
@@ -429,7 +436,7 @@ export default function MMHeroMobileFinal() {
     // Si el usuario scrollea muy rápido y llega aquí antes del snap → se encola.
     // El orbital se dispara cuando el snap complete (ver revealArtistsText).
     const orbitalVisibilityTrigger = ScrollTrigger.create({
-      trigger:     artistsProxyRef.current,
+      trigger:     artistsProxy,
       start:       "50% top",
       onEnter: () => {
         if (snapCompletedRef.current) {
