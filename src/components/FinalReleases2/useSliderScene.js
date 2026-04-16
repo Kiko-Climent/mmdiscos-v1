@@ -60,9 +60,6 @@ export function useSliderScene({
     const CH = isMobile ? 200 : CARD_H;   // card height
     const SP = isMobile ? 190 : SPACING;  // inter-card spacing
 
-    // Focus layout constants for mobile
-    const MOBILE_COLUMN_GAP = 20;  // gap between thumb column and hero
-
     // Two cached screen-Y values for the mobile focus layout — updated on enterFocus / resize.
     // mobileThumbsTopPx : top of the thumbnails column = same distance from screen top as the logo
     //                     (the nav's padding-top, so it mirrors the logo's own top margin).
@@ -80,14 +77,11 @@ export function useSliderScene({
         ? logoEl.getBoundingClientRect().top
         : parseFloat(getComputedStyle(navEl).paddingTop) || 0;
 
-      // Hero top — below the menu links + same gap as logo→links (links' marginTop)
+      // Hero top — below the menu links, gap = PADDING_PX (same as horizontal side margin)
       const linksEl = navEl.lastElementChild;
-      if (linksEl) {
-        const menuGap = parseFloat(getComputedStyle(linksEl).marginTop) || 0;
-        mobileHeroTopPx = linksEl.getBoundingClientRect().bottom + menuGap;
-      } else {
-        mobileHeroTopPx = navEl.getBoundingClientRect().bottom;
-      }
+      mobileHeroTopPx = linksEl
+        ? linksEl.getBoundingClientRect().bottom + PADDING_PX
+        : navEl.getBoundingClientRect().bottom + PADDING_PX;
     }
 
     // Local calcFinalPos that uses the effective SP/CW values
@@ -180,27 +174,31 @@ export function useSliderScene({
       const step = thumbH + THUMB_GAP_Y;
 
       if (isMobile) {
-        // Thumbnails: top-justified with the same distance from screen top as the logo
+        // All gaps equal the horizontal side margin (marginWorld ≈ PADDING_PX px)
+        const gap = marginWorld;
+
+        // Thumbnails: top-justified at the same distance from screen top as the logo,
+        // vertical gap between each thumbnail = gap
         const thumbsTopWorld  = H / 2 - mobileThumbsTopPx;
         const thumbTopCenterY = thumbsTopWorld - thumbH / 2;
         const thumbPositions  = {};
         for (let k = 0; k < m; k++) {
           thumbPositions[indices[k]] = {
             x: thumbHCenterX,
-            y: thumbTopCenterY - k * step,
+            y: thumbTopCenterY - k * (thumbH + gap),
             z: FOCUS_THUMB_Z,
           };
         }
 
-        // Hero width fills from right of thumb column to right edge
-        const heroLeftEdge  = thumbHCenterX + thumbW / 2 + MOBILE_COLUMN_GAP;
+        // Hero: horizontal gap from thumb column = gap (same side margin)
+        const heroLeftEdge  = thumbHCenterX + thumbW / 2 + gap;
         const heroRightEdge = halfW - marginWorld;
         const heroW_m       = heroRightEdge - heroLeftEdge;
         const heroScale     = heroW_m / CW;
         const heroH_m       = CH * heroScale;
         const xHero         = heroLeftEdge + heroW_m / 2;
 
-        // Hero top anchored below the menu links (same gap as logo→links)
+        // Hero top: gap below menu links = gap (same side margin)
         const heroTopWorld = H / 2 - mobileHeroTopPx;
         const yHero        = heroTopWorld - heroH_m / 2;
 
