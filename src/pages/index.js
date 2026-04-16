@@ -27,6 +27,7 @@ import MMDiscosHeroFinal3 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal3";
 import MMDiscosHeroFinal4 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal4";
 import MMHeroMobileFinal from "@/components/MMDiscos_Hero/MMHeroMobileFinal";
 import MMHeroMobileFinal2 from "@/components/MMDiscos_Hero/MMHeroMobileFinal2";
+import MMHeroMobileFinal3 from "@/components/MMDiscos_Hero/MMHeroMobileFinal3";
 import MMHeroDesktopMobile from "@/components/MMDiscos_Hero/MMHeroDesktopMobile";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -135,7 +136,7 @@ export default function Home() {
       {isMobile === null
         ? null
         : isMobile
-          ? <MMHeroMobileFinal2 />
+          ? <MMHeroMobileFinal3 />
           : <MMDiscosHeroFinal4 />
       }
       <ParallaxGallery2 />
