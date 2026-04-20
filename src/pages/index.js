@@ -18,6 +18,8 @@ import AboutSection5 from "@/components/About/index5";
 import MMDiscosHero3 from "@/components/MMDiscos_Hero/MMDiscosHero3";
 import MMDiscosHero4 from "@/components/MMDiscos_Hero/MMDiscosHero4";
 import MMDiscosHeroFinal from "@/components/MMDiscos_Hero/MMDiscosHeroFinal";
+import MMDiscosHeroFinal5 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal5";
+import MMDiscosHeroFinal6 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal6";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useLayoutEffect, useRef, useState, useEffect } from "react";
@@ -30,6 +32,7 @@ import MMHeroMobileFinal2 from "@/components/MMDiscos_Hero/MMHeroMobileFinal2";
 import MMHeroMobileFinal3 from "@/components/MMDiscos_Hero/MMHeroMobileFinal3";
 import MMHeroDesktopMobile from "@/components/MMDiscos_Hero/MMHeroDesktopMobile";
 import AboutSection6 from "@/components/About/index6";
+import AboutSection7 from "@/components/About/index7";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -138,10 +141,10 @@ export default function Home() {
         ? null
         : isMobile
           ? <MMHeroMobileFinal3 />
-          : <MMDiscosHeroFinal4 />
+          : <MMDiscosHeroFinal6 />
       }
       <ParallaxGallery2 />
-      <AboutSection6 />
+      <AboutSection7 />
     </div>
   );
 }

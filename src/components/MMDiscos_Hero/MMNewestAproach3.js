@@ -19,25 +19,27 @@ NairLess, Hal Incandenza, Volta Cab, Coyote, Marcello Giordani, Albion,
 Serasso, Atlantic Brain, Jaisiel, Trepanado, Ruf Dug, Chida, Franz Scala,
 Sankt Göran, The.Deal, A Beat Disciple, Jakob Mäder, Da Silva`;
 
-export default function MMNewestAproach() {
+const STATEMENT = `MM DISCOS IS A RECORD LABEL BASED BETWEEN BERLIN AND BARCELONA, 
+FOUNDED AND POWERED BY MOON & MANN. FREE FROM STYLISTIC BOUNDARIES AND GENRE LIMITATIONS, 
+THE LABEL HAS CONSISTENTLY CHAMPIONED A DISTINCTIVE SOUND WHERE MUSIC SPEAKS FOR ITSELF — DEEPLY INSPIRED BY THE SUEÑO IBICENCO AND THE SPIRIT OF THE MEDITERRANEAN.`;
+
+export default function MMNewestAproach3() {
   const cleanupRef = useRef(null);
   const aboutHeaderRef = useRef(null);
 
   useEffect(() => {
-    let gsap, ScrollTrigger, SplitText, Lenis;
+    let gsap, ScrollTrigger, Lenis;
 
     async function init() {
       const gsapMod = await import("gsap");
       const { ScrollTrigger: ST } = await import("gsap/ScrollTrigger");
-      const { SplitText: SPT } = await import("gsap/SplitText");
       const LenisMod = await import("lenis");
 
       gsap = gsapMod.gsap ?? gsapMod.default;
       ScrollTrigger = ST;
-      SplitText = SPT;
       Lenis = LenisMod.default ?? LenisMod.Lenis;
 
-      gsap.registerPlugin(ScrollTrigger, SplitText);
+      gsap.registerPlugin(ScrollTrigger);
 
       // ── Lenis ────────────────────────────────────────────────────────────
       const lenis = new Lenis();
@@ -45,60 +47,28 @@ export default function MMNewestAproach() {
       gsap.ticker.add((time) => lenis.raf(time * 1000));
       gsap.ticker.lagSmoothing(0);
 
-      // ── SplitText ────────────────────────────────────────────────────────
-      const heroCopySplit = SplitText.create(".mm-hero-copy h3", {
-        type: "words",
-        wordsClass: "mm-word",
-      });
-
-      let isHeroCopyHidden = false;
       const heroImgEl = document.querySelector(".mm-hero-img");
 
-      // ── Hero pin + animations ────────────────────────────────────────────
+      // ── Hero pin: imagen escala hacia abajo desde el primer scroll ───────
+      // Pin de 1.5 screens — suficiente para un scale-down cinematico.
+      // pinSpacing: false para que la sección about controle su propio offset.
       ScrollTrigger.create({
         trigger: ".mm-hero",
         start: "top top",
-        end: `+=${window.innerHeight * 3.5}px`,
+        end: `+=${window.innerHeight * 1.5}`,
         pin: true,
         pinSpacing: false,
         scrub: 1,
         onUpdate(self) {
           const p = self.progress;
-
-          const headerP = Math.min(p / 0.29, 1);
-          gsap.set(".mm-hero-header", { yPercent: -headerP * 100 });
-
-          const wordsP = Math.max(0, Math.min((p - 0.29) / 0.21, 1));
-          const total = heroCopySplit.words.length;
-          heroCopySplit.words.forEach((word, i) => {
-            const wStart = i / total;
-            const wEnd = (i + 1) / total;
-            const opacity = Math.max(
-              0,
-              Math.min((wordsP - wStart) / (wEnd - wStart), 1)
-            );
-            gsap.set(word, { opacity });
-          });
-
-          if (p > 0.64 && !isHeroCopyHidden) {
-            isHeroCopyHidden = true;
-            gsap.to(".mm-hero-copy h3", { opacity: 0, duration: 0.2 });
-          } else if (p <= 0.64 && isHeroCopyHidden) {
-            isHeroCopyHidden = false;
-            gsap.to(".mm-hero-copy h3", { opacity: 1, duration: 0.2 });
-          }
-
-          const imgP = Math.max(0, Math.min((p - 0.71) / 0.29, 1));
           const targetSize = 150;
-          const scaleX = gsap.utils.interpolate(1, targetSize / window.innerWidth, imgP);
-          const scaleY = gsap.utils.interpolate(1, targetSize / window.innerHeight, imgP);
+          const scaleX = gsap.utils.interpolate(1, targetSize / window.innerWidth, p);
+          const scaleY = gsap.utils.interpolate(1, targetSize / window.innerHeight, p);
           gsap.set(heroImgEl, { scaleX, scaleY });
         },
       });
 
       // ── About columns parallax ───────────────────────────────────────────
-      // El about-section ahora tiene pin de 2×vh extra, así que el recorrido
-      // de las columnas debe extenderse para cubrir todo ese scroll adicional.
       const aboutCols = [
         { selector: "#mm-col-1", y: -1400 },
         { selector: "#mm-col-2", y: -700 },
@@ -118,24 +88,17 @@ export default function MMNewestAproach() {
       });
 
       // ── Second video: debajo del about-header → full viewport ───────────
-      // El video vive dentro de .mm-about con position:absolute.
-      // Medimos la posición del about-header para colocar el video justo debajo,
-      // luego pineamos el about y escalamos el video a pantalla completa.
       const secondVideoWrap = document.querySelector(".mm-second-video-wrap");
       const aboutHeaderEl = aboutHeaderRef.current;
       const aboutSectionEl = document.querySelector(".mm-about");
 
-      // Pasar el centrado a GSAP para poder animar sin conflictos con el CSS transform
       gsap.set(aboutHeaderEl, { xPercent: -50, yPercent: -50 });
 
       const aboutRect = aboutSectionEl.getBoundingClientRect();
       const headerRect = aboutHeaderEl.getBoundingClientRect();
 
-      // Borde inferior del texto relativo al top de la sección about
       const headerBottomInSection = headerRect.bottom - aboutRect.top;
-      // Left inicial: centrado (sin xPercent para evitar conflictos al animar)
-      const videoInitialLeft = aboutRect.width / 2 - 75; // 75 = 150 / 2
-
+      const videoInitialLeft = aboutRect.width / 2 - 75;
       const videoInitialTop = headerBottomInSection + 55;
 
       gsap.set(secondVideoWrap, {
@@ -195,8 +158,6 @@ export default function MMNewestAproach() {
   return (
     <>
       <style>{`
-        .mm-word { opacity: 0; }
-
         /* ── Hero ── */
         .mm-hero {
           position: relative;
@@ -213,24 +174,13 @@ export default function MMNewestAproach() {
           will-change: transform;
           overflow: hidden;
         }
-        .mm-hero-header,
-        .mm-hero-copy {
-          position: absolute;
-          inset: 0;
-          padding: 4rem;
-          color: #fff;
-          display: flex;
-          align-items: flex-end;
-          will-change: transform, opacity;
-          pointer-events: none;
-        }
 
         /* ── About ── */
         .mm-about {
           position: relative;
           width: 100%;
           height: 100svh;
-          margin-top: 275svh;
+          margin-top: 80svh;
           display: flex;
           justify-content: center;
           align-items: center;
@@ -262,7 +212,6 @@ export default function MMNewestAproach() {
         #mm-col-3 { transform: translate(225px, 500px); }
         #mm-col-4 { transform: translateY(1000px); }
 
-        /* Texto central de about — igual que antes */
         .mm-about-header {
           position: absolute;
           top: 50%;
@@ -272,17 +221,13 @@ export default function MMNewestAproach() {
           pointer-events: none;
         }
 
-        /* ── Segundo vídeo ──
-           Vive dentro de .mm-about con position:absolute.
-           GSAP lo coloca debajo del about-header y lo escala a fullscreen.
-        */
+        /* ── Segundo vídeo ── */
         .mm-second-video-wrap {
           position: absolute;
           overflow: hidden;
           will-change: width, height, top, left;
           z-index: 2;
         }
-
         .mm-second-video-wrap video {
           width: 100%;
           height: 100%;
@@ -295,40 +240,26 @@ export default function MMNewestAproach() {
           position: relative;
           width: 100%;
           min-height: 100svh;
-          background-color: #cecec6;
+          text-transform: lowercase;
           display: flex;
           justify-content: center;
           align-items: center;
-          text-align: center;
+          text-align: left;
+          text-indent: 6rem;
           padding: 4rem;
         }
 
         /* ── Typography ── */
-        .mm-hero h1,
-        .mm-hero h3,
         .mm-about h3,
         .mm-outro p {
           font-weight: 400;
           letter-spacing: -0.05rem;
           line-height: 1.15;
         }
-        .mm-hero h1 { font-size: clamp(2rem, 5vw, 5rem); }
-        .mm-hero h3 { font-size: clamp(0.75rem, 1vw, 0.95rem); font-weight: 600; line-height: 1.35; max-width: 65%; width: 65%; }
         .mm-about h3 { font-size: clamp(0.85rem, 1.2vw, 1.1rem); line-height: 1.7; max-width: 60ch; }
-        .mm-outro p { font-size: clamp(0.85rem, 1.2vw, 1.1rem); line-height: 1.7; max-width: 60ch; }
-        .mm-hero-header h1 { width: 75%; }
-        .mm-hero-copy {
-          align-items: center;
-          justify-content: center;
-          padding-left: 4rem;
-          padding-right: 4rem;
-          text-align: center;
-        }
-        .mm-hero-copy h3 { width: auto; }
+        .mm-outro p  { font-size: clamp(0.85rem, 1.2vw, 1.1rem); line-height: 1.7; max-width: 60ch; }
 
         @media (max-width: 1000px) {
-          .mm-hero-header, .mm-hero-copy { padding: 2rem; }
-          .mm-hero-header h1, .mm-hero-copy h3 { width: 100%; }
           .mm-about-header { width: 100%; padding: 2rem; }
           .mm-about-imgs { padding: 2rem; }
           .mm-img-thumb { width: 75px; height: 75px; opacity: 0.25; filter: saturate(0); }
@@ -340,17 +271,11 @@ export default function MMNewestAproach() {
       {/* ── HERO ── */}
       <section className="mm-hero">
         <div className="mm-hero-img">
-          <video
-            src="/video/MM Hero BG_1.mp4"
-            autoPlay muted loop playsInline
+          <img
+            src="/amnesia.png"
+            alt=""
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
           />
-        </div>
-        <div className="mm-hero-header">
-          <h1>A study of motion unfolding inside a single frame</h1>
-        </div>
-        <div className="mm-hero-copy">
-          <h3>{ARTISTS}</h3>
         </div>
       </section>
 
@@ -390,7 +315,6 @@ export default function MMNewestAproach() {
           <p>{ARTISTS}</p>
         </div>
 
-        {/* ── SEGUNDO VÍDEO ── position:absolute dentro del about, GSAP lo ubica bajo el header */}
         <div className="mm-second-video-wrap">
           <video
             src="/video/Video MM Header.mp4"
@@ -401,7 +325,7 @@ export default function MMNewestAproach() {
 
       {/* ── OUTRO ── */}
       <section className="mm-outro">
-        <p>{ARTISTS}</p>
+        <p>{STATEMENT}</p>
       </section>
     </>
   );
