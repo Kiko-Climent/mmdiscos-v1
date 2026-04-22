@@ -32,6 +32,7 @@ import MMHeroMobileFinal from "@/components/MMDiscos_Hero/MMHeroMobileFinal";
 import MMNewestAproach from "@/components/MMDiscos_Hero/MMNewestAproach";
 import MMNewestAproach2 from "@/components/MMDiscos_Hero/MMNewestAproach2";
 import MMNewestAproach3 from "@/components/MMDiscos_Hero/MMNewestAproach3";
+import MMNewestHero from "@/components/MMDiscos_Hero/MMNewestHero";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -97,6 +98,7 @@ export default function Tests() {
       {/* <ParallaxGallery2 /> */}
       {/* <ParallaxGallery2 /> */}
       {/* <AboutSection5 /> */}
+      <MMNewestHero />
       <MMNewestAproach3 />
       {/* <AnimatedQuote /> */}
       {/* <Footer /> */}

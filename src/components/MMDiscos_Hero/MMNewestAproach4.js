@@ -22,7 +22,7 @@ const STATEMENT = `MM DISCOS IS A RECORD LABEL BASED BETWEEN BERLIN AND BARCELON
 FOUNDED AND POWERED BY MOON & MANN. FREE FROM STYLISTIC BOUNDARIES AND GENRE LIMITATIONS, 
 THE LABEL HAS CONSISTENTLY CHAMPIONED A DISTINCTIVE SOUND WHERE MUSIC SPEAKS FOR ITSELF — DEEPLY INSPIRED BY THE SUEÑO IBICENCO AND THE SPIRIT OF THE MEDITERRANEAN.`;
 
-export default function MMNewestAproach3() {
+export default function MMNewestAproach4() {
   const aboutHeaderRef = useRef(null);
 
   useEffect(() => {
@@ -37,39 +37,37 @@ export default function MMNewestAproach3() {
 
     if (!heroImgEl || !aboutEl || !videoWrap || !headerEl) return;
 
-    // All column positions are vh-relative so they scale correctly on every
-    // screen size. The previous hardcoded px values (1000px, -1400px) were
-    // calibrated on ~900px desktop — on a 667px mobile screen they represented
-    // a disproportionately larger fraction of the viewport.
-    const outerInitY  =  vh * 1.1;          // ≈ 1000px on 900px desktop
-    const innerInitY  =  vh * 0.55;         // ≈  500px on 900px desktop
+    // Column positions: vh-relative for proportional scaling on all screens
+    const outerInitY  =  vh * 1.1;
+    const innerInitY  =  vh * 0.55;
     const innerInitX  =  isMobile ? 0 : 225;
-    const outerFinalY = -vh * 1.55;         // ≈ -1400px on 900px desktop
-    const innerFinalY = -vh * 0.78;         // ≈  -700px on 900px desktop
+    const outerFinalY = -vh * 1.55;
+    const innerFinalY = -vh * 0.78;
 
-    // gsap.context() tracks every tween + ScrollTrigger created inside it.
-    // ctx.revert() kills only this component's animations — not MMNewestHero's.
+    // Hero thumbnail: bigger on mobile for visual weight + earned scroll distance
+    const heroTarget = isMobile ? Math.round(vw * 0.55) : 150;
+
     const ctx = gsap.context(() => {
 
       // ── Hero image: scales down as it scrolls away ──────────────────────
+      // Mobile gets vh*1.2 scroll distance — bigger thumbnail means less travel needed.
       ScrollTrigger.create({
         trigger:    ".mm-hero",
         start:      "top top",
-        end:        `+=${isMobile ? vh : vh * 1.5}`,
+        end:        `+=${isMobile ? vh * 1.2 : vh * 1.5}`,
         pin:        true,
         pinSpacing: false,
         scrub:      1,
         onUpdate(self) {
-          const p      = self.progress;
-          const target = 150;
+          const p = self.progress;
           gsap.set(heroImgEl, {
-            scaleX: gsap.utils.interpolate(1, target / vw, p),
-            scaleY: gsap.utils.interpolate(1, target / vh, p),
+            scaleX: gsap.utils.interpolate(1, heroTarget / vw, p),
+            scaleY: gsap.utils.interpolate(1, heroTarget / vh, p),
           });
         },
       });
 
-      // ── About columns: initial positions (overrides CSS) ───────────────
+      // ── About columns: initial positions (vh-relative) ─────────────────
       gsap.set("#mm-col-1", { y:  outerInitY });
       gsap.set("#mm-col-4", { y:  outerInitY });
       gsap.set("#mm-col-2", { x: -innerInitX, y: innerInitY });
@@ -93,25 +91,54 @@ export default function MMNewestAproach3() {
         });
       });
 
-      // ── Second video: small box → full viewport ─────────────────────────
+      // ── Second video: clip-path reveal from small box → full viewport ───
+      // clip-path inset() instead of animating width/height/top/left.
+      // The video element sits at full viewport size from the start — only the
+      // clip window grows. This eliminates the square→portrait distortion that
+      // occurs when independently interpolating width and height from 1:1 to
+      // the device's portrait ratio on mobile.
       gsap.set(headerEl, { xPercent: -50, yPercent: -50 });
 
       const aboutRect  = aboutEl.getBoundingClientRect();
       const headerRect = headerEl.getBoundingClientRect();
-      const videoTop   = headerRect.bottom - aboutRect.top + 55;
-      const videoLeft  = aboutRect.width / 2 - 75;
 
-      gsap.set(videoWrap, { top: videoTop, left: videoLeft, width: 150, height: 150 });
+      // 150×150 box: horizontally centered, below header text.
+      // Mobile: fixed at 62% down (clear of the centered header block).
+      // Desktop: measured below the header element as before.
+      const boxSize = 150;
+      const boxTop  = isMobile
+        ? Math.round(vh * 0.62)
+        : Math.round(headerRect.bottom - aboutRect.top + 55);
+      const boxLeft = Math.round((vw - boxSize) / 2);
 
-      const videoScrollDist  = isMobile ? vh * 1.5 : vh * 2;
-      const headerScrollDist = isMobile ? vh       : vh * 1.2;
+      // Inset values: distance from each edge of the full-viewport element
+      const clipT = boxTop;
+      const clipL = boxLeft;
+      const clipR = vw - boxLeft - boxSize;
+      const clipB = vh - boxTop  - boxSize;
+
+      const clipStart = `inset(${clipT}px ${clipR}px ${clipB}px ${clipL}px)`;
+      const clipEnd   = "inset(0px 0px 0px 0px)";
+
+      gsap.set(videoWrap, {
+        top:      0,
+        left:     0,
+        width:    vw,
+        height:   vh,
+        clipPath: clipStart,
+      });
+
+      const videoScrollDist  = isMobile ? vh * 1.8 : vh * 2;
+      // Header exits faster on mobile so it clears the viewport before the
+      // expanding clip reaches center screen
+      const headerScrollDist = isMobile ? vh * 0.5 : vh * 1.2;
 
       gsap.fromTo(
         videoWrap,
-        { width: 150, height: 150, top: videoTop, left: videoLeft },
+        { clipPath: clipStart },
         {
-          width: vw, height: vh, top: 0, left: 0,
-          ease: "none",
+          clipPath: clipEnd,
+          ease:     "none",
           scrollTrigger: {
             trigger:    ".mm-about",
             start:      "top top",
@@ -123,7 +150,7 @@ export default function MMNewestAproach3() {
         }
       );
 
-      // ── About header: travels up while video expands ────────────────────
+      // ── About header: exits upward before the expanding clip covers it ──
       gsap.to(headerEl, {
         y:    -headerScrollDist,
         ease: "none",
@@ -205,14 +232,16 @@ export default function MMNewestAproach3() {
           width: 40%;
           text-align: center;
           pointer-events: none;
+          z-index: 3;
         }
 
         /* ── Segundo vídeo ── */
+        /* position/size/clip-path fully managed by GSAP */
         .mm-second-video-wrap {
           position: absolute;
           overflow: hidden;
-          will-change: width, height, top, left;
-          z-index: 2;
+          will-change: clip-path;
+          z-index: 5;
         }
         .mm-second-video-wrap video {
           width: 100%;
@@ -256,7 +285,7 @@ export default function MMNewestAproach3() {
         }
 
         @media (max-width: 720px) {
-          .mm-about { margin-top: 40svh; }
+          .mm-about { margin-top: 60svh; }
           .mm-about-header { width: 100%; padding: 2rem; }
           .mm-about-imgs { padding: 2rem; }
           .mm-img-thumb { width: 75px; height: 75px; opacity: 0.25; filter: saturate(0); }

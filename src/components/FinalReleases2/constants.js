@@ -23,7 +23,7 @@ export const FOCUS_ENTER_HERO_EASE      = "power3.inOut";
 export const FOCUS_ENTER_HERO_DELAY     = 0.06;
 
 // ─── Panel typography ─────────────────────────────────────────────────────────
-export const PANEL_FONT_SIZE   = 9;
+export const PANEL_FONT_SIZE   = 12;
 export const PANEL_LINE_HEIGHT = 1.15;
 export const PANEL_TEXT        = "#000";
 export const PANEL_GAP_TIGHT   = 1;

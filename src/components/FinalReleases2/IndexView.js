@@ -83,7 +83,7 @@ export default function IndexView() {
               <span
                 key={col.key}
                 style={{
-                  fontSize: 9,
+                  fontSize: 12,
                   letterSpacing: "0.08em",
                   color: "#111",
                   whiteSpace: "nowrap",
