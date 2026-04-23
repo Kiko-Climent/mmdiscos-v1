@@ -254,7 +254,7 @@ export default function Alfredo2() {
       */}
       <section
         ref={aboutRef}
-        className="relative w-full h-[150svh] flex justify-center items-center mt-[150svh]"
+        className="relative w-full h-[150svh] flex justify-center items-center mt-[150svh] overflow-hidden"
       >
 
         {/* ── DESKTOP: 4 columnas ─────────────────────────────────────────── */}
@@ -281,14 +281,14 @@ export default function Alfredo2() {
           Las thumbs no tienen gap vertical → justify-start + gap-y-2
           para que las imágenes queden compactas
         */}
-        <div className="mm-mobile-cols absolute inset-0 justify-center items-start gap-2 pt-0">
-          {MOBILE_COLS_CONFIG.map(({ imgs }, colIdx) => (
+        <div className="mm-mobile-cols absolute inset-0 justify-center items-start gap-4 pt-0">
+            {MOBILE_COLS_CONFIG.map(({ imgs }, colIdx) => (
             <div
-              key={colIdx}
-              ref={(el) => { mobileColRefs.current[colIdx] = el; }}
-              className="relative flex flex-col gap-2"
-              style={{ willChange: "transform" }}
-            >
+            key={colIdx}
+            ref={(el) => { mobileColRefs.current[colIdx] = el; }}
+            className="relative flex flex-col gap-4"
+            style={{ willChange: "transform" }}
+        >
               {imgs.map((src, i) => (
                 <div key={i} className="w-[170px] h-[170px] overflow-hidden shrink-0 opacity-40 saturate-0">
                   <img src={src} alt="" className="w-full h-full object-cover block" />
