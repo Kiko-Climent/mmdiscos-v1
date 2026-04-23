@@ -254,7 +254,7 @@ export default function Alfredo2() {
       */}
       <section
         ref={aboutRef}
-        className="relative w-full h-[150svh] flex justify-center items-center mt-[150svh] overflow-hidden"
+        className="relative w-full h-[150svh] flex justify-center items-center mt-[150svh] overflow-hidden md:overflow-visible"
       >
 
         {/* ── DESKTOP: 4 columnas ─────────────────────────────────────────── */}
