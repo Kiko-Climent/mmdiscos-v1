@@ -45,17 +45,19 @@ export default function FinalReleases2() {
     });
   };
 
-  // Toggle ref — always points to the latest handler, avoids stale closures
-  const toggleIndexRef = useRef(null);
-  toggleIndexRef.current = () => {
-    if (isIndex) goToSlider();
-    else goToIndex();
-  };
+  // Refs always point to latest handlers — avoids stale closures in event listeners
+  const actionsRef = useRef({});
+  actionsRef.current = { goToIndex, goToSlider };
 
   useEffect(() => {
-    const handler = () => toggleIndexRef.current?.();
-    window.addEventListener("mm-releases-toggle-index", handler);
-    return () => window.removeEventListener("mm-releases-toggle-index", handler);
+    const onIndex  = () => actionsRef.current.goToIndex();
+    const onSlider = () => actionsRef.current.goToSlider();
+    window.addEventListener("mm-releases-go-index",  onIndex);
+    window.addEventListener("mm-releases-go-slider", onSlider);
+    return () => {
+      window.removeEventListener("mm-releases-go-index",  onIndex);
+      window.removeEventListener("mm-releases-go-slider", onSlider);
+    };
   }, []);
 
   const isMobile  = viewportSize.w > 0 && viewportSize.w < 768;

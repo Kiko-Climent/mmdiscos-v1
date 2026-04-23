@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import gsap from "gsap";
 import Link from "next/link";
 
-const LINKS = [
-  { label: "releases",  href: "/releases"  },
-  { label: "index",     href: "/"           },
-  { label: "statement", href: "/statement"  },
+const BASE_LINKS = [
+  { label: "releases", href: "/releases" },
+  { label: "statement", href: "/statement" },
+];
+
+const RELEASE_EXTRA = [
+  { label: "slider", event: "mm-releases-go-slider" },
+  { label: "index",  event: "mm-releases-go-index"  },
 ];
 
 /**
@@ -19,17 +23,59 @@ const Menu = ({ visible }) => {
   const containerRef = useRef(null);
   const darkRefs     = useRef([]);
   const whiteRefs    = useRef([]);
+  const itemRefs     = useRef([]);
   const router       = useRouter();
   const isHome       = router.pathname === "/";
   const isReleases   = router.pathname === "/releases";
 
-  const handleLinkClick = (e, label) => {
-    e.stopPropagation();
-    if (label === "index" && isReleases) {
-      e.preventDefault();
-      window.dispatchEvent(new CustomEvent("mm-releases-toggle-index"));
-    }
-  };
+  const links = isReleases
+    ? [BASE_LINKS[0], ...RELEASE_EXTRA, BASE_LINKS[1]]
+    : BASE_LINKS;
+
+  // FLIP step 1 — capture exact 2-item positions before each render while in base mode.
+  // Runs after every render but only stores when NOT in releases (2-item layout).
+  const prevPosRef = useRef(null);
+  useLayoutEffect(() => {
+    if (isReleases) return;
+    const relEl = itemRefs.current[0]; // releases (idx 0 always)
+    const stmEl = itemRefs.current[1]; // statement (idx 1 in 2-item layout)
+    if (!relEl || !stmEl) return;
+    prevPosRef.current = {
+      releases:  relEl.getBoundingClientRect().left,
+      statement: stmEl.getBoundingClientRect().left,
+    };
+  });
+
+  // FLIP step 2 — when 4-item layout renders, measure new positions, invert, play.
+  useLayoutEffect(() => {
+    if (!isReleases || !prevPosRef.current) return;
+
+    const releasesEl  = itemRefs.current[0];
+    const sliderEl    = itemRefs.current[1];
+    const indexEl     = itemRefs.current[2];
+    const statementEl = itemRefs.current[3];
+    if (!releasesEl || !sliderEl || !indexEl || !statementEl) return;
+
+    const nowRel = releasesEl.getBoundingClientRect().left;
+    const nowStm = statementEl.getBoundingClientRect().left;
+
+    // Invert: put each element back at its 2-item screen position before paint
+    gsap.set(releasesEl,  { x: prevPosRef.current.releases  - nowRel });
+    gsap.set(statementEl, { x: prevPosRef.current.statement - nowStm });
+    gsap.set([sliderEl, indexEl], { opacity: 0, filter: "blur(5px)" });
+
+    const tl = gsap.timeline({ delay: 0.18 });
+    // Releases leads by 40ms — asymmetry removes mechanical feel
+    tl.to(releasesEl,  { x: 0, duration: 0.85, ease: "expo.out" }, 0)
+      .to(statementEl, { x: 0, duration: 0.85, ease: "expo.out" }, 0.04)
+      // New items start at 0.1s — overlap with spread creates flow
+      .to([sliderEl, indexEl], {
+        opacity: 1, filter: "blur(0px)",
+        duration: 0.48, stagger: 0.08, ease: "power3.out",
+      }, 0.1);
+
+    return () => tl.kill();
+  }, [isReleases]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -59,7 +105,7 @@ const Menu = ({ visible }) => {
   // Cortina blur About vs cada enlace (NavPills3.updateCurtain)
   useEffect(() => {
     const resetFullDark = () => {
-      for (let i = 0; i < LINKS.length; i++) {
+      for (let i = 0; i < links.length; i++) {
         const dark = darkRefs.current[i];
         const white = whiteRefs.current[i];
         if (dark) {
@@ -83,7 +129,7 @@ const Menu = ({ visible }) => {
       const aboutBottom = aboutRect?.bottom;
       const viewportHeight = window.innerHeight;
 
-      for (let i = 0; i < LINKS.length; i++) {
+      for (let i = 0; i < links.length; i++) {
         const dark = darkRefs.current[i];
         const white = whiteRefs.current[i];
         if (!dark || !white) continue;
@@ -130,7 +176,7 @@ const Menu = ({ visible }) => {
       cancelAnimationFrame(rafId);
       resetFullDark();
     };
-  }, [isHome]);
+  }, [isHome, isReleases]);
 
   const textStyle = {
     fontFamily:    "'Helvetica Neue', Helvetica, Arial, sans-serif",
@@ -153,19 +199,8 @@ const Menu = ({ visible }) => {
         marginTop:     "0.4rem",
       }}
     >
-      {LINKS.map(({ label, href }, idx) => (
-        <Link
-          key={label}
-          href={href}
-          onClick={(e) => handleLinkClick(e, label)}
-          style={{
-            ...textStyle,
-            textDecoration: "none",
-            color:          "transparent",
-            cursor:         "pointer",
-            userSelect:     "none",
-          }}
-        >
+      {links.map(({ label, href, event }, idx) => {
+        const inner = (
           <span style={{ position: "relative", display: "inline-block" }}>
             <span
               ref={(el) => { darkRefs.current[idx] = el; }}
@@ -184,23 +219,59 @@ const Menu = ({ visible }) => {
               ref={(el) => { whiteRefs.current[idx] = el; }}
               style={{
                 ...textStyle,
-                position:       "absolute",
-                left:           0,
-                top:            0,
-                zIndex:         2,
-                color:          "#ffffff",
-                pointerEvents:  "none",
-                clipPath:       "inset(100% 0 0 0)",
-                display:        "inline-block",
-                willChange:     "clip-path",
+                position:      "absolute",
+                left:          0,
+                top:           0,
+                zIndex:        2,
+                color:         "#ffffff",
+                pointerEvents: "none",
+                clipPath:      "inset(100% 0 0 0)",
+                display:       "inline-block",
+                willChange:    "clip-path",
               }}
               aria-hidden
             >
               {label}
             </span>
           </span>
-        </Link>
-      ))}
+        );
+
+        if (href) {
+          return (
+            <Link
+              key={label}
+              ref={(el) => { itemRefs.current[idx] = el; }}
+              href={href}
+              style={{
+                ...textStyle,
+                textDecoration: "none",
+                color:          "transparent",
+                cursor:         "pointer",
+                userSelect:     "none",
+              }}
+            >
+              {inner}
+            </Link>
+          );
+        }
+
+        return (
+          <span
+            key={label}
+            ref={(el) => { itemRefs.current[idx] = el; }}
+            role="button"
+            onClick={() => window.dispatchEvent(new CustomEvent(event))}
+            style={{
+              ...textStyle,
+              color:      "transparent",
+              cursor:     "pointer",
+              userSelect: "none",
+            }}
+          >
+            {inner}
+          </span>
+        );
+      })}
     </div>
   );
 };
