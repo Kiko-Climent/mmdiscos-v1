@@ -45,6 +45,7 @@ import Alfredo4 from "@/components/Final_Components/Alfredo4";
 import Highlights from "@/components/Highlights/Highlights";
 import Highlights2 from "@/components/Highlights/Highlights2";
 import AboutFinal from "@/components/About/AboutFinal";
+import AboutFinal2 from "@/components/About/AboutFinal2";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -149,7 +150,7 @@ export default function Home() {
       </Head>
       <MMNewestHero2 />
       <Highlights2 />
-      <AboutFinal />
+      <AboutFinal2 />
       {/* <MMNewestAproach /> */}
       {/* <Alfredo2 /> */}
       {/* Hero: mobile vs desktop */}

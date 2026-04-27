@@ -20,8 +20,6 @@ const EXPLODE_THRESHOLD = 0.45;
 const EXPLODE_RELEASE = 0.4;
 const RECRUIT_THRESHOLD = 0.7;
 const RECRUIT_RELEASE = 0.66;
-const H1_THRESHOLD = 0.88;
-const H1_RELEASE = 0.84;
 
 export default function AboutFinal() {
   const sectionRef = useRef(null);
@@ -293,12 +291,20 @@ export default function AboutFinal() {
 
         cursorX += word.length * charW + gap;
       });
+
+      revealH1(1.4);
     };
 
     const reverseRecruit = (silent = false) => {
       if (!recruitedRef.current) return;
       recruitedRef.current = false;
       killRecruitTweens();
+      if (silent) {
+        gsap.set(h1, { opacity: 0, filter: "blur(18px)", y: 16 });
+        h1RevealedRef.current = false;
+      } else {
+        hideH1();
+      }
 
       linkElsRef.current.forEach((a) => {
         if (silent) {
@@ -343,17 +349,19 @@ export default function AboutFinal() {
       });
     };
 
-    const revealH1 = () => {
+    const revealH1 = (delay = 0) => {
       if (h1RevealedRef.current) return;
       h1RevealedRef.current = true;
-      gsap.to(h1, {
+      const t = gsap.to(h1, {
         opacity: 1,
         filter: "blur(0px)",
         y: 0,
         duration: 1.0,
+        delay,
         ease: "power3.out",
         overwrite: true,
       });
+      recruitTweensRef.current.push(t);
     };
 
     const hideH1 = () => {
@@ -396,15 +404,6 @@ export default function AboutFinal() {
               recruitForLinks();
             } else if (p < RECRUIT_RELEASE && recruitedRef.current) {
               reverseRecruit(false);
-            }
-            if (
-              p >= H1_THRESHOLD &&
-              recruitedRef.current &&
-              !h1RevealedRef.current
-            ) {
-              revealH1();
-            } else if (p < H1_RELEASE && h1RevealedRef.current) {
-              hideH1();
             }
           },
         },
@@ -451,15 +450,15 @@ export default function AboutFinal() {
         />
         <h1
           ref={h1Ref}
-          className="about-final-h1 absolute inset-x-0 top-1/2 -translate-y-1/2 text-center uppercase text-black font-normal px-4 pointer-events-none"
+          className="about-final-h1 absolute inset-x-0 top-1/2 -translate-y-1/2 text-center uppercase text-black font-normal pr-6 pointer-events-none"
           style={{
-            fontSize: "clamp(2.5rem, 13vw, 11rem)",
-            letterSpacing: "-0.02em",
+            fontSize: "clamp(3.5rem, 13vw, 15rem)",
+            letterSpacing: "-0.10em",
             lineHeight: 1,
             willChange: "transform, opacity, filter",
           }}
         >
-          MM Discos©2026
+          MMDiscos©2026
         </h1>
         <p
           ref={paragraphRef}
