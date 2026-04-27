@@ -1,0 +1,168 @@
+/* Highlights — sticky scroll showcase
+   Selectores prefijados con .hl- para no chocar con el resto de la página. */
+
+   .hl-services {
+    position: relative;
+  }
+  
+  .hl-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #000;
+    z-index: 0;
+    will-change: transform, width;
+  }
+  
+  .hl-service {
+    position: relative;
+    z-index: 1;
+    width: max-content;
+  }
+  
+  .hl-service p {
+    color: #d5d5d5;
+    transition: color 0.3s ease;
+  }
+  
+  .hl-service.hl-active p {
+    color: #fff;
+  }
+  
+  /* Wrapper recorta la imagen con el polygon original del tutorial.
+     Tailwind no tiene utility para clip-path arbitrario sin arbitrary value largo. */
+  .hl-img-wrapper {
+    clip-path: polygon(50% 0%, 100% 0, 100% 85%, 90% 100%, 50% 100%, 0 100%, 0 0);
+  }
+  
+  .hl-service-img {
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+  }
+  
+  .hl-copy {
+    will-change: transform, opacity;
+  }
+  
+  /* Progress bar — vertical centrada entre columnas en desktop. */
+  .hl-progress-bar {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2.5px;
+    height: 60%;
+    background-color: #e0e0e0;
+    pointer-events: none;
+  }
+  
+  .hl-progress {
+    position: absolute;
+    inset: 0;
+    background-color: #000;
+    transform-origin: top;
+    transform: scaleY(0);
+    will-change: transform;
+  }
+  
+  /* Counter 1 / 5 */
+  .hl-index {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    padding: 4px 2px 2px 2px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #000;
+    color: #fff;
+    pointer-events: none;
+  }
+  
+  .hl-index span {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 12px;
+    width: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .hl-separator {
+    position: relative;
+    top: -1px;
+    width: 20px !important;
+    height: 2px;
+    background-color: #fff;
+  }
+  
+  /* Cortina: polígono degenerado al inicio (silueta exacta del progress
+     bar) que se expande como una cuchilla diagonal hasta cubrir todo. */
+  .hl-curtain {
+    position: absolute;
+    inset: 0;
+    background-color: #000;
+    pointer-events: none;
+    clip-path: polygon(50% 20%, 50% 20%, 50% 80%, 50% 80%);
+    z-index: 5;
+    will-change: clip-path;
+    transform: translateZ(0);
+  }
+  
+  /* Quote sobre la cortina — aparece cuando ya cubre el viewport. */
+  .hl-quote {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: end;
+    justify-content: start;
+    z-index: 6;
+    pointer-events: none;
+    opacity: 0;
+    color: #fff;
+    will-change: opacity;
+  }
+  
+  .hl-quote p {
+    text-align: left;
+    font-size: 3.75rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+    text-transform: lowercase;
+    text-indent: 6rem;
+  }
+  
+  /* Video bottom-right. Su clip-path inicial (50% por lado) lo deja con
+     área cero en el centro — invisible — para que se revele en la fase
+     final del scroll. */
+  .hl-video-wrap {
+    clip-path: inset(50% 50% 50% 50%);
+    will-change: clip-path;
+    transform: translateZ(0);
+  }
+  
+  .hl-video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  /* Mobile: stack vertical, progress bar arriba en horizontal. */
+  @media (max-width: 900px) {
+    .hl-progress-bar {
+      top: -15%;
+      left: 50%;
+      height: 50%;
+      transform: translateX(-50%) rotate(-90deg);
+    }
+  
+    .hl-index {
+      top: 5%;
+      bottom: auto;
+    }
+  }

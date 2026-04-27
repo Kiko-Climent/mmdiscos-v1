@@ -5,14 +5,14 @@ import { useEffect, useRef } from "react";
 // ─── Imágenes ─────────────────────────────────────────────────────────────────
 
 const COL1_IMGS = [
-  "/Celex - cover.jpg",
-  "/corben_peachland_cover.jpg",
-  "/Daichi - cover.jpg",
-  "/Factory Edits - cover.jpg",
+  "/label/MMBall00.svg",
+  "/label/MMBall01.svg",
+  "/label/MMBall02.svg",
+  "/label/MMBall03.svg",
 ];
-const COL2_IMGS = ["/img1.jpg", "/img2.jpg", "/img3.jpg", "/img4.jpg"];
-const COL3_IMGS = ["/img5.jpg", "/MMD039.png", "/MMD040_Cover-1.jpg", "/MMD040-2.png"];
-const COL4_IMGS = ["/morira - cover.png", "/statues.jpeg", "/img9.jpg", "/img3.jpg"];
+const COL2_IMGS = ["/label/MMBall04.svg", "/label/MMBall05.svg", "/label/MMBall06.svg", "/label/MMBall07.svg"];
+const COL3_IMGS = ["/label/MMBall08.svg", "/label/MMBall09.svg", "/label/MMBall010.svg", "/label/MMBall011.svg"];
+const COL4_IMGS = ["/label/MMBall08.svg", "/label/MMBall09.svg", "/label/MMBall010.svg", "/label/MMBall011.svg"];
 
 // ─── Textos ───────────────────────────────────────────────────────────────────
 
@@ -61,7 +61,7 @@ const MOBILE_COLS_CONFIG = [
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
-export default function Alfredo2() {
+export default function Alfredo3() {
   const heroRef        = useRef(null);
   const heroImgRef     = useRef(null);
   const aboutRef       = useRef(null);
@@ -197,10 +197,10 @@ export default function Alfredo2() {
     <>
       <style>{`
         .mm-about-header p {
-          font-size: 0.75rem;
+          font-size: 3.75rem;
           font-weight: 400;
-          letter-spacing: 0.08em;
-          line-height: 1.5;
+          letter-spacing: -0.02em;
+          line-height: 0.95;
           text-transform: lowercase;
           text-indent: 3rem;
         }
@@ -211,7 +211,7 @@ export default function Alfredo2() {
           line-height: 1.4;
           text-transform: lowercase;
           text-align: justify;
-          color: #111;
+
           width: min(100%, 600px);
           text-indent: 6rem;
         }
@@ -226,9 +226,17 @@ export default function Alfredo2() {
           .mm-mobile-cols  { display: flex; }
 
           .mm-about-header {
-            width: 80% !important;
+            width: 100% !important;
             padding: 1.5rem;
           }
+          .mm-about-header p {
+            font-size: 1.95rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            line-height: 0.95;
+            text-transform: lowercase;
+            text-indent: 3rem;
+        }
         }
       `}</style>
 
@@ -258,7 +266,7 @@ export default function Alfredo2() {
       >
 
         {/* ── DESKTOP: 4 columnas ─────────────────────────────────────────── */}
-        <div className="mm-desktop-cols absolute inset-0 justify-between items-center p-16">
+        <div className="mm-desktop-cols absolute inset-0 justify-between items-center p-16 ">
           {DESKTOP_COLS_CONFIG.map(({ imgs }, colIdx) => (
             <div
               key={colIdx}
@@ -299,7 +307,7 @@ export default function Alfredo2() {
         </div>
 
         {/* Texto central */}
-        <div className="mm-about-header absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/5 text-justify pointer-events-none">
+        <div className="mm-about-header absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/5 text-justify pointer-events-none">
           <p>{ALFREDOS_QUOTE}</p>
         </div>
       </section>
@@ -324,19 +332,19 @@ export default function Alfredo2() {
 
       {/* ── OUTRO ─────────────────────────────────────────────────────────── */}
       {/* ── OUTRO ─────────────────────────────────────────────────────────── */}
-<section className="relative z-10 w-full min-h-svh flex flex-col justify-between items-center p-16">
+      <section className="relative z-10 w-full min-h-svh flex flex-col justify-between items-center p-8">
 
-<div className="flex-1 flex items-center justify-center w-full">
-  <p className="mm-outro-text">{STATEMENT}</p>
-</div>
+        <div className="flex-1 flex items-center justify-center w-full">
+            <p className="mm-outro-text">{STATEMENT}</p>
+        </div>
 
-<img
-  src="/svg/MM Discos©2026.2.svg"
-  alt="MM Discos © 2026"
-  style={{ width: "min(100%, 600px)",filter: "invert(1)" }}
-/>
+        <img
+        src="/svg/MM Discos©2026.2.svg"
+        alt="MM Discos © 2026"
+        style={{ width: "100%", filter: "invert(1)" }}
+        />
 
-</section>
+      </section>
     </>
   );
 }

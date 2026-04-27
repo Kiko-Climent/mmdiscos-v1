@@ -1,0 +1,21 @@
+.about-final-stage {
+    transform: translateZ(0);
+  }
+  
+  .about-final-word {
+    display: inline;
+    color: #c8c8c8;
+    will-change: color;
+  }
+  
+  .about-final-char {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: inline-block;
+    pointer-events: none;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    color: #0f0f0f;
+    text-transform: lowercase;
+  }

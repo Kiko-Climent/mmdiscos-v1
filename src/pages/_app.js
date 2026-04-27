@@ -1,5 +1,7 @@
 import "@/styles/globals.css";
 import "@/styles/about.css";
+import "@/styles/highlights.css";
+import "@/styles/aboutfinal.css";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";

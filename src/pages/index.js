@@ -40,6 +40,11 @@ import MMNewestAproach4 from "@/components/MMDiscos_Hero/MMNewestAproach4";
 import Alfredo from "@/components/Final_Components/Alfredo";
 import Alfredo2 from "@/components/Final_Components/Alfredo2";
 import MMNewestHero2 from "@/components/MMDiscos_Hero/MMNewestHero2";
+import Alfredo3 from "@/components/Final_Components/Alfredo3";
+import Alfredo4 from "@/components/Final_Components/Alfredo4";
+import Highlights from "@/components/Highlights/Highlights";
+import Highlights2 from "@/components/Highlights/Highlights2";
+import AboutFinal from "@/components/About/AboutFinal";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -143,8 +148,10 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <MMNewestHero2 />
+      <Highlights2 />
+      <AboutFinal />
       {/* <MMNewestAproach /> */}
-      <Alfredo2 />
+      {/* <Alfredo2 /> */}
       {/* Hero: mobile vs desktop */}
       {/* {isMobile === null
         ? null

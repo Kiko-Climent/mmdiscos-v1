@@ -321,8 +321,20 @@ export default function MMNewestHero2() {
       <div
         id="mm-hero-animated-logo"
         ref={logoRef}
-        className="fixed top-0 left-0 z-[9999] pointer-events-none isolate"
-        style={{ opacity: 0 }}
+        className="fixed top-0 left-0 z-[9999] pointer-events-none"
+        style={{
+          opacity: 0,
+          // Logo "contrast-aware". Ambas capas se renderizan en blanco
+          // (filter invert), y este contenedor hace mix-blend difference
+          // contra el backdrop de la página → negro sobre fondos claros,
+          // blanco sobre cortinas oscuras, transición per-pixel automática
+          // (sin JS de sync para Highlights / About / hero / lo que venga).
+          //
+          // No usar `isolate` — crearía un isolation group que impediría
+          // al blend leer el backdrop de la página. El z-[9999] ya crea
+          // stacking context propio sin bloquear el blending.
+          mixBlendMode: "difference",
+        }}
       >
         {/* Ghost: holds container dimensions without visible content */}
         <img
@@ -331,22 +343,11 @@ export default function MMNewestHero2() {
           className="w-full h-auto block opacity-0 pointer-events-none"
         />
 
-        {/* Black layer */}
+        {/* Single inverted layer — el blend difference del contenedor
+            decide el color final per-pixel contra el backdrop. */}
         <div
-          className="logo-layer-black absolute pointer-events-none"
-          style={{ inset: LOGO_LAYER_INSET, clipPath: "inset(0 0 0 0)" }}
-        >
-          <img
-            src="/logo/Balearic Sound System Logo.svg"
-            alt="" aria-hidden
-            className="w-full h-full object-contain block"
-          />
-        </div>
-
-        {/* White (inverted) layer — revealed by About curtain clipPath */}
-        <div
-          className="logo-layer-white absolute z-[1] pointer-events-none"
-          style={{ inset: LOGO_LAYER_INSET, clipPath: "inset(100% 0 0 0)" }}
+          className="absolute pointer-events-none"
+          style={{ inset: LOGO_LAYER_INSET }}
         >
           <img
             src="/logo/Balearic Sound System Logo.svg"

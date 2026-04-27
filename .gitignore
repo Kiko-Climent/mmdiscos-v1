@@ -24,6 +24,9 @@
 .DS_Store
 *.pem
 
+# Cursor / Claude Code local worktrees (nested repos; no versionar)
+.claude/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

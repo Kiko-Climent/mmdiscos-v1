@@ -34,6 +34,8 @@ import MMNewestAproach2 from "@/components/MMDiscos_Hero/MMNewestAproach2";
 import MMNewestAproach3 from "@/components/MMDiscos_Hero/MMNewestAproach3";
 import MMNewestHero from "@/components/MMDiscos_Hero/MMNewestHero";
 import Alfredo from "@/components/Final_Components/Alfredo";
+import Highlights from "@/components/Highlights/Highlights";
+import AboutFinal from "@/components/About/AboutFinal";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -103,7 +105,9 @@ export default function Tests() {
       {/* <MMNewestAproach3 /> */}
       {/* <AnimatedQuote /> */}
       {/* <MMNewestAproach /> */}
-      <Alfredo />
+      {/* <Alfredo /> */}
+      {/* <Highlights /> */}
+      <AboutFinal />
       {/* <Footer /> */}
     </>
   );
