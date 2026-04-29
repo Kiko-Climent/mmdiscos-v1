@@ -19,3 +19,13 @@
     color: #0f0f0f;
     text-transform: lowercase;
   }
+  
+  .about-final-link {
+    position: absolute;
+    display: block;
+    pointer-events: auto;
+    cursor: pointer;
+    background: transparent;
+    z-index: 30;
+  }
+  

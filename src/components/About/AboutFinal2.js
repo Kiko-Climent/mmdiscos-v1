@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -7,26 +8,36 @@ const STATEMENT =
   "MM DISCOS IS A RECORD LABEL BASED BETWEEN BERLIN AND BARCELONA, FOUNDED AND POWERED BY MOON & MANN. FREE FROM STYLISTIC BOUNDARIES AND GENRE LIMITATIONS, THE LABEL HAS CONSISTENTLY CHAMPIONED A DISTINCTIVE SOUND WHERE MUSIC SPEAKS FOR ITSELF — DEEPLY INSPIRED BY THE SUEÑO IBICENCO AND THE SPIRIT OF THE MEDITERRANEAN.";
 
 const LINKS = [
-  { word: "soundcloud", href: "#" },
-  { word: "instagram", href: "#" },
-  { word: "bandcamp", href: "#" },
-  { word: "contact", href: "#" },
+  { num: "01", word: "soundcloud", href: "#" },
+  { num: "02", word: "instagram", href: "#" },
+  { num: "03", word: "bandcamp", href: "#" },
+  { num: "04", word: "contact", href: "#" },
 ];
 
 const PILE_BOTTOM_OFFSET = 16;
-const LINK_ROW_OFFSET = 64;
-const SIDE_PADDING = 16;
 const EXPLODE_THRESHOLD = 0.45;
 const EXPLODE_RELEASE = 0.4;
 const RECRUIT_THRESHOLD = 0.7;
 const RECRUIT_RELEASE = 0.66;
 
-export default function AboutFinal() {
+const HEADLINE_FONT = "'Favorit', sans-serif";
+
+export default function AboutFinal2() {
   const sectionRef = useRef(null);
   const stickyRef = useRef(null);
   const paragraphRef = useRef(null);
   const stageRef = useRef(null);
-  const h1Ref = useRef(null);
+
+  const editorialRef = useRef(null);
+  const topMetaLeftRef = useRef(null);
+  const topMetaRightRef = useRef(null);
+  const topRuleRef = useRef(null);
+  const bottomRuleRef = useRef(null);
+  const bottomMetaRef = useRef(null);
+  const photoRef = useRef(null);
+  const h1LinesRef = useRef([]);
+  const linkSlotsRef = useRef([]);
+  const linkRowsRef = useRef([]);
 
   const wordsRef = useRef([]);
   const charsRef = useRef([]);
@@ -35,7 +46,7 @@ export default function AboutFinal() {
   const rafRef = useRef(null);
   const explodedRef = useRef(false);
   const recruitedRef = useRef(false);
-  const h1RevealedRef = useRef(false);
+  const editorialRevealedRef = useRef(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -44,8 +55,17 @@ export default function AboutFinal() {
     const sticky = stickyRef.current;
     const paragraph = paragraphRef.current;
     const stage = stageRef.current;
-    const h1 = h1Ref.current;
-    if (!sticky || !paragraph || !stage || !h1) return;
+    if (!sticky || !paragraph || !stage) return;
+
+    const topMetaLeft = topMetaLeftRef.current;
+    const topMetaRight = topMetaRightRef.current;
+    const topRule = topRuleRef.current;
+    const bottomRule = bottomRuleRef.current;
+    const bottomMeta = bottomMetaRef.current;
+    const photo = photoRef.current;
+    const h1Lines = h1LinesRef.current.filter(Boolean);
+    const linkRows = linkRowsRef.current.filter(Boolean);
+    const linkSlots = linkSlotsRef.current.filter(Boolean);
 
     const wordEls = Array.from(paragraph.querySelectorAll(".about-final-word"));
     wordsRef.current = wordEls;
@@ -207,25 +227,21 @@ export default function AboutFinal() {
 
       const stickyRect = sticky.getBoundingClientRect();
       const charW = measureCharWidth();
-
-      const totalChars = LINKS.reduce((acc, l) => acc + l.word.length, 0);
-      const totalWordWidth = totalChars * charW;
-      const availableWidth = stickyRect.width - SIDE_PADDING * 2;
-      const gap =
-        LINKS.length > 1
-          ? (availableWidth - totalWordWidth) / (LINKS.length - 1)
-          : 0;
-      let cursorX = SIDE_PADDING;
-      const linkRowY = stickyRect.height - LINK_ROW_OFFSET;
-
       const claimed = new Set();
 
-      LINKS.forEach(({ word, href }) => {
-        const wordStartX = cursorX;
+      LINKS.forEach((link, idx) => {
+        const slot = linkSlots[idx];
+        const row = linkRows[idx];
+        if (!slot || !row) return;
+
+        const slotRect = slot.getBoundingClientRect();
+        const slotX = slotRect.left - stickyRect.left;
+        const slotY = slotRect.top - stickyRect.top;
+
         const wordChars = [];
 
-        for (let i = 0; i < word.length; i++) {
-          const letter = word[i];
+        for (let i = 0; i < link.word.length; i++) {
+          const letter = link.word[i];
           let chosenIdx = -1;
           for (let j = 0; j < charsRef.current.length; j++) {
             const c = charsRef.current[j];
@@ -243,8 +259,8 @@ export default function AboutFinal() {
           c.recruited = true;
           c.resting = true;
 
-          const targetX = wordStartX + i * charW;
-          const targetY = linkRowY;
+          const targetX = slotX + i * charW;
+          const targetY = slotY;
           const dx = targetX - c.initialLeft;
           const dy = targetY - c.initialTop;
 
@@ -255,6 +271,7 @@ export default function AboutFinal() {
             rot: 0,
             duration: 1.1,
             ease: "power3.inOut",
+            delay: idx * 0.04,
             onUpdate: () => {
               c.x = proxy.x;
               c.y = proxy.y;
@@ -273,26 +290,32 @@ export default function AboutFinal() {
             Math.max(...wordChars.map((w) => w.targetX)) + charW;
           const a = document.createElement("a");
           a.className = "about-final-link";
-          a.href = href;
-          if (href.startsWith("http")) {
+          a.href = link.href;
+          if (link.href.startsWith("http")) {
             a.target = "_blank";
             a.rel = "noopener noreferrer";
           }
-          a.setAttribute("aria-label", word);
+          a.setAttribute("aria-label", link.word);
           a.style.left = `${minX - 6}px`;
-          a.style.top = `${linkRowY - 6}px`;
+          a.style.top = `${slotY - 6}px`;
           a.style.width = `${maxX - minX + 12}px`;
-          a.style.height = `24px`;
+          a.style.height = `${slotRect.height + 12}px`;
           a.style.opacity = "0";
           stage.appendChild(a);
           linkElsRef.current.push(a);
-          gsap.to(a, { opacity: 1, duration: 0.6, delay: 0.7 });
-        }
+          gsap.to(a, { opacity: 1, duration: 0.5, delay: 0.7 + idx * 0.04 });
 
-        cursorX += word.length * charW + gap;
+          gsap.to(row, {
+            opacity: 1,
+            x: 0,
+            duration: 0.7,
+            delay: idx * 0.08,
+            ease: "power3.out",
+          });
+        }
       });
 
-      revealH1(1.4);
+      revealEditorial(0.3);
     };
 
     const reverseRecruit = (silent = false) => {
@@ -300,10 +323,14 @@ export default function AboutFinal() {
       recruitedRef.current = false;
       killRecruitTweens();
       if (silent) {
-        gsap.set(h1, { opacity: 0, filter: "blur(18px)", y: 16 });
-        h1RevealedRef.current = false;
+        gsap.set([topMetaLeft, topMetaRight], { opacity: 0, y: -8 });
+        gsap.set([topRule, bottomRule], { scaleX: 0 });
+        gsap.set(photo, { clipPath: "inset(0 0 0 100%)" });
+        gsap.set(h1Lines, { opacity: 0, y: 16, filter: "blur(18px)" });
+        gsap.set(linkRows, { opacity: 0, x: 12 });
+        editorialRevealedRef.current = false;
       } else {
-        hideH1();
+        hideEditorial();
       }
 
       linkElsRef.current.forEach((a) => {
@@ -349,28 +376,84 @@ export default function AboutFinal() {
       });
     };
 
-    const revealH1 = (delay = 0) => {
-      if (h1RevealedRef.current) return;
-      h1RevealedRef.current = true;
-      const t = gsap.to(h1, {
-        opacity: 1,
-        filter: "blur(0px)",
-        y: 0,
-        duration: 1.0,
-        delay,
-        ease: "power3.out",
-        overwrite: true,
-      });
-      recruitTweensRef.current.push(t);
+    const revealEditorial = (delay = 0) => {
+      if (editorialRevealedRef.current) return;
+      editorialRevealedRef.current = true;
+
+      const tl = gsap.timeline({ delay });
+
+      tl.to(
+        [topRule, bottomRule],
+        { scaleX: 1, duration: 0.9, ease: "expo.out", stagger: 0.05 },
+        0
+      );
+      tl.to(
+        [topMetaLeft, topMetaRight],
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.7,
+          ease: "power3.out",
+          stagger: 0.08,
+        },
+        0.05
+      );
+      tl.to(
+        photo,
+        { clipPath: "inset(0 0 0 0%)", duration: 1.1, ease: "expo.out" },
+        0.2
+      );
+      tl.to(
+        h1Lines,
+        {
+          opacity: 1,
+          y: 0,
+          filter: "blur(0px)",
+          duration: 1.0,
+          ease: "power3.out",
+          stagger: 0.12,
+        },
+        0.4
+      );
+
+      recruitTweensRef.current.push(tl);
     };
 
-    const hideH1 = () => {
-      if (!h1RevealedRef.current) return;
-      h1RevealedRef.current = false;
-      gsap.to(h1, {
+    const hideEditorial = () => {
+      if (!editorialRevealedRef.current) return;
+      editorialRevealedRef.current = false;
+
+      gsap.to(h1Lines, {
         opacity: 0,
-        filter: "blur(18px)",
         y: 16,
+        filter: "blur(18px)",
+        duration: 0.45,
+        ease: "power2.in",
+        stagger: 0.04,
+        overwrite: true,
+      });
+      gsap.to(linkRows, {
+        opacity: 0,
+        x: 12,
+        duration: 0.35,
+        ease: "power2.in",
+        overwrite: true,
+      });
+      gsap.to(photo, {
+        clipPath: "inset(0 0 0 100%)",
+        duration: 0.6,
+        ease: "power2.in",
+        overwrite: true,
+      });
+      gsap.to([topMetaLeft, topMetaRight], {
+        opacity: 0,
+        y: -8,
+        duration: 0.35,
+        ease: "power2.in",
+        overwrite: true,
+      });
+      gsap.to([topRule, bottomRule], {
+        scaleX: 0,
         duration: 0.5,
         ease: "power2.in",
         overwrite: true,
@@ -379,7 +462,14 @@ export default function AboutFinal() {
 
     const ctx = gsap.context(() => {
       wordEls.forEach((w) => gsap.set(w, { color: "#c8c8c8" }));
-      gsap.set(h1, { opacity: 0, filter: "blur(18px)", y: 16 });
+      gsap.set([topMetaLeft, topMetaRight], { opacity: 0, y: -8 });
+      gsap.set([topRule, bottomRule], {
+        scaleX: 0,
+        transformOrigin: "left center",
+      });
+      gsap.set(photo, { clipPath: "inset(0 0 0 100%)" });
+      gsap.set(h1Lines, { opacity: 0, y: 16, filter: "blur(18px)" });
+      gsap.set(linkRows, { opacity: 0, x: 12 });
 
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -431,7 +521,7 @@ export default function AboutFinal() {
       ctx.revert();
       explodedRef.current = false;
       recruitedRef.current = false;
-      h1RevealedRef.current = false;
+      editorialRevealedRef.current = false;
     };
   }, []);
 
@@ -445,21 +535,137 @@ export default function AboutFinal() {
       >
         <div
           ref={stageRef}
-          className="about-final-stage absolute inset-0 pointer-events-none"
+          className="about-final-stage absolute inset-0 pointer-events-none z-10"
           aria-hidden="true"
         />
-        <h1
-          ref={h1Ref}
-          className="about-final-h1 absolute inset-x-0 top-1/2 -translate-y-1/2 text-center uppercase text-black font-normal pr-6 pointer-events-none"
-          style={{
-            fontSize: "clamp(3.5rem, 13vw, 15rem)",
-            letterSpacing: "-0.10em",
-            lineHeight: 1,
-            willChange: "transform, opacity, filter",
-          }}
+
+        <div
+          ref={editorialRef}
+          className="absolute inset-0 z-20 pointer-events-none text-black"
         >
-          MMDiscos©2026
-        </h1>
+          {/* Top meta — sits BELOW the global navbar safe zone */}
+          <div className="absolute left-0 right-0 top-32 px-6 lg:px-10 flex items-center justify-between text-[11px] tracking-[0.22em] uppercase">
+            <div
+              ref={topMetaLeftRef}
+              className="flex items-center gap-2 will-change-transform"
+            >
+              <span className="inline-block w-1.5 h-1.5 bg-black" />
+              <span>INDEPENDENT RECORD LABEL</span>
+            </div>
+            <div
+              ref={topMetaRightRef}
+              className="hidden sm:flex items-center gap-2 will-change-transform"
+            >
+              <span>LIVING THE MEDITERRANEAN DREAM 24/7</span>
+              <span className="inline-block w-1.5 h-1.5 bg-black" />
+            </div>
+          </div>
+
+          <div
+            ref={topRuleRef}
+            className="absolute left-0 right-0 top-[10rem] h-px bg-black will-change-transform"
+          />
+          <div
+            ref={bottomRuleRef}
+            className="absolute left-0 right-0 bottom-16 h-px bg-black will-change-transform"
+          />
+
+          {/* Main brutalist grid */}
+          <div className="absolute left-0 right-0 top-[11rem] bottom-24 px-6 lg:px-10 grid grid-cols-12 gap-6 items-stretch">
+            {/* Headline — left, stacked */}
+            <div className="col-span-12 lg:col-span-7 flex flex-col justify-center">
+              <h1
+                className="uppercase font-semibold leading-[0.78] tracking-[-0.05em] m-0"
+                style={{
+                  fontFamily: HEADLINE_FONT,
+                  fontSize: "clamp(4rem, 13vw, 13rem)",
+                }}
+              >
+                <span
+                  ref={(el) => (h1LinesRef.current[0] = el)}
+                  className="block will-change-[transform,opacity,filter]"
+                >
+                  <span className="inline-flex items-end gap-4">
+                    <span>MM</span>
+                    <span
+                      className="font-normal normal-case opacity-80 flex flex-col leading-[1.1] whitespace-nowrap"
+                      style={{
+                        fontSize: "14px",
+                        letterSpacing: "0.18em",
+                        textTransform: "uppercase",
+                        transform: "translateY(-0.18em)",
+                      }}
+                    >
+                      <span>EST. 2015 —</span>
+                      <span>BERLIN / BARCELONA</span>
+                    </span>
+                  </span>
+                </span>
+                <span
+                  ref={(el) => (h1LinesRef.current[1] = el)}
+                  className="block will-change-[transform,opacity,filter]"
+                >
+                  Discos
+                </span>
+                <span
+                  ref={(el) => (h1LinesRef.current[2] = el)}
+                  className="block will-change-[transform,opacity,filter] text-black/70"
+                >
+                  ©2026
+                </span>
+              </h1>
+            </div>
+
+            {/* Right column: photo on top, links below — pointer events on photo + list */}
+            <div className="col-span-12 lg:col-span-5 flex flex-col gap-6 min-h-0">
+              <div
+                ref={photoRef}
+                className="relative w-full overflow-hidden will-change-[clip-path] flex-1 min-h-0"
+                style={{ aspectRatio: "4 / 5" }}
+              >
+                <Image
+                  src="/amnesia.png"
+                  alt="MM Discos"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                  className="object-cover pointer-events-auto"
+                />
+              </div>
+
+              <ul className="flex flex-col">
+                {LINKS.map((link, idx) => (
+                  <li
+                    key={link.word}
+                    ref={(el) => (linkRowsRef.current[idx] = el)}
+                    className="group relative flex items-baseline gap-4 border-t border-black py-2 last:border-b will-change-[transform,opacity]"
+                  >
+                    <span
+                      className="text-[10px] tracking-[0.25em] uppercase tabular-nums opacity-60"
+                      style={{ fontFamily: HEADLINE_FONT }}
+                    >
+                      {link.num}
+                    </span>
+                    <span
+                      ref={(el) => (linkSlotsRef.current[idx] = el)}
+                      className="lowercase tracking-tight leading-none"
+                      style={{
+                        fontFamily: HEADLINE_FONT,
+                        fontSize: "clamp(1.5rem, 2.4vw, 2.25rem)",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {/* placeholder reserves space; physics chars fly into this slot */}
+                      <span className="invisible">{link.word}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+        </div>
+
         <p
           ref={paragraphRef}
           className="relative w-[min(100%,600px)] text-justify lowercase font-normal"
