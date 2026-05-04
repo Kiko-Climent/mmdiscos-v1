@@ -64,7 +64,6 @@ export default function Highlights2Mobile() {
     const sticky = stickyRef.current;
     const items = itemsRef.current.filter(Boolean);
     if (!sticky || items.length === 0) return;
-    // ... resto idéntico
 
     let currentIndex = 0;
     let copyTween = null;
@@ -255,8 +254,8 @@ export default function Highlights2Mobile() {
       >
         {/* Panel superior — titles + counter. Slides hacia arriba durante split. */}
         <div
-          ref={listPanelRef}
-          className="hl-panel absolute top-0 left-0 w-full h-1/2 flex flex-col items-center justify-center gap-[3vh] pt-[5vh] z-[1]"
+        ref={listPanelRef}
+        className="hl-panel absolute top-0 left-0 w-full h-1/2 flex flex-col items-center justify-end gap-[3vh] pb-[4vh] z-[1]"
         >
           <div className="hl-services flex flex-col items-center">
             <div ref={indicatorRef} className="hl-indicator" />
@@ -294,8 +293,11 @@ export default function Highlights2Mobile() {
         </div>
 
         {/* Crossbar horizontal — entre paneles, en el seam vertical. */}
-        <div ref={progressBarRef} className="hl-progress-bar-h">
-          <div ref={progressRef} className="hl-progress-h" />
+        <div
+            ref={progressBarRef}
+            className="hl-progress-bar-h absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-48px)] max-w-[420px] h-[2.5px] bg-[#e0e0e0] z-[2] pointer-events-none"
+            >
+            <div ref={progressRef} className="hl-progress-h" />
         </div>
 
         {/* Panel inferior — imagen grande + copy debajo. Slides hacia abajo. */}

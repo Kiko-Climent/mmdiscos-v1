@@ -171,19 +171,9 @@
   /* ── Variante móvil ────────────────────────────────────────────────
      Crossbar horizontal nativo (no rotado): fill scaleX desde la
      izquierda, colapsa por extremos horizontales durante el split. */
-  .hl-progress-bar-h {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60%;
-    max-width: 320px;
-    height: 2.5px;
-    background-color: #e0e0e0;
-    pointer-events: none;
-    z-index: 2;
-    will-change: clip-path;
-  }
+     .hl-progress-bar-h {
+        will-change: clip-path;
+      }
 
   .hl-progress-h {
     position: absolute;
