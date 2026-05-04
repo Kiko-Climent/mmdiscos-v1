@@ -178,6 +178,33 @@ const Menu = ({ visible }) => {
     };
   }, [isHome, isReleases]);
 
+  useEffect(() => {
+    const measure = () => {
+      const el = itemRefs.current[0]; // RELEASES siempre idx 0
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      document.documentElement.style.setProperty(
+        "--mm-menu-releases-x",
+        `${rect.left}px`
+      );
+    };
+  
+    // Inicial — tras commit, la posición ya es la final (excepto en FLIP).
+    measure();
+  
+    // Re-medir tras la animación FLIP (~1s + delay 0.18s) cuando se entra
+    // en /releases. En home no afecta (no hay FLIP).
+    const flipSettleId = setTimeout(measure, 1200);
+  
+    // Re-medir en resize (rotación, cambio de orientación).
+    window.addEventListener("resize", measure);
+  
+    return () => {
+      clearTimeout(flipSettleId);
+      window.removeEventListener("resize", measure);
+    };
+  }, [isReleases]);
+
   const textStyle = {
     fontFamily:    "'Helvetica Neue', Helvetica, Arial, sans-serif",
     fontSize:      "clamp(0.42rem, 0.62vw, 0.68rem)",

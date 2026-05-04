@@ -335,32 +335,42 @@ export default function Highlights2Mobile() {
         {/* Capa de quote — adaptada a portrait: video pequeño self-end,
             quote full-width debajo, slug al final. Bottom-anchored. */}
         <div ref={quoteRef} className="hl-quote opacity-0">
-          <div className="absolute left-0 right-0 bottom-0 px-4 pb-4 flex flex-col gap-3">
-            <div className="self-end w-[48%] max-w-[220px]">
-              <div ref={videoWrapRef} className="hl-video-wrap w-full" aria-hidden>
+        <div className="absolute left-0 right-0 bottom-0 px-4 pb-4 flex flex-col gap-3">
+
+            {/* Video — width = 100vw – 1rem (padding derecho del padre) – R_x.
+                self-end + el px-4 del padre mantienen el aire derecho de antes. */}
+            <div
+            className="self-end"
+            style={{
+                width: "calc(100vw - 1rem - var(--mm-menu-releases-x, 50vw))",
+            }}
+            >
+            <div ref={videoWrapRef} className="hl-video-wrap w-full" aria-hidden>
                 <video
-                  ref={videoRef}
-                  className="hl-video w-full aspect-video object-cover block"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="auto"
+                ref={videoRef}
+                className="hl-video w-full aspect-video object-cover block"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
                 >
-                  <source src="/video/Video MM Header.mp4" type="video/mp4" />
+                <source src="/video/Video MM Header.mp4" type="video/mp4" />
                 </video>
-              </div>
             </div>
-  
+            </div>
+
+            {/* Quote text — el padding lateral lo da el padre (px-4). */}
             <div ref={quoteTextRef} className="w-full will-change-transform">
-              <p className="hl-quote-text text-[clamp(20px,5.5vw,30px)]">
+            <p className="hl-quote-text text-[clamp(20px,5.5vw,30px)]">
                 {ALFREDOS_QUOTE}
-              </p>
-              <p ref={slugRef} className="hl-slug mt-3 text-[10px]">
+            </p>
+            <p ref={slugRef} className="hl-slug mt-3 text-[10px]">
                 — Alfredo · Amnesia, Ibiza 1987
-              </p>
+            </p>
             </div>
-          </div>
+
+        </div>
         </div>
   
         {/* Grain overlay — pulso sutil durante el split. */}
