@@ -46,6 +46,7 @@ import Highlights from "@/components/Highlights/Highlights";
 import Highlights2 from "@/components/Highlights/Highlights2";
 import AboutFinal from "@/components/About/AboutFinal";
 import AboutFinal2 from "@/components/About/AboutFinal2";
+import Highlights2Wrapper from "@/components/Highlights/Highlights2Wrapper";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -149,7 +150,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <MMNewestHero2 />
-      <Highlights2 />
+      <Highlights2Wrapper />
       <AboutFinal2 />
       {/* <MMNewestAproach /> */}
       {/* <Alfredo2 /> */}

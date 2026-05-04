@@ -36,6 +36,7 @@ import MMNewestHero from "@/components/MMDiscos_Hero/MMNewestHero";
 import Alfredo from "@/components/Final_Components/Alfredo";
 import Highlights from "@/components/Highlights/Highlights";
 import AboutFinal from "@/components/About/AboutFinal";
+import Highlights2Wrapper from "@/components/Highlights/Highlights2Wrapper";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -107,7 +108,8 @@ export default function Tests() {
       {/* <MMNewestAproach /> */}
       {/* <Alfredo /> */}
       {/* <Highlights /> */}
-      <AboutFinal />
+      {/* <AboutFinal /> */}
+      <Highlights2Wrapper />
       {/* <Footer /> */}
     </>
   );

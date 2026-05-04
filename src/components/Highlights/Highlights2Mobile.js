@@ -1,3 +1,5 @@
+"use client";
+
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -34,7 +36,7 @@ const ALFREDOS_QUOTE = `We played without rules, without thinking about styles o
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
-export default function Highlights2() {
+export default function Highlights2Mobile() {
   const rootRef = useRef(null);
   const stickyRef = useRef(null);
   const indicatorRef = useRef(null);
@@ -54,13 +56,15 @@ export default function Highlights2() {
   const videoRef = useRef(null);
   const itemsRef = useRef([]);
 
-  // Lenis y ScrollTrigger se configuran en pages/index.js (scrollerProxy
-  // en desktop, normalizeScroll en móvil). Aquí solo creamos triggers —
-  // heredan el scroller global por ScrollTrigger.defaults.
   useLayoutEffect(() => {
+    // Variante móvil — si el viewport es desktop, el otro componente está
+    // activo y este no debe registrar triggers.
+    if (window.innerWidth > 900) return;
+  
     const sticky = stickyRef.current;
     const items = itemsRef.current.filter(Boolean);
     if (!sticky || items.length === 0) return;
+    // ... resto idéntico
 
     let currentIndex = 0;
     let copyTween = null;
@@ -101,10 +105,10 @@ export default function Highlights2() {
 
       const total = SLIDES.length;
       const vh = window.innerHeight;
-      const slidesRange = vh * total;       // 5 viewports — fase de slides
-      const splitRange = vh * 1;            // 1 viewport — split + regla
-      const quoteRange = vh * 0.6;          // 0.6 viewport — stagger quote
-      const videoRange = vh * 0.75;         // 0.75 viewport — reveal video
+      const slidesRange = vh * total;
+      const splitRange = vh * 1;
+      const quoteRange = vh * 0.6;
+      const videoRange = vh * 0.75;
       const totalRange = slidesRange + splitRange + quoteRange + videoRange;
 
       const slidePhaseEnd = slidesRange / totalRange;
@@ -125,20 +129,12 @@ export default function Highlights2() {
           const qp = clamp01((p - splitPhaseEnd) / (quotePhaseEnd - splitPhaseEnd));
           const vp = clamp01((p - quotePhaseEnd) / (1 - quotePhaseEnd));
 
-          // Progress bar vertical — llena durante slides.
-          gsap.set(progressRef.current, { scaleY: sp, force3D: true });
+          // Crossbar horizontal — fill scaleX desde la izquierda durante slides.
+          gsap.set(progressRef.current, { scaleX: sp, force3D: true });
 
           // ── Fase split ───────────────────────────────────────────
-          // Todo arranca en splitp 0 — paneles, crossbar y counter se
-          // disuelven simultáneamente para que el ritmo sea uno solo.
-          // Curva easeInOutCubic en los paneles para que entren suaves
-          // en lugar de moverse linealmente con el scroll (sensación
-          // más fluida, top notch agency feel).
-          // 1. Crossbar: clip-path inset extremos→centro en 0 → 0.7.
-          // 2. Paneles: yPercent ±100 en 0 → 1 con ease.
-          // 3. Counter 1/5: fade en 0 → 0.55.
-          // 4. Capa de quote: opacity ligada a splitp.
-          // 5. Grain: pulso sin(πt) — peak en splitp 0.5.
+          // Mismo ritmo que desktop pero rotado: paneles ±yPercent y
+          // crossbar colapsa horizontal (extremos→centro vía clip-path).
           const barCollapse = clamp01(splitp / 0.7);
           const rawColP = splitp;
           const colP =
@@ -155,7 +151,7 @@ export default function Highlights2() {
           }
           if (progressBarRef.current) {
             const inset = 50 * barCollapse;
-            progressBarRef.current.style.clipPath = `inset(${inset}% 0% ${inset}% 0%)`;
+            progressBarRef.current.style.clipPath = `inset(0% ${inset}% 0% ${inset}%)`;
           }
           if (indexRef.current) {
             indexRef.current.style.opacity = String(counterOp);
@@ -168,7 +164,6 @@ export default function Highlights2() {
           }
 
           // ── Fase quote ───────────────────────────────────────────
-          // Reveal simple: opacity + leve translateY del bloque entero.
           if (quoteTextRef.current) {
             quoteTextRef.current.style.opacity = String(qp);
             quoteTextRef.current.style.transform = `translate3d(0, ${(1 - qp) * 16}px, 0)`;
@@ -180,8 +175,6 @@ export default function Highlights2() {
           }
 
           // ── Fase video ───────────────────────────────────────────
-          // Reveal con clip-path center-out — coherente con el patrón
-          // de la regla.
           if (videoWrapRef.current) {
             const v = 50 * (1 - vp);
             videoWrapRef.current.style.clipPath = `inset(${v}% ${v}% ${v}% ${v}%)`;
@@ -260,11 +253,10 @@ export default function Highlights2() {
         ref={stickyRef}
         className="hl-sticky relative w-screen h-screen bg-white overflow-hidden"
       >
-        {/* Panel 1 — lista de títulos. Desktop: mitad izquierda full-height.
-            Mobile: mitad superior full-width. Slides hacia arriba durante el split. */}
+        {/* Panel superior — titles + counter. Slides hacia arriba durante split. */}
         <div
           ref={listPanelRef}
-          className="hl-panel absolute top-0 left-0 w-full h-1/2 md:w-1/2 md:h-full flex items-center justify-center z-[1]"
+          className="hl-panel absolute top-0 left-0 w-full h-1/2 flex flex-col items-center justify-center gap-[3vh] pt-[5vh] z-[1]"
         >
           <div className="hl-services flex flex-col items-center">
             <div ref={indicatorRef} className="hl-indicator" />
@@ -276,21 +268,42 @@ export default function Highlights2() {
                 }}
                 className={`hl-service ${i === 0 ? "hl-active" : ""}`}
               >
-                <p className="uppercase font-semibold leading-none text-[36px] md:text-[2.75rem]">
+                <p className="uppercase font-semibold leading-none text-[clamp(22px,5.6vw,30px)]">
                   {s.title}
                 </p>
               </div>
             ))}
           </div>
+
+          {/* Counter 1/5 — dentro del panel para que se mueva con los títulos. */}
+          <div
+            ref={indexRef}
+            className="hl-counter-mobile flex items-center justify-between w-[60px] px-[2px] pt-1 pb-[2px] bg-black text-white"
+          >
+            <span
+              ref={counterRef}
+              className="text-[18px] font-semibold leading-[12px] w-[14px] flex justify-center items-center"
+            >
+              1
+            </span>
+            <span className="w-5 h-[2px] bg-white -mt-[1px] block" />
+            <span className="text-[18px] font-semibold leading-[12px] w-[14px] flex justify-center items-center">
+              {SLIDES.length}
+            </span>
+          </div>
         </div>
 
-        {/* Panel 2 — imagen + copy. Desktop: mitad derecha full-height.
-            Mobile: mitad inferior full-width. Slides hacia abajo durante el split. */}
+        {/* Crossbar horizontal — entre paneles, en el seam vertical. */}
+        <div ref={progressBarRef} className="hl-progress-bar-h">
+          <div ref={progressRef} className="hl-progress-h" />
+        </div>
+
+        {/* Panel inferior — imagen grande + copy debajo. Slides hacia abajo. */}
         <div
           ref={imagePanelRef}
-          className="hl-panel absolute bottom-0 left-0 w-full h-1/2 md:left-auto md:right-0 md:top-0 md:w-1/2 md:h-full flex flex-row md:flex-col items-center justify-center gap-6 md:gap-10 px-6 z-[1]"
+          className="hl-panel absolute bottom-0 left-0 w-full h-1/2 flex flex-col items-center justify-start gap-[3vh] pt-[4vh] px-6 z-[1]"
         >
-          <div className="hl-img-wrapper relative aspect-square w-1/3 md:w-[clamp(220px,26vw,360px)] overflow-hidden">
+          <div className="hl-img-wrapper relative aspect-square w-[60vw] max-w-[280px] overflow-hidden">
             <div ref={stripRef} className="hl-service-img w-full">
               {SLIDES.map((s) => (
                 <div key={s.img} className="hl-img relative w-full aspect-square">
@@ -305,50 +318,22 @@ export default function Highlights2() {
             </div>
           </div>
 
-          <div className="w-1/2 md:w-[clamp(220px,26vw,360px)]">
+          <div className="w-full max-w-[420px]">
             <p
               ref={copyRef}
-              className="hl-copy text-[14px] md:text-[18px] leading-[1.55] text-black"
+              className="hl-copy text-[clamp(13px,3.6vw,15px)] leading-[1.55] text-black text-center"
             >
               {SLIDES[0].copy}
             </p>
           </div>
         </div>
 
-        {/* Crossbar vertical — fade durante el split. */}
-        <div ref={progressBarRef} className="hl-progress-bar">
-          <div ref={progressRef} className="hl-progress" />
-        </div>
-
-        {/* Counter 1/5 — fade durante el split. */}
-        <div ref={indexRef} className="hl-index">
-          <span ref={counterRef}>1</span>
-          <span className="hl-separator" />
-          <span>{SLIDES.length}</span>
-        </div>
-
-        {/* Capa de quote — opacity ligada al split. Quote bottom-left,
-            slug debajo, video top-right alineado con la primera línea. */}
+        {/* Capa de quote — adaptada a portrait: video pequeño self-end,
+            quote full-width debajo, slug al final. Bottom-anchored. */}
         <div ref={quoteRef} className="hl-quote opacity-0">
-          <div className="absolute left-0 right-0 bottom-0 px-4 pb-4 md:px-6 md:pb-6 flex items-start gap-4 md:gap-8">
-            <div ref={quoteTextRef} className="w-2/3 md:w-3/5 will-change-transform">
-              <p className="hl-quote-text text-[clamp(1.5rem,3.4vw,3.25rem)]">
-                {ALFREDOS_QUOTE}
-              </p>
-              <p
-                ref={slugRef}
-                className="hl-slug mt-3 md:mt-5 text-[10px] md:text-[12px]"
-              >
-                — Alfredo · Amnesia, Ibiza 1987
-              </p>
-            </div>
-
-            <div className="ml-auto flex justify-end w-1/3 md:w-1/3">
-              <div
-                ref={videoWrapRef}
-                className="hl-video-wrap w-full"
-                aria-hidden
-              >
+          <div className="absolute left-0 right-0 bottom-0 px-4 pb-4 flex flex-col gap-3">
+            <div className="self-end w-[48%] max-w-[220px]">
+              <div ref={videoWrapRef} className="hl-video-wrap w-full" aria-hidden>
                 <video
                   ref={videoRef}
                   className="hl-video w-full aspect-video object-cover block"
@@ -361,6 +346,15 @@ export default function Highlights2() {
                   <source src="/video/Video MM Header.mp4" type="video/mp4" />
                 </video>
               </div>
+            </div>
+
+            <div ref={quoteTextRef} className="w-full will-change-transform">
+              <p className="hl-quote-text text-[clamp(20px,5.5vw,30px)]">
+                {ALFREDOS_QUOTE}
+              </p>
+              <p ref={slugRef} className="hl-slug mt-3 text-[10px]">
+                — Alfredo · Amnesia, Ibiza 1987
+              </p>
             </div>
           </div>
         </div>
