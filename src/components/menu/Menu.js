@@ -59,22 +59,66 @@ const Menu = ({ visible }) => {
     const nowRel = releasesEl.getBoundingClientRect().left;
     const nowStm = statementEl.getBoundingClientRect().left;
 
-    // Invert: put each element back at its 2-item screen position before paint
+    // ── GPU promotion ANTES de cualquier set/animate. Esto fuerza al
+    // compositor a darles su propia layer en el primer commit, así no
+    // perdemos el primer frame creándola al iniciar la animación.
+    gsap.set([releasesEl, statementEl, sliderEl, indexEl], {
+      willChange: "transform, opacity",
+      force3D:    true,
+    });
+
+    // ── FLIP invert — síncrono, antes del paint, para que no haya flicker.
     gsap.set(releasesEl,  { x: prevPosRef.current.releases  - nowRel });
     gsap.set(statementEl, { x: prevPosRef.current.statement - nowStm });
-    gsap.set([sliderEl, indexEl], { opacity: 0, filter: "blur(5px)" });
 
-    const tl = gsap.timeline({ delay: 0.18 });
-    // Releases leads by 40ms — asymmetry removes mechanical feel
-    tl.to(releasesEl,  { x: 0, duration: 0.85, ease: "expo.out" }, 0)
-      .to(statementEl, { x: 0, duration: 0.85, ease: "expo.out" }, 0.04)
-      // New items start at 0.1s — overlap with spread creates flow
-      .to([sliderEl, indexEl], {
-        opacity: 1, filter: "blur(0px)",
-        duration: 0.48, stagger: 0.08, ease: "power3.out",
-      }, 0.1);
+    // Estado inicial de los items nuevos — sólo transform + opacity
+    // (composited). Cero filter, cero blur — esos repintaban cada frame.
+    gsap.set([sliderEl, indexEl], { opacity: 0, y: 4 });
 
-    return () => tl.kill();
+    // ── Esperar 2 rAF antes de arrancar la timeline. Da al browser tiempo
+    // de procesar la hidratación de /releases en el main thread; el primer
+    // frame de la animación encuentra el thread libre. Más fiable que un
+    // delay fijo (0.18s era empírico, frágil en devices lentos).
+    let rafId1 = 0;
+    let rafId2 = 0;
+    let tl = null;
+
+    rafId1 = requestAnimationFrame(() => {
+      rafId2 = requestAnimationFrame(() => {
+        tl = gsap.timeline({
+          onComplete: () => {
+            // Liberar will-change al terminar — mantenerlo eternamente
+            // ocupa memoria de GPU y degrada el rendimiento global.
+            gsap.set([releasesEl, statementEl, sliderEl, indexEl], {
+              willChange: "auto",
+            });
+          },
+        });
+
+        // Releases + statement aterrizan en sus nuevas posiciones —
+        // stagger sutil (40ms) para quitar la sensación mecánica.
+        tl.to([releasesEl, statementEl], {
+          x:        0,
+          duration: 0.7,
+          ease:     "expo.out",
+          stagger:  0.04,
+        }, 0)
+        // Slider + index entran levemente desde abajo, con ligero overlap.
+        .to([sliderEl, indexEl], {
+          opacity:  1,
+          y:        0,
+          duration: 0.55,
+          ease:     "expo.out",
+          stagger:  0.07,
+        }, 0.1);
+      });
+    });
+
+    return () => {
+      if (rafId1) cancelAnimationFrame(rafId1);
+      if (rafId2) cancelAnimationFrame(rafId2);
+      if (tl) tl.kill();
+    };
   }, [isReleases]);
 
   useEffect(() => {
