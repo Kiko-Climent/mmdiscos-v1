@@ -80,6 +80,8 @@ export default function MMNewestHero2() {
   };
 
   useEffect(() => {
+    if (window.innerWidth < 720) return;
+
     const box    = boxRef.current;
     const logo   = logoRef.current;
     const spacer = spacerRef.current;

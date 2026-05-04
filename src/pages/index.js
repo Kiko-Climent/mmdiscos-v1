@@ -35,7 +35,7 @@ import MMNewestHero from "@/components/MMDiscos_Hero/MMNewestHero";
 import MMNewestAproach from "@/components/MMDiscos_Hero/MMNewestAproach";
 import MMNewestAproach3 from "@/components/MMDiscos_Hero/MMNewestAproach3";
 import MMNewestAproach5 from "@/components/MMDiscos_Hero/MMNewestAproach5";
-import MMNewestMobAp from "@/components/MMDiscos_Hero/MMNewestMobAp";
+import MMNewestMobAp from "@/components/MMDiscos_Hero/MMNewestHero2Mobile";
 import MMNewestAproach4 from "@/components/MMDiscos_Hero/MMNewestAproach4";
 import Alfredo from "@/components/Final_Components/Alfredo";
 import Alfredo2 from "@/components/Final_Components/Alfredo2";
@@ -47,6 +47,7 @@ import Highlights2 from "@/components/Highlights/Highlights2";
 import AboutFinal from "@/components/About/AboutFinal";
 import AboutFinal2 from "@/components/About/AboutFinal2";
 import Highlights2Wrapper from "@/components/Highlights/Highlights2Wrapper";
+import MMNewestHero2Wrapper from "@/components/MMDiscos_Hero/MMNewestHero2Wrapper";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -85,18 +86,9 @@ export default function Home() {
 
     /* ── MÓVIL: scroll nativo ────────────────────────────────── */
     if (onMobile) {
-      // lagSmoothing(0): evita que el ticker de GSAP frene cuando la pestaña pierde foco
-      // y luego "salte" al recuperarla; relevante en móvil donde el SO suspende pestañas.
       gsap.ticker.lagSmoothing(0);
-
-      // normalizeScroll: toma el control del scroll para que la barra de direcciones
-      // del navegador no cause cambios de tamaño que desajusten los triggers.
-      // Efecto secundario: la barra de direcciones permanece visible siempre.
-      ScrollTrigger.normalizeScroll(true);
-
       ScrollTrigger.refresh();
       return () => {
-        ScrollTrigger.normalizeScroll(false);
         ScrollTrigger.refresh(true);
       };
     }
@@ -149,7 +141,7 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <MMNewestHero2 />
+      <MMNewestHero2Wrapper />
       <Highlights2Wrapper />
       <AboutFinal2 />
       {/* <MMNewestAproach /> */}
