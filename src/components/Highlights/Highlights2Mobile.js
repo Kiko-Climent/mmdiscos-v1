@@ -143,10 +143,10 @@ export default function Highlights2Mobile() {
           const counterOp = clamp01((0.55 - splitp) / 0.55);
 
           if (listPanelRef.current) {
-            listPanelRef.current.style.transform = `translate3d(0, ${-100 * colP}%, 0)`;
+            listPanelRef.current.style.transform = `translate3d(0, ${-100 * colP}vh, 0)`;
           }
           if (imagePanelRef.current) {
-            imagePanelRef.current.style.transform = `translate3d(0, ${100 * colP}%, 0)`;
+            imagePanelRef.current.style.transform = `translate3d(0, ${100 * colP}vh, 0)`;
           }
           if (progressBarRef.current) {
             const inset = 50 * barCollapse;
@@ -252,84 +252,86 @@ export default function Highlights2Mobile() {
         ref={stickyRef}
         className="hl-sticky relative w-screen h-screen bg-white overflow-hidden"
       >
-        {/* Panel superior — titles + counter. Slides hacia arriba durante split. */}
-        <div
-        ref={listPanelRef}
-        className="hl-panel absolute top-0 left-0 w-full h-1/2 flex flex-col items-center justify-end gap-[3vh] pb-[4vh] z-[1]"
-        >
-          <div className="hl-services flex flex-col items-center">
-            <div ref={indicatorRef} className="hl-indicator" />
-            {SLIDES.map((s, i) => (
-              <div
-                key={s.title}
-                ref={(el) => {
-                  itemsRef.current[i] = el;
-                }}
-                className={`hl-service ${i === 0 ? "hl-active" : ""}`}
-              >
-                <p className="uppercase font-semibold leading-none text-[clamp(22px,5.6vw,30px)]">
-                  {s.title}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Counter 1/5 — dentro del panel para que se mueva con los títulos. */}
-          <div
-            ref={indexRef}
-            className="hl-counter-mobile flex items-center justify-between w-[60px] px-[2px] pt-1 pb-[2px] bg-black text-white"
-          >
-            <span
-              ref={counterRef}
-              className="text-[18px] font-semibold leading-[12px] w-[14px] flex justify-center items-center"
-            >
-              1
-            </span>
-            <span className="w-5 h-[2px] bg-white -mt-[1px] block" />
-            <span className="text-[18px] font-semibold leading-[12px] w-[14px] flex justify-center items-center">
-              {SLIDES.length}
-            </span>
-          </div>
-        </div>
-
-        {/* Crossbar horizontal — entre paneles, en el seam vertical. */}
-        <div
-            ref={progressBarRef}
-            className="hl-progress-bar-h absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-48px)] max-w-[420px] h-[2.5px] bg-[#e0e0e0] z-[2] pointer-events-none"
-            >
-            <div ref={progressRef} className="hl-progress-h" />
-        </div>
-
-        {/* Panel inferior — imagen grande + copy debajo. Slides hacia abajo. */}
-        <div
-          ref={imagePanelRef}
-          className="hl-panel absolute bottom-0 left-0 w-full h-1/2 flex flex-col items-center justify-start gap-[3vh] pt-[4vh] px-6 z-[1]"
-        >
-          <div className="hl-img-wrapper relative aspect-square w-[60vw] max-w-[280px] overflow-hidden">
-            <div ref={stripRef} className="hl-service-img w-full">
-              {SLIDES.map((s) => (
-                <div key={s.img} className="hl-img relative w-full aspect-square">
-                  <img
-                    src={s.img}
-                    alt=""
-                    className="absolute inset-0 w-full h-full object-cover"
-                    draggable={false}
-                  />
+        {/* Contenedor único — todo el contenido centrado en la interface.
+            Mismo gap-[3vh] entre cada bloque (titles, counter, crossbar,
+            imagen, copy) — el crossbar respira igual que cualquier otro
+            elemento, no parte la pantalla en dos. */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-[3vh] px-6 z-[1]">
+  
+          {/* Grupo superior — titles + counter. Slides hacia arriba durante el split. */}
+          <div ref={listPanelRef} className="hl-panel flex flex-col items-center gap-[3vh]">
+            <div className="hl-services flex flex-col items-center">
+              <div ref={indicatorRef} className="hl-indicator" />
+              {SLIDES.map((s, i) => (
+                <div
+                  key={s.title}
+                  ref={(el) => {
+                    itemsRef.current[i] = el;
+                  }}
+                  className={`hl-service ${i === 0 ? "hl-active" : ""}`}
+                >
+                  <p className="uppercase font-semibold leading-none text-[clamp(22px,5.6vw,30px)]">
+                    {s.title}
+                  </p>
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="w-full max-w-[420px]">
-            <p
-              ref={copyRef}
-              className="hl-copy text-[clamp(13px,3.6vw,15px)] leading-[1.55] text-black text-center"
+  
+            <div
+              ref={indexRef}
+              className="hl-counter-mobile flex items-center justify-between w-[60px] px-[2px] pt-1 pb-[2px] bg-black text-white"
             >
-              {SLIDES[0].copy}
-            </p>
+              <span
+                ref={counterRef}
+                className="text-[18px] font-semibold leading-[12px] w-[14px] flex justify-center items-center"
+              >
+                1
+              </span>
+              <span className="w-5 h-[2px] bg-white -mt-[1px] block" />
+              <span className="text-[18px] font-semibold leading-[12px] w-[14px] flex justify-center items-center">
+                {SLIDES.length}
+              </span>
+            </div>
           </div>
+  
+          {/* Crossbar — entre grupos, en flex flow (no absolute).
+              Mismo ancho que el copy descriptivo (max-w-[420px]). */}
+          <div
+            ref={progressBarRef}
+            className="hl-progress-bar-h relative w-full max-w-[420px] h-[2.5px] bg-[#e0e0e0] z-[2] pointer-events-none"
+          >
+            <div ref={progressRef} className="hl-progress-h" />
+          </div>
+  
+          {/* Grupo inferior — imagen + copy. Slides hacia abajo durante el split. */}
+          <div ref={imagePanelRef} className="hl-panel flex flex-col items-center gap-[3vh]">
+            <div className="hl-img-wrapper relative aspect-square w-[60vw] max-w-[280px] overflow-hidden">
+              <div ref={stripRef} className="hl-service-img w-full">
+                {SLIDES.map((s) => (
+                  <div key={s.img} className="hl-img relative w-full aspect-square">
+                    <img
+                      src={s.img}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover"
+                      draggable={false}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+  
+            <div className="w-full max-w-[420px]">
+              <p
+                ref={copyRef}
+                className="hl-copy text-[clamp(13px,3.6vw,15px)] leading-[1.55] text-black text-center"
+              >
+                {SLIDES[0].copy}
+              </p>
+            </div>
+          </div>
+  
         </div>
-
+  
         {/* Capa de quote — adaptada a portrait: video pequeño self-end,
             quote full-width debajo, slug al final. Bottom-anchored. */}
         <div ref={quoteRef} className="hl-quote opacity-0">
@@ -349,7 +351,7 @@ export default function Highlights2Mobile() {
                 </video>
               </div>
             </div>
-
+  
             <div ref={quoteTextRef} className="w-full will-change-transform">
               <p className="hl-quote-text text-[clamp(20px,5.5vw,30px)]">
                 {ALFREDOS_QUOTE}
@@ -360,7 +362,7 @@ export default function Highlights2Mobile() {
             </div>
           </div>
         </div>
-
+  
         {/* Grain overlay — pulso sutil durante el split. */}
         <div ref={grainRef} className="hl-grain" aria-hidden />
       </section>
