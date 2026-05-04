@@ -85,9 +85,18 @@ export default function Home() {
 
     /* ── MÓVIL: scroll nativo ────────────────────────────────── */
     if (onMobile) {
+      // lagSmoothing(0): evita que el ticker de GSAP frene cuando la pestaña pierde foco
+      // y luego "salte" al recuperarla; relevante en móvil donde el SO suspende pestañas.
       gsap.ticker.lagSmoothing(0);
+
+      // normalizeScroll: toma el control del scroll para que la barra de direcciones
+      // del navegador no cause cambios de tamaño que desajusten los triggers.
+      // Efecto secundario: la barra de direcciones permanece visible siempre.
+      ScrollTrigger.normalizeScroll(true);
+
       ScrollTrigger.refresh();
       return () => {
+        ScrollTrigger.normalizeScroll(false);
         ScrollTrigger.refresh(true);
       };
     }

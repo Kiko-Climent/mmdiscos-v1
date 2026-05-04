@@ -85,14 +85,9 @@ export default function MMNewestHero2() {
     const spacer = spacerRef.current;
     if (!box || !logo || !spacer) return;
 
-    const probe = document.createElement("div");
-    probe.style.cssText =
-      "position:fixed;top:0;left:0;width:100vw;height:100lvh;visibility:hidden;pointer-events:none;";
-    document.body.appendChild(probe);
-    const probeRect = probe.getBoundingClientRect();
-    const vh = probeRect.height;
-    const vw = probeRect.width;
-    document.body.removeChild(probe);
+    // Freeze viewport dims on mount — prevents address-bar resize jank on Android
+    const vh = window.innerHeight;
+    const vw = window.innerWidth;
 
     // True hover support = pointer fine + hover capable (mouse/trackpad, not touch)
     hasHoverRef.current = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
@@ -287,14 +282,14 @@ export default function MMNewestHero2() {
   return (
     <>
       {/* ── Scroll spacer ───────────────────────────────────────────────────── */}
-      <div ref={spacerRef} className="h-[200lvh] pointer-events-none" />
+      <div ref={spacerRef} className="h-[200svh] pointer-events-none" />
 
       {/* ── Video background ─────────────────────────────────────────────────
            Height overridden to frozenVH px in useEffect (Android resize jank).
       ──────────────────────────────────────────────────────────────────────── */}
       <div
         ref={videoContainerRef}
-        className="fixed top-0 left-0 w-full h-lvh z-0 pointer-events-none overflow-hidden"
+        className="fixed top-0 left-0 w-full h-svh z-0 pointer-events-none overflow-hidden"
       >
         <video
           ref={videoRef}
