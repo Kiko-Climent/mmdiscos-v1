@@ -1,50 +1,8 @@
 import Head from "next/head";
-import Releases from "@/components/releases";
-import Releases2 from "@/components/releases/index2";
-import Releases3 from "@/components/releases/index3";
-import Releases4 from "@/components/releases/index4";
-import Releases5 from "@/components/releases/index5";
-import AnimationReleases12 from "@/components/AnimationReleases/index12";
-import AnimationReleases11 from "@/components/AnimationReleases/index11";
-import AnimationReleases10 from "@/components/AnimationReleases/index10";
-import MMHoldingScreen from "@/components/UnderConstruction/index";
-import MM_Hero from "@/components/mm_hero/index";
-import MM_Hero2 from "@/components/mm_hero/index2";
-import MMDiscosHero from "@/components/MMDiscos_Hero/MMDiscosHero";
-import MM_Hero3 from "@/components/mm_hero/index3";
-import MMDiscosHero2 from "@/components/MMDiscos_Hero/MMDiscosHero2";
-import ParallaxGallery2 from "@/components/ParallaxGallery/ParallaxGallery2";
-import AboutSection5 from "@/components/About/index5";
-import MMDiscosHero3 from "@/components/MMDiscos_Hero/MMDiscosHero3";
-import MMDiscosHero4 from "@/components/MMDiscos_Hero/MMDiscosHero4";
-import MMDiscosHeroFinal from "@/components/MMDiscos_Hero/MMDiscosHeroFinal";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import Lenis from "lenis";
-import MMDiscosHeroFinal2 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal2";
-import MMDiscosHeroFinal3 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal3";
-import MMDiscosHeroFinal4 from "@/components/MMDiscos_Hero/MMDiscosHeroFinal4";
-import MMHeroMobileFinal from "@/components/MMDiscos_Hero/MMHeroMobileFinal";
-import MMHeroMobileFinal2 from "@/components/MMDiscos_Hero/MMHeroMobileFinal2";
-import MMHeroMobileFinal3 from "@/components/MMDiscos_Hero/MMHeroMobileFinal3";
-import MMHeroDesktopMobile from "@/components/MMDiscos_Hero/MMHeroDesktopMobile";
-import AboutSection6 from "@/components/About/index6";
-import AboutSection7 from "@/components/About/index7";
-import MMNewestHero from "@/components/MMDiscos_Hero/MMNewestHero";
-import MMNewestAproach from "@/components/MMDiscos_Hero/MMNewestAproach";
-import MMNewestAproach3 from "@/components/MMDiscos_Hero/MMNewestAproach3";
-import MMNewestAproach5 from "@/components/MMDiscos_Hero/MMNewestAproach5";
-import MMNewestMobAp from "@/components/MMDiscos_Hero/MMNewestHero2Mobile";
-import MMNewestAproach4 from "@/components/MMDiscos_Hero/MMNewestAproach4";
-import Alfredo from "@/components/Final_Components/Alfredo";
-import Alfredo2 from "@/components/Final_Components/Alfredo2";
-import MMNewestHero2 from "@/components/MMDiscos_Hero/MMNewestHero2";
-import Alfredo3 from "@/components/Final_Components/Alfredo3";
-import Alfredo4 from "@/components/Final_Components/Alfredo4";
-import Highlights from "@/components/Highlights/Highlights";
-import Highlights2 from "@/components/Highlights/Highlights2";
-import AboutFinal from "@/components/About/AboutFinal";
 import AboutFinal2 from "@/components/About/AboutFinal2";
 import Highlights2Wrapper from "@/components/Highlights/Highlights2Wrapper";
 import MMNewestHero2Wrapper from "@/components/MMDiscos_Hero/MMNewestHero2Wrapper";
@@ -63,25 +21,11 @@ export default function Home() {
     setIsMobile(window.innerWidth < 720);
   }, []);
 
-  // useLayoutEffect: corre antes de los useEffect de los hijos, garantizando que
-  // el scroll esté configurado antes de que se creen los ScrollTriggers hijos.
-  //
-  // ESTRATEGIA DE SCROLL POR DISPOSITIVO
-  // ─────────────────────────────────────
-  // Desktop  → Lenis smooth scroll + ScrollTrigger proxy.
-  //             El wheel de trackpad/ratón tiene poca inercia, Lenis la añade elegante.
-  //
-  // Móvil    → Scroll NATIVO puro, sin Lenis.
-  //             El touch nativo usa el compositor GPU del SO (hilo separado del JS),
-  //             alcanzando 60/120 fps sin coste en el main thread.
-  //             Lenis lo intercepta y lo mueve al JS thread → compite con GSAP → trompicones.
-  //             ScrollTrigger funciona perfectamente con scroll nativo; no necesita proxy.
+  
   useLayoutEffect(() => {
     history.scrollRestoration = "manual";
     window.scrollTo(0, 0);
 
-    // Detectamos aquí con innerWidth (no con el state isMobile, que aún es null
-    // en este punto porque useEffect corre después de useLayoutEffect).
     const onMobile = window.innerWidth < 720;
 
     /* ── MÓVIL: scroll nativo ────────────────────────────────── */
@@ -144,17 +88,6 @@ export default function Home() {
       <MMNewestHero2Wrapper />
       <Highlights2Wrapper />
       <AboutFinal2 />
-      {/* <MMNewestAproach /> */}
-      {/* <Alfredo2 /> */}
-      {/* Hero: mobile vs desktop */}
-      {/* {isMobile === null
-        ? null
-        : isMobile
-          ? <MMHeroMobileFinal />
-          : <MMDiscosHeroFinal4 />
-      } */}
-      {/* <ParallaxGallery2 />
-      <AboutSection7 /> */}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import Menu from "@/components/menu/Menu";
+import Menu2 from "@/components/menu/Menu2";
 
 /** Cortina About: borde superior de `.about-section` frente al logo animado. */
 function syncHeroLogoAboutCurtain() {
@@ -195,7 +196,7 @@ export default function App({ Component, pageProps }) {
             pointerEvents: "auto",
           }}
         />
-        <Menu visible={menuVisible} />
+        <Menu2 visible={menuVisible} />
       </div>
 
       <Component {...pageProps} />

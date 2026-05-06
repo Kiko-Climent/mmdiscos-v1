@@ -13,9 +13,6 @@ const LOGO_FIT_FACTOR        = 0.96;
 const LOGO_PADDING           = "1rem 2.5rem 2.5rem";
 const LOGO_LAYER_INSET       = "1rem 2.5rem 2.5rem 2.5rem";
 const LOGO_INITIAL_SRC       = "/logo/Balearic Sound System Logo.svg";
-const LOGO_FINAL_SRC         = "/logo/Logo MMDiscos normalized.svg";
-const LOGO_MORPH_DURATION    = 0.42;
-const LOGO_MORPH_INSET       = "inset(0% 31% 19% 31%)";
 
 // ── Artist → release image map ────────────────────────────────────────────────
 const ARTIST_IMAGE_MAP = {
@@ -48,14 +45,12 @@ const ARTISTS = [
   "A Beat Disciple", "Jakob Mäder", "Da Silva",
 ];
 
-export default function MMNewestHero2() {
+export default function MMNewestHero2_1() {
   const spacerRef           = useRef(null);
   const videoContainerRef   = useRef(null);
   const videoRef            = useRef(null);
   const boxRef              = useRef(null);
   const logoRef             = useRef(null);
-  const logoInitialLayerRef = useRef(null);
-  const logoFinalLayerRef   = useRef(null);
   const artistsContainerRef = useRef(null);
   const artistsSpansRef     = useRef([]);
   const hoverImageRef       = useRef(null);
@@ -90,10 +85,8 @@ export default function MMNewestHero2() {
 
     const box    = boxRef.current;
     const logo   = logoRef.current;
-    const logoInitialLayer = logoInitialLayerRef.current;
-    const logoFinalLayer   = logoFinalLayerRef.current;
     const spacer = spacerRef.current;
-    if (!box || !logo || !logoInitialLayer || !logoFinalLayer || !spacer) return;
+    if (!box || !logo || !spacer) return;
 
     // Freeze viewport dims on mount — prevents address-bar resize jank on Android
     const vh = window.innerHeight;
@@ -167,36 +160,9 @@ export default function MMNewestHero2() {
     // ── Hover image: center via GSAP transform, preload all mapped covers ─────
     gsap.set(hoverImageRef.current, { xPercent: -50, yPercent: -50, scale: 1, force3D: true });
     Object.values(ARTIST_IMAGE_MAP).forEach((src) => { new Image().src = src; });
-    new Image().src = LOGO_FINAL_SRC;
-
-    // ── Logo morph layers (no opacity, no blur) ───────────────────────────────
-    gsap.set(logoInitialLayer, {
-      clipPath: "inset(0% 0% 0% 0%)",
-      scale: 1,
-      force3D: true,
-    });
-    gsap.set(logoFinalLayer, {
-      clipPath: LOGO_MORPH_INSET,
-      scale: 1.012,
-      force3D: true,
-    });
 
     // ── Reveal: fires when logo settles at top ────────────────────────────────
     const revealArtists = () => {
-      gsap.killTweensOf([logoInitialLayer, logoFinalLayer]);
-      gsap.timeline()
-        .to(logoInitialLayer, {
-          clipPath: LOGO_MORPH_INSET,
-          scale: 0.996,
-          duration: LOGO_MORPH_DURATION * 0.78,
-          ease: "power3.inOut",
-        }, 0)
-        .to(logoFinalLayer, {
-          clipPath: "inset(0% 0% 0% 0%)",
-          scale: 1,
-          duration: LOGO_MORPH_DURATION,
-          ease: "power3.out",
-        }, LOGO_MORPH_DURATION * 0.16);
       window.dispatchEvent(new Event("mm-hero-logo-settled"));
 
       box.style.backdropFilter       = "none";
@@ -225,20 +191,6 @@ export default function MMNewestHero2() {
 
     // ── Reset: fires when user scrolls back above the logo trigger ────────────
     const resetHero = () => {
-      gsap.killTweensOf([logoInitialLayer, logoFinalLayer]);
-      gsap.timeline()
-        .to(logoFinalLayer, {
-          clipPath: LOGO_MORPH_INSET,
-          scale: 1.012,
-          duration: LOGO_MORPH_DURATION * 0.72,
-          ease: "power3.inOut",
-        }, 0)
-        .to(logoInitialLayer, {
-          clipPath: "inset(0% 0% 0% 0%)",
-          scale: 1,
-          duration: LOGO_MORPH_DURATION * 0.9,
-          ease: "power3.out",
-        }, LOGO_MORPH_DURATION * 0.1);
       window.dispatchEvent(new Event("mm-hero-logo-reset"));
 
       artistsContainerRef.current.style.pointerEvents = "none";
@@ -401,18 +353,9 @@ export default function MMNewestHero2() {
           style={{ inset: LOGO_LAYER_INSET }}
         >
           <img
-            ref={logoInitialLayerRef}
             src={LOGO_INITIAL_SRC}
             alt="MM Discos"
-            className="absolute inset-0 w-full h-full object-contain block invert"
-            style={{ willChange: "transform, clip-path" }}
-          />
-          <img
-            ref={logoFinalLayerRef}
-            src={LOGO_FINAL_SRC}
-            alt="MM Discos"
-            className="absolute inset-0 w-full h-full object-contain block invert"
-            style={{ willChange: "transform, clip-path" }}
+            className="w-full h-full object-contain block invert"
           />
         </div>
       </div>
