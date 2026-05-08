@@ -668,7 +668,7 @@ export default function AboutFinal2() {
 
         <p
           ref={paragraphRef}
-          className="relative w-[min(100%,600px)] text-justify lowercase font-normal"
+          className="relative w-full max-w-[600px] px-4 md:px-0 text-justify lowercase font-normal"
           style={{
             fontSize: "0.875rem",
             letterSpacing: "0.12em",
