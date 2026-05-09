@@ -8,26 +8,31 @@ const SLIDES = [
   {
     title: "Socarrat vol.1",
     img: "/MMD040_Cover-1.jpg",
+    ref: "mmd040.1",
     copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
   },
   {
     title: "Deamwalker EP",
     img: "/img4.jpg",
+    ref: "mmd036",
     copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
   },
   {
     title: "Socarrat vol.2",
     img: "/MMD040-2.png",
+    ref: "mmd040.2",
     copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
   },
   {
     title: "Eternal Sunset EP",
     img: "/MMD039.png",
+    ref: "mmd039",
     copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
   },
   {
     title: "Club Solsticio EP",
     img: "/MMD038.png",
+    ref: "mmd038",
     copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
   },
 ];
@@ -257,13 +262,25 @@ export default function Highlights2_1Desktop() {
             force3D: true,
           });
 
-          gsap.to(counterRef.current, {
-            innerText: activeIndex + 1,
-            snap: { innerText: 1 },
-            duration: 0.3,
-            ease: "power3.out",
-            overwrite: true,
-          });
+          if (counterRef.current) {
+            gsap.killTweensOf(counterRef.current);
+            gsap.to(counterRef.current, {
+              opacity: 0,
+              duration: 0.12,
+              ease: "power2.in",
+              overwrite: true,
+              onComplete: () => {
+                if (!counterRef.current) return;
+                counterRef.current.textContent = SLIDES[activeIndex].ref;
+                gsap.to(counterRef.current, {
+                  opacity: 1,
+                  duration: 0.22,
+                  ease: "power2.out",
+                  overwrite: true,
+                });
+              },
+            });
+          }
 
           if (copyTween) copyTween.kill();
           copyTween = gsap.to(copyRef.current, {
@@ -363,11 +380,9 @@ export default function Highlights2_1Desktop() {
           <div ref={progressRef} className="hl-progress" />
         </div>
 
-        {/* Counter 1/5 */}
-        <div ref={indexRef} className="hl-index">
-          <span ref={counterRef}>1</span>
-          <span className="hl-separator" />
-          <span>{SLIDES.length}</span>
+        {/* Código catálogo (ref) — cambia con el slide */}
+        <div ref={indexRef} className="hl-index hl-index--ref">
+          <span ref={counterRef}>{SLIDES[0].ref}</span>
         </div>
 
         {/* ── Editorial overlay ─────────────────────────────────────

@@ -298,7 +298,7 @@ export default function Highlights2Mobile() {
               Mismo ancho que el copy descriptivo (max-w-[420px]). */}
           <div
             ref={progressBarRef}
-            className="hl-progress-bar-h relative w-full max-w-[420px] h-[2.5px] bg-[#e0e0e0] z-[2] pointer-events-none"
+            className="hl-progress-bar-h relative w-full max-w-[420px] h-px bg-[#e0e0e0] z-[2] pointer-events-none"
           >
             <div ref={progressRef} className="hl-progress-h" />
           </div>
