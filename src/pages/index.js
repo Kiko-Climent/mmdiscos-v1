@@ -2,6 +2,7 @@ import Head from "next/head";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useLayoutEffect, useRef, useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import Lenis from "lenis";
 import AboutFinal2 from "@/components/About/AboutFinal2";
 import Highlights2Wrapper from "@/components/Highlights/Highlights2Wrapper";
@@ -14,6 +15,7 @@ gsap.registerPlugin(ScrollTrigger);
 ScrollTrigger.config({ ignoreMobileResize: true });
 
 export default function Home() {
+  const router = useRouter();
   const lenisRef = useRef(null);
 
   const [isMobile, setIsMobile] = useState(null);
@@ -83,6 +85,39 @@ export default function Home() {
   }, []);
 
   const canRenderSections = isMobile === null ? false : isMobile || lenisReady;
+
+  useEffect(() => {
+    const onScrollToY = (event) => {
+      const targetY = Number(event?.detail?.y);
+      if (!Number.isFinite(targetY)) return;
+
+      if (lenisRef.current) {
+        lenisRef.current.scrollTo(targetY, { duration: 1.1 });
+        return;
+      }
+
+      window.scrollTo({ top: targetY, behavior: "smooth" });
+    };
+
+    window.addEventListener("mm-scroll-to", onScrollToY);
+    return () => window.removeEventListener("mm-scroll-to", onScrollToY);
+  }, []);
+
+  useEffect(() => {
+    if (!router.isReady || !canRenderSections) return;
+
+    const focus = Array.isArray(router.query.focus)
+      ? router.query.focus[0]
+      : router.query.focus;
+    if (focus !== "manifesto") return;
+
+    const rafId = requestAnimationFrame(() => {
+      window.dispatchEvent(new CustomEvent("mm-nav-manifesto"));
+      router.replace("/", undefined, { shallow: true, scroll: false });
+    });
+
+    return () => cancelAnimationFrame(rafId);
+  }, [router, canRenderSections]);
 
   return (
     <div>

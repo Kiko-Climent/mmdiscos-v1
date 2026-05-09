@@ -81,6 +81,7 @@ export default function Highlights2_1Desktop() {
 
     let currentIndex = 0;
     let copyTween = null;
+    let removeManifestoListener = null;
 
     const ctx = gsap.context(() => {
       const sample = items[0].querySelector("p");
@@ -140,8 +141,9 @@ export default function Highlights2_1Desktop() {
       const splitPhaseEnd = (slidesRange + splitRange) / totalRange;
       const quotePhaseEnd =
         (slidesRange + splitRange + quoteRange) / totalRange;
+      const manifestoProgress = 0.995;
 
-      ScrollTrigger.create({
+      const mainTrigger = ScrollTrigger.create({
         trigger: sticky,
         start: "top top",
         end: `+=${totalRange}`,
@@ -304,11 +306,25 @@ export default function Highlights2_1Desktop() {
         },
       });
 
+      const onManifestoNav = () => {
+        const start = Number(mainTrigger.start);
+        const end = Number(mainTrigger.end);
+        if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return;
+
+        const targetY = start + (end - start) * manifestoProgress;
+        window.dispatchEvent(new CustomEvent("mm-scroll-to", { detail: { y: targetY } }));
+      };
+
+      window.addEventListener("mm-nav-manifesto", onManifestoNav);
+      removeManifestoListener = () =>
+        window.removeEventListener("mm-nav-manifesto", onManifestoNav);
+
       ScrollTrigger.refresh();
     }, rootRef);
 
     return () => {
       if (copyTween) copyTween.kill();
+      if (removeManifestoListener) removeManifestoListener();
       ctx.revert();
     };
   }, []);

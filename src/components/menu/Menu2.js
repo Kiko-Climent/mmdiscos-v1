@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 
 const BASE_LINKS = [
-  { label: "manifesto", href: "/manifesto" },
-  { label: "releases",  href: "/releases"  },
-  { label: "about",     href: "/about"     },
+  { label: "manifesto", href: "/?focus=manifesto", disableActive: true },
+  { label: "releases", href: "/releases" },
+  { label: "about", href: "/about" },
 ];
 
 const SUB_LINKS = [
@@ -63,8 +63,11 @@ const Pill = ({ active = false, href, onClick, children }) => {
   return <button type="button" onClick={onClick} {...common}>{children}</button>;
 };
 
-const isRouteActive = (pathname, href) =>
-  pathname === href || pathname.startsWith(href + "/");
+const isRouteActive = (pathname, href, activeOn) => {
+  const routeKey = href.split("?")[0];
+  if (activeOn) return pathname === activeOn;
+  return pathname === routeKey || pathname.startsWith(routeKey + "/");
+};
 
 const Menu2 = ({ visible = true }) => {
   const router = useRouter();
@@ -86,8 +89,16 @@ const Menu2 = ({ visible = true }) => {
       ].join(" ")}
     >
       <div className="flex items-center justify-center gap-[3px]">
-        {BASE_LINKS.map(({ label, href }) => (
-          <Pill key={label} href={href} active={isRouteActive(router.pathname, href)}>
+        {BASE_LINKS.map(({ label, href, activeOn, disableActive }) => (
+          <Pill
+            key={label}
+            href={href}
+            active={
+              disableActive
+                ? false
+                : isRouteActive(router.pathname, href, activeOn)
+            }
+          >
             {label}
           </Pill>
         ))}
