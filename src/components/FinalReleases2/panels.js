@@ -10,6 +10,9 @@ import { DEFAULT_CREDITS_LINES } from "./releaseMap";
 
 // ─── Shared style helper ──────────────────────────────────────────────────────
 
+const RULE = "1px solid rgba(0,0,0,0.45)";
+const ROW_PAD_BOTTOM = 4;
+
 const txt = (extra = {}) => ({
   margin: 0,
   fontSize: PANEL_FONT_SIZE,
@@ -17,6 +20,12 @@ const txt = (extra = {}) => ({
   color: PANEL_TEXT,
   ...extra,
 });
+
+// Row underline — aplicado a cada `<p>` o fila que sea una línea de texto.
+const lineRule = {
+  paddingBottom: ROW_PAD_BOTTOM,
+  borderBottom: RULE,
+};
 
 // ─── InfoPanel ────────────────────────────────────────────────────────────────
 
@@ -42,27 +51,27 @@ export function InfoPanel({ forwardRef, panelLayout, infoW, focusedData }) {
         <>
           {/* Artist + Title */}
           <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
-            <p style={txt({ letterSpacing: "0.06em", textTransform: "uppercase" })}>
+            <p style={txt({ letterSpacing: "0.06em", textTransform: "uppercase", ...lineRule })}>
               {focusedData.artist}
             </p>
-            <p style={txt({ letterSpacing: "0.04em" })}>
+            <p style={txt({ letterSpacing: "0.04em", ...lineRule })}>
               {focusedData.title}
             </p>
           </div>
 
           {/* Year + Ref */}
           <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
-            <p style={txt({ letterSpacing: "0.04em" })}>{focusedData.year}</p>
-            <p style={txt({ letterSpacing: "0.06em", textTransform: "uppercase" })}>
+            <p style={txt({ letterSpacing: "0.04em", ...lineRule })}>{focusedData.year}</p>
+            <p style={txt({ letterSpacing: "0.06em", textTransform: "uppercase", ...lineRule })}>
               {focusedData.ref}
             </p>
           </div>
 
           {/* Format + Vinyl */}
           <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
-            <p style={txt({ letterSpacing: "0.04em" })}>{focusedData.format}</p>
+            <p style={txt({ letterSpacing: "0.04em", ...lineRule })}>{focusedData.format}</p>
             {focusedData.vinyl && (
-              <p style={txt({ letterSpacing: "0.04em" })}>{focusedData.vinyl}</p>
+              <p style={txt({ letterSpacing: "0.04em", ...lineRule })}>{focusedData.vinyl}</p>
             )}
           </div>
         </>
@@ -104,23 +113,23 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
             }}
           >
             <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
-              <p style={txt({ letterSpacing: "0.06em", textTransform: "uppercase" })}>
+              <p style={txt({ letterSpacing: "0.06em", textTransform: "uppercase", ...lineRule })}>
                 {focusedData.artist}
               </p>
-              <p style={txt({ letterSpacing: "0.04em" })}>{focusedData.title}</p>
+              <p style={txt({ letterSpacing: "0.04em", ...lineRule })}>{focusedData.title}</p>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
-              <p style={txt({ letterSpacing: "0.04em" })}>{focusedData.year}</p>
-              <p style={txt({ letterSpacing: "0.06em", textTransform: "uppercase" })}>
+              <p style={txt({ letterSpacing: "0.04em", ...lineRule })}>{focusedData.year}</p>
+              <p style={txt({ letterSpacing: "0.06em", textTransform: "uppercase", ...lineRule })}>
                 {focusedData.ref}
               </p>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
-              <p style={txt({ letterSpacing: "0.04em" })}>{focusedData.format}</p>
+              <p style={txt({ letterSpacing: "0.04em", ...lineRule })}>{focusedData.format}</p>
               {focusedData.vinyl && (
-                <p style={txt({ letterSpacing: "0.04em" })}>{focusedData.vinyl}</p>
+                <p style={txt({ letterSpacing: "0.04em", ...lineRule })}>{focusedData.vinyl}</p>
               )}
             </div>
           </div>
@@ -148,6 +157,7 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
                     lineHeight: PANEL_LINE_HEIGHT,
                     fontSize: PANEL_FONT_SIZE,
                     color: PANEL_TEXT,
+                    ...lineRule,
                   }}
                 >
                   <span
@@ -202,6 +212,7 @@ export function TrackPanel({ forwardRef, panelLayout, trackLeft, trackW, focused
               lineHeight: PANEL_LINE_HEIGHT,
               fontSize: PANEL_FONT_SIZE,
               color: PANEL_TEXT,
+              ...lineRule,
             }}
           >
             <span
@@ -219,25 +230,22 @@ export function TrackPanel({ forwardRef, panelLayout, trackLeft, trackW, focused
         ))}
       </div>
 
-      {/* Credits */}
+      {/* Credits — sin encabezado, font 10px (12 × 0.833, ratio editorial
+          minor third) para restarles presencia frente al tracklist. */}
       {focusedData && (
         <div style={{ flexShrink: 0, marginTop: "auto", paddingTop: PANEL_GAP_TIGHT * 4 }}>
-          <p
-            style={txt({
-              marginBottom: PANEL_GAP_TIGHT * 2,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-            })}
-          >
-            Credits
-          </p>
-          <div>
-            {DEFAULT_CREDITS_LINES.map((line, i) => (
-              <p key={i} style={txt({ letterSpacing: "0.04em" })}>
-                {line}
-              </p>
-            ))}
-          </div>
+          {DEFAULT_CREDITS_LINES.map((line, i) => (
+            <p
+              key={i}
+              style={txt({
+                fontSize: 10,
+                letterSpacing: "0.04em",
+                ...lineRule,
+              })}
+            >
+              {line}
+            </p>
+          ))}
         </div>
       )}
     </div>
