@@ -17,6 +17,7 @@ export default function Home() {
   const lenisRef = useRef(null);
 
   const [isMobile, setIsMobile] = useState(null);
+  const [lenisReady, setLenisReady] = useState(false);
   useEffect(() => {
     setIsMobile(window.innerWidth < 720);
   }, []);
@@ -30,9 +31,11 @@ export default function Home() {
 
     /* ── MÓVIL: scroll nativo ────────────────────────────────── */
     if (onMobile) {
+      setLenisReady(true);
       gsap.ticker.lagSmoothing(0);
       ScrollTrigger.refresh();
       return () => {
+        setLenisReady(false);
         ScrollTrigger.refresh(true);
       };
     }
@@ -60,6 +63,7 @@ export default function Home() {
       },
     });
     ScrollTrigger.defaults({ scroller });
+    setLenisReady(true);
     ScrollTrigger.refresh();
 
     lenis.on("scroll", ScrollTrigger.update);
@@ -68,14 +72,17 @@ export default function Home() {
     gsap.ticker.lagSmoothing(0);
 
     return () => {
+      setLenisReady(false);
       gsap.ticker.remove(rafCb);
       lenis.destroy();
       lenisRef.current = null;
       ScrollTrigger.scrollerProxy(scroller);
-      delete ScrollTrigger.defaults().scroller;
+      ScrollTrigger.defaults({});
       ScrollTrigger.refresh(true);
     };
   }, []);
+
+  const canRenderSections = isMobile === null ? false : isMobile || lenisReady;
 
   return (
     <div>
@@ -85,9 +92,13 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <MMNewestHero2Wrapper />
-      <Highlights2Wrapper />
-      <AboutFinal2 />
+      {canRenderSections ? (
+        <>
+          <MMNewestHero2Wrapper />
+          <Highlights2Wrapper />
+          <AboutFinal2 />
+        </>
+      ) : null}
     </div>
   );
 }
