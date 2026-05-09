@@ -15,12 +15,18 @@ const SUB_LINKS = [
   { label: "index", event: "mm-releases-go-index" },
 ];
 
-const BG_IDLE = "#000";
-const BG_HOVER = "#fff";
-const FG_IDLE = "#fff";
-const FG_HOVER = "#000";
+// Con mix-blend-difference del ancestro (.mm-global-menu-pills) sobre fondos
+// claros habituales, hace falta invertir los literales para la apariencia deseada:
+// percibido ≈ caja negra + texto blanco; hover ≈ caja blanca + texto negro.
+const BG_IDLE = "#fff";
+const BG_HOVER = "#000";
+const FG_IDLE = "#000";
+const FG_HOVER = "#fff";
+// Borde: literal #fff para que, con difference sobre fondo claro, se perciba oscuro
+// (en reposo alrededor de la caja negra; en hot alrededor de la caja blanca).
+const BORDER = "#fff";
 
-const pillStyle = (bg, fg) => ({
+const pillStyle = (bg, fg, borderColor) => ({
   width:           "clamp(56px, 16vw, 103px)",
   padding:         "clamp(0.28rem, 1vw, 0.423rem) clamp(0.14rem, 0.5vw, 0.188rem)",
   display:         "inline-flex",
@@ -35,7 +41,7 @@ const pillStyle = (bg, fg) => ({
   cursor:          "pointer",
   transition:      "background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out",
   textDecoration:  "none",
-  border:          "1px solid #000",
+  border:          `1px solid ${borderColor}`,
   margin:          0,
   appearance:      "none",
   textAlign:       "left",
@@ -47,7 +53,7 @@ const Pill = ({ active = false, href, onClick, children }) => {
   const bg = isHot ? BG_HOVER : BG_IDLE;
   const fg = isHot ? FG_HOVER : FG_IDLE;
   const common = {
-    style:        pillStyle(bg, fg),
+    style:        pillStyle(bg, fg, BORDER),
     onMouseEnter: () => setHover(true),
     onMouseLeave: () => setHover(false),
   };
@@ -74,7 +80,7 @@ const Menu2 = ({ visible = true }) => {
     <nav
       aria-label="Primary"
       className={[
-        "flex flex-col items-center gap-[3px] mt-1",
+        "flex flex-col items-center gap-[3px]",
         "transition-opacity duration-[450ms]",
         visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
       ].join(" ")}

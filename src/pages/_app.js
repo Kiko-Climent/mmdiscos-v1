@@ -3,7 +3,7 @@ import "@/styles/about.css";
 import "@/styles/highlights.css";
 import "@/styles/aboutfinal.css";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import Menu from "@/components/menu/Menu";
 import Menu2 from "@/components/menu/Menu2";
@@ -48,8 +48,11 @@ export default function App({ Component, pageProps }) {
   const router  = useRouter();
   const isHome  = router.pathname === "/";
 
-  const logoRef = useRef(null);
+  const logoRef     = useRef(null);
+  const logoImgRef  = useRef(null);
   const [menuVisible, setMenuVisible] = useState(!isHome);
+  /** Top del bloque de pills (px) debajo del <img> del logo; inline para alinear con el layout flex anterior. */
+  const [menuPillsTop, setMenuPillsTop] = useState(72);
 
   // ── Page transition curtain ───────────────────────────────────────────────
   const curtainRef      = useRef(null);
@@ -164,6 +167,29 @@ export default function App({ Component, pageProps }) {
     };
   }, [isHome]);
 
+  const PILL_ROW_GAP_PX = 3; /* equiv. gap-[3px] / mt-1 del Menu2 bajo el logo */
+
+  useLayoutEffect(() => {
+    const img = logoImgRef.current;
+    if (!img) return;
+
+    const updateTop = () => {
+      const r = img.getBoundingClientRect();
+      if (r.height > 0) setMenuPillsTop(r.bottom + PILL_ROW_GAP_PX);
+    };
+
+    updateTop();
+    const ro = new ResizeObserver(updateTop);
+    ro.observe(img);
+    img.addEventListener("load", updateTop);
+    window.addEventListener("resize", updateTop);
+    return () => {
+      ro.disconnect();
+      img.removeEventListener("load", updateTop);
+      window.removeEventListener("resize", updateTop);
+    };
+  }, []);
+
   const handleLogoClick = () => {
     if (isHome) {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -184,6 +210,7 @@ export default function App({ Component, pageProps }) {
         style={{ pointerEvents: menuVisible || !isHome ? "auto" : "none" }}
       >
         <img
+          ref={logoImgRef}
           src="/logo/Balearic Sound System Logo.svg"
           alt="MM Discos"
           onClick={handleLogoClick}
@@ -196,6 +223,16 @@ export default function App({ Component, pageProps }) {
             pointerEvents: "auto",
           }}
         />
+      </div>
+
+      <div
+        id="mm-global-menu-pills"
+        className="mm-global-menu-pills"
+        style={{
+          top:           menuPillsTop,
+          pointerEvents: menuVisible || !isHome ? "auto" : "none",
+        }}
+      >
         <Menu2 visible={menuVisible} />
       </div>
 

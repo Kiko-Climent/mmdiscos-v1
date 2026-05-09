@@ -167,15 +167,35 @@ body::-webkit-scrollbar {
   top: 0;
   left: calc(50% - 125px);
   width: 250px;
-  padding: 1rem 2.5rem 2.5rem;
+  /* El bloque de pills vive en .mm-global-menu-pills para que mix-blend-mode
+     use el backdrop de la página (mismo criterio que #mm-hero-animated-logo). */
+  padding: 1rem 2.5rem 0;
   z-index: 9999;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
+/* Pills del nav: hermano del logo, no hijo — el blend aplica a esta capa fija. */
+.mm-global-menu-pills {
+  position: fixed;
+  left: calc(50% - 125px);
+  width: 250px;
+  z-index: 9999;
+  padding: 0 2.5rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  mix-blend-mode: difference;
+}
+
 @media (max-width: 719px) {
   .mm-global-logo-nav {
+    left: calc(50% - 100px);
+    width: 200px;
+  }
+
+  .mm-global-menu-pills {
     left: calc(50% - 100px);
     width: 200px;
   }
