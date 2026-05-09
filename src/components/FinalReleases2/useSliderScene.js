@@ -72,6 +72,7 @@ export function useSliderScene({
     let mobileHeroTopPx   = 0;
     function updateNavBottom() {
       const navEl = document.getElementById("mm-global-logo");
+      const pillsEl = document.getElementById("mm-global-menu-pills");
       if (!navEl) return;
 
       // Thumbnails top — same as logo's top edge (nav padding-top from screen top)
@@ -80,11 +81,14 @@ export function useSliderScene({
         ? logoEl.getBoundingClientRect().top
         : parseFloat(getComputedStyle(navEl).paddingTop) || 0;
 
-      // Hero top — below the menu links, gap = PADDING_PX (same as horizontal side margin)
-      const linksEl = navEl.lastElementChild;
-      mobileHeroTopPx = linksEl
-        ? linksEl.getBoundingClientRect().bottom + PADDING_PX
-        : navEl.getBoundingClientRect().bottom + PADDING_PX;
+      // Hero top — below menu pills. Since Menu2 moved out of #mm-global-logo
+      // into #mm-global-menu-pills, read that layer first. Fallback keeps
+      // compatibility if markup changes again.
+      const linksBottomPx =
+        pillsEl?.getBoundingClientRect().bottom ??
+        navEl.lastElementChild?.getBoundingClientRect().bottom ??
+        navEl.getBoundingClientRect().bottom;
+      mobileHeroTopPx = linksBottomPx + PADDING_PX;
     }
 
     // Local calcFinalPos that uses the effective SP/CW values
