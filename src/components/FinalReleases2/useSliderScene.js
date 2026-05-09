@@ -81,10 +81,12 @@ export function useSliderScene({
         ? logoEl.getBoundingClientRect().top
         : parseFloat(getComputedStyle(navEl).paddingTop) || 0;
 
-      // Hero top — below menu pills. Since Menu2 moved out of #mm-global-logo
-      // into #mm-global-menu-pills, read that layer first. Fallback keeps
-      // compatibility if markup changes again.
+      // Hero top — below the visible pills content, not the wrapper's padding.
+      // #mm-global-menu-pills has bottom padding for layout; using its full rect
+      // pushes hero too far down on mobile. Read the inner nav first.
+      const pillsContentEl = pillsEl?.firstElementChild;
       const linksBottomPx =
+        pillsContentEl?.getBoundingClientRect().bottom ??
         pillsEl?.getBoundingClientRect().bottom ??
         navEl.lastElementChild?.getBoundingClientRect().bottom ??
         navEl.getBoundingClientRect().bottom;
