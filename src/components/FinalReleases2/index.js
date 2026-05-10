@@ -6,6 +6,7 @@ import { InfoPanel, TrackPanel, MobilePanel } from "./panels";
 import IndexView from "./IndexView";
 import { PADDING_PX, INFO_W_FRAC } from "./constants";
 import { CENTER_IDX, SLIDE_COUNT, TITLES } from "./releaseMap";
+import IndexView2 from "./IndexView2";
 
 export default function FinalReleases2() {
   const canvasRef     = useRef(null);
@@ -128,7 +129,7 @@ export default function FinalReleases2() {
           transition: "opacity 0.45s ease",
         }}
       >
-        <IndexView />
+        <IndexView2 />
       </div>
 
       {/* Grain */}
