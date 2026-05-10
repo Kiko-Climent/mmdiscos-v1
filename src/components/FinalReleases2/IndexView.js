@@ -12,12 +12,7 @@ const COLS_DESKTOP = [
   { key: "format", right: true },
 ];
 
-const COLS_MOBILE = [
-  { key: "ref" },
-  { key: "artist" },
-  { key: "title" },
-  { key: "year", right: true },
-];
+const DASH = "—";
 
 export default function IndexView() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -31,13 +26,12 @@ export default function IndexView() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  const COLS = isMobile ? COLS_MOBILE : COLS_DESKTOP;
-  const GRID = `repeat(${COLS.length}, 1fr)`;
+  const GRID = `repeat(${COLS_DESKTOP.length}, 1fr)`;
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
 
-      {/* Soft radial vignette — softens thumbnails at edges, keeps center clean */}
+      {/* Soft radial vignette */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
@@ -47,7 +41,7 @@ export default function IndexView() {
         }}
       />
 
-      {/* Hover image — scale+fade in on each change */}
+      {/* Hover image */}
       <div
         className="pointer-events-none absolute inset-0 flex items-center justify-center"
         style={{ zIndex: 1 }}
@@ -62,43 +56,101 @@ export default function IndexView() {
       </div>
 
       {/* Release list */}
-      <div style={{ position: "relative", zIndex: 2, width: "100%", padding: isMobile ? "0 16px" : "0 40px", boxSizing: "border-box" }}>
+      <div style={{ position: "relative", zIndex: 2, width: "100%", padding: isMobile ? "0 8px" : "0 40px", boxSizing: "border-box" }}>
 
-        {/* Rows */}
-        {DataReleases.map((release, i) => (
-          <div
-            key={i}
-            onMouseEnter={() => setHoveredIndex(i)}
-            onMouseLeave={() => setHoveredIndex(null)}
-            style={{
-              display: "grid",
-              gridTemplateColumns: GRID,
-              padding: "5px 0",
-              cursor: "default",
-              opacity: hoveredIndex !== null && hoveredIndex !== i ? 0.2 : 1,
-              transition: "opacity 0.2s ease",
-            }}
-          >
-            {COLS.map((col) => (
-              <span
-                key={col.key}
+        {DataReleases.map((release, i) => {
+          const dimmed = hoveredIndex !== null && hoveredIndex !== i;
+
+          if (isMobile) {
+            const artistMobile = release.artistMobile ?? release.artist ?? DASH;
+            const titleMobile =
+              release.titleMobile ??
+              (release.title ? release.title.replace(/\s+(EP|LP)\b/gi, "").trim() : DASH);
+            return (
+              <div
+                key={i}
+                onMouseEnter={() => setHoveredIndex(i)}
+                onMouseLeave={() => setHoveredIndex(null)}
+                onTouchStart={() => setHoveredIndex(i)}
                 style={{
-                  fontSize: 12,
-                  letterSpacing: "0.08em",
+                  display: "grid",
+                  gridTemplateColumns: "56px 116px 1fr auto",
+                  alignItems: "baseline",
+                  columnGap: 10,
+                  padding: "7px 0",
+                  cursor: "default",
+                  opacity: dimmed ? 0.2 : 1,
+                  transition: "opacity 0.2s ease",
                   color: "#111",
+                  fontSize: 11,
+                  letterSpacing: "0.02em",
+                  lineHeight: 1.1,
                   whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  textAlign: col.right ? "right" : "left",
                 }}
               >
-                {col.key === "format"
-                  ? (release.vinyl ?? release.format ?? "\u2014")
-                  : (release[col.key] ?? "\u2014")}
-              </span>
-            ))}
-          </div>
-        ))}
+                <span>{release.ref ?? DASH}</span>
+
+                <span
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    minWidth: 0,
+                  }}
+                >
+                  {artistMobile}
+                </span>
+
+                <span
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    minWidth: 0,
+                    textAlign: "right",
+                  }}
+                >
+                  {titleMobile}
+                </span>
+
+                <span>{release.year ?? DASH}</span>
+              </div>
+            );
+          }
+
+          return (
+            <div
+              key={i}
+              onMouseEnter={() => setHoveredIndex(i)}
+              onMouseLeave={() => setHoveredIndex(null)}
+              style={{
+                display: "grid",
+                gridTemplateColumns: GRID,
+                padding: "5px 0",
+                cursor: "default",
+                opacity: dimmed ? 0.2 : 1,
+                transition: "opacity 0.2s ease",
+              }}
+            >
+              {COLS_DESKTOP.map((col) => (
+                <span
+                  key={col.key}
+                  style={{
+                    fontSize: 12,
+                    letterSpacing: "0.08em",
+                    color: "#111",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    textAlign: col.right ? "right" : "left",
+                  }}
+                >
+                  {col.key === "format"
+                    ? (release.vinyl ?? release.format ?? DASH)
+                    : (release[col.key] ?? DASH)}
+                </span>
+              ))}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

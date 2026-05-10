@@ -244,8 +244,9 @@ export const DataReleases = [
     soundcloud: "https://soundcloud.com/mmdiscos/sets/nic-jalusi-eternal-sunset-ep"
   },
   // SOCARRAT VOL.1
-  { 
+  {
     artist: "Various Artists",
+    artistMobile: "V.A",
     artist_name: "Socarrat vol.1",
     title: "Socarrat vol.1",
     image: "/MMD040_Cover-1.jpg",
@@ -268,8 +269,9 @@ export const DataReleases = [
     soundcloud: "https://soundcloud.com/mmdiscos/sets/socarrat-volume-1-10-years-of-mm-discos"
   },
   // SOCARRAT VOL.2
-  { 
+  {
     artist: "Various Artists",
+    artistMobile: "V.A",
     artist_name: "Socarrat vol.2",
     title: "Socarrat vol.2",
     image: "/MMD040-2.png",
