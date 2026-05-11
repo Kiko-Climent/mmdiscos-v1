@@ -11,7 +11,14 @@ import {
   FOCUS_ENTER_STAGGER, FOCUS_ENTER_THUMB_DURATION, FOCUS_ENTER_THUMB_EASE,
   FOCUS_ENTER_HERO_DURATION, FOCUS_ENTER_HERO_EASE, FOCUS_ENTER_HERO_DELAY,
 } from "./constants";
-import { IMAGES, SLIDE_COUNT, CENTER_IDX, TITLES, RELEASE_MAP } from "./releaseMap";
+import {
+  IMAGES,
+  SLIDE_COUNT,
+  CENTER_IDX,
+  TITLES,
+  RELEASE_MAP,
+  OPTIMIZED_IMAGE_MAP,
+} from "./releaseMap";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -59,6 +66,10 @@ export function useSliderScene({
     // ── Mobile overrides ─────────────────────────────────────────────────────
     // Detect once at mount; layout stays consistent within a session.
     const isMobile = W < 768;
+    const deviceMemory = Number(navigator.deviceMemory || 8);
+    const cpuCores = Number(navigator.hardwareConcurrency || 8);
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const lowPerfMobile = isMobile && (prefersReducedMotion || deviceMemory <= 4 || cpuCores <= 6);
     const CW = isMobile ? 200 : CARD_W;   // card width  (world units ≈ px)
     const CH = isMobile ? 200 : CARD_H;   // card height
     const SP = isMobile ? 190 : SPACING;  // inter-card spacing
@@ -110,9 +121,15 @@ export function useSliderScene({
 
     // ── Renderer ────────────────────────────────────────────────────────────
 
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: !isMobile && !lowPerfMobile,
+      alpha: true,
+      powerPreference: lowPerfMobile ? "low-power" : "high-performance",
+    });
+    const maxDpr = lowPerfMobile ? 1 : isMobile ? 1.25 : 2;
     renderer.setSize(W, H);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDpr));
     renderer.setClearColor(0x000000, 0);
 
     const scene = new THREE.Scene();
@@ -268,6 +285,12 @@ export function useSliderScene({
       const getFinalPos  = (i) => calcFinalPos(i, INTRO_SCROLL, W);
 
       introTl = gsap.timeline();
+      const introRowStagger = lowPerfMobile ? 0.03 : 0.055;
+      const introRowDuration = lowPerfMobile ? 0.32 : 0.5;
+      const introPyramidStagger = lowPerfMobile ? 0.018 : 0.03;
+      const introPyramidDuration = lowPerfMobile ? 0.85 : 1.1;
+      const introPhase2Offset = lowPerfMobile ? 0.18 : 0.35;
+      const introUiDuration = lowPerfMobile ? 0.45 : 0.6;
 
       // Phase 1 — cards slide in from the left as a horizontal row
       const FILA_SCALE = 0.12;
@@ -277,25 +300,25 @@ export function useSliderScene({
       meshes.forEach((mesh, i) => {
         introTl.to(
           mesh.position,
-          { x: FILA_START_X + i * FILA_GAP, y: 0, z: 0, duration: 0.5, ease: "power2.out" },
-          i * 0.055,
+          { x: FILA_START_X + i * FILA_GAP, y: 0, z: 0, duration: introRowDuration, ease: "power2.out" },
+          i * introRowStagger,
         );
       });
 
       // Phase 2 — explode into pyramid carousel
-      const PHASE2_START = SLIDE_COUNT * 0.055 + 0.5 + 0.35;
+      const PHASE2_START = SLIDE_COUNT * introRowStagger + introRowDuration + introPhase2Offset;
 
       meshes.forEach((mesh, i) => {
         const pos = getFinalPos(i);
         introTl.to(
           mesh.position,
-          { x: pos.x, y: pos.y, z: pos.z, duration: 1.1, ease: "power3.inOut" },
-          PHASE2_START + i * 0.03,
+          { x: pos.x, y: pos.y, z: pos.z, duration: introPyramidDuration, ease: "power3.inOut" },
+          PHASE2_START + i * introPyramidStagger,
         );
         introTl.to(
           mesh.scale,
-          { x: pos.scale, y: pos.scale, duration: 1.1, ease: "power3.inOut" },
-          PHASE2_START + i * 0.03,
+          { x: pos.scale, y: pos.scale, duration: introPyramidDuration, ease: "power3.inOut" },
+          PHASE2_START + i * introPyramidStagger,
         );
       });
 
@@ -303,11 +326,11 @@ export function useSliderScene({
       const PHASE3_START = PHASE2_START + 0.75;
       introTl.to(
         [titleRef.current, counterRef.current].filter(Boolean),
-        { opacity: 1, duration: 0.6, ease: "power2.out" },
+        { opacity: 1, duration: introUiDuration, ease: "power2.out" },
         PHASE3_START + 0.1,
       );
 
-      const INTRO_END = PHASE2_START + 1.1 + SLIDE_COUNT * 0.03 + 0.05;
+      const INTRO_END = PHASE2_START + introPyramidDuration + SLIDE_COUNT * introPyramidStagger + 0.05;
       introTl.call(() => { introComplete = true; }, [], INTRO_END);
     }
 
@@ -328,8 +351,9 @@ export function useSliderScene({
           uTime: { value: 0 },
         },
       });
+      const optimizedSrc = isMobile ? OPTIMIZED_IMAGE_MAP[src] || src : src;
       loader.load(
-        src,
+        optimizedSrc,
         (tex) => {
           if (unmounted) {
             tex.dispose();
@@ -342,9 +366,32 @@ export function useSliderScene({
         },
         undefined,
         () => {
-          if (unmounted) return;
-          loadedCount++;
-          tryStartIntro();
+          if (optimizedSrc === src || unmounted) {
+            if (!unmounted) {
+              loadedCount++;
+              tryStartIntro();
+            }
+            return;
+          }
+          loader.load(
+            src,
+            (fallbackTex) => {
+              if (unmounted) {
+                fallbackTex.dispose();
+                return;
+              }
+              fallbackTex.minFilter = THREE.LinearFilter;
+              mat.uniforms.uTexture.value = fallbackTex;
+              loadedCount++;
+              tryStartIntro();
+            },
+            undefined,
+            () => {
+              if (unmounted) return;
+              loadedCount++;
+              tryStartIntro();
+            },
+          );
         },
       );
       const mesh = new THREE.Mesh(geo, mat);
@@ -801,6 +848,16 @@ export function useSliderScene({
     canvas.addEventListener("touchend", onTouchEnd);
     canvas.addEventListener("click", onClick);
     window.addEventListener("mousemove", onMouseMove);
+    let contextLost = false;
+    const onContextLost = (event) => {
+      event.preventDefault();
+      contextLost = true;
+    };
+    const onContextRestored = () => {
+      contextLost = false;
+    };
+    canvas.addEventListener("webglcontextlost", onContextLost, false);
+    canvas.addEventListener("webglcontextrestored", onContextRestored, false);
 
     // ── Render loop ─────────────────────────────────────────────────────────
 
@@ -852,6 +909,7 @@ export function useSliderScene({
       }
 
       meshes.forEach((m) => (m.material.uniforms.uTime.value = time));
+      if (contextLost) return;
       renderer.render(scene, camera);
     }
 
@@ -895,6 +953,7 @@ export function useSliderScene({
       H = window.innerHeight;
       if (isMobile) updateNavBottom();
       renderer.setSize(W, H);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDpr));
       camera.aspect = W / H;
       camera.position.z = getCamZ();
       camera.updateProjectionMatrix();
@@ -943,6 +1002,8 @@ export function useSliderScene({
       canvas.removeEventListener("touchmove", onTouchMove);
       canvas.removeEventListener("touchend", onTouchEnd);
       canvas.removeEventListener("click", onClick);
+      canvas.removeEventListener("webglcontextlost", onContextLost);
+      canvas.removeEventListener("webglcontextrestored", onContextRestored);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("resize", onResize);
       sceneApiRef.current = null;
