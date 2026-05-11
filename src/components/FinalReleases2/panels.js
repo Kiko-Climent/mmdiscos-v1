@@ -2,7 +2,6 @@
 
 import {
   PANEL_FONT_SIZE,
-  PANEL_FONT_SIZE_MOBILE,
   PANEL_LINE_HEIGHT,
   PANEL_TEXT,
   PANEL_GAP_TIGHT,
@@ -84,13 +83,6 @@ export function InfoPanel({ forwardRef, panelLayout, infoW, focusedData }) {
 // ─── MobilePanel — metadata left · tracklist right · no credits ──────────────
 
 export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
-  const mTxt = (extra = {}) => ({
-    margin: 0,
-    fontSize: PANEL_FONT_SIZE_MOBILE,
-    lineHeight: PANEL_LINE_HEIGHT,
-    color: PANEL_TEXT,
-    ...extra,
-  });
   return (
     <div
       ref={forwardRef}
@@ -106,7 +98,6 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
         display: "flex",
         gap: 24,
         overflow: "hidden",
-        fontSize: PANEL_FONT_SIZE_MOBILE,
       }}
     >
       {focusedData && (
@@ -122,23 +113,23 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
             }}
           >
             <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
-              <p style={mTxt({ letterSpacing: "0.06em", textTransform: "uppercase", ...lineRule })}>
+              <p style={txt({ letterSpacing: "0.06em", textTransform: "uppercase", ...lineRule })}>
                 {focusedData.artist}
               </p>
-              <p style={mTxt({ letterSpacing: "0.04em", ...lineRule })}>{focusedData.title}</p>
+              <p style={txt({ letterSpacing: "0.04em", ...lineRule })}>{focusedData.title}</p>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
-              <p style={mTxt({ letterSpacing: "0.04em", ...lineRule })}>{focusedData.year}</p>
-              <p style={mTxt({ letterSpacing: "0.06em", textTransform: "uppercase", ...lineRule })}>
+              <p style={txt({ letterSpacing: "0.04em", ...lineRule })}>{focusedData.year}</p>
+              <p style={txt({ letterSpacing: "0.06em", textTransform: "uppercase", ...lineRule })}>
                 {focusedData.ref}
               </p>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: PANEL_GAP_TIGHT }}>
-              <p style={mTxt({ letterSpacing: "0.04em", ...lineRule })}>{focusedData.format}</p>
+              <p style={txt({ letterSpacing: "0.04em", ...lineRule })}>{focusedData.format}</p>
               {focusedData.vinyl && (
-                <p style={mTxt({ letterSpacing: "0.04em", ...lineRule })}>{focusedData.vinyl}</p>
+                <p style={txt({ letterSpacing: "0.04em", ...lineRule })}>{focusedData.vinyl}</p>
               )}
             </div>
           </div>
@@ -164,14 +155,14 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
                     display: "flex",
                     alignItems: "baseline",
                     lineHeight: PANEL_LINE_HEIGHT,
-                    fontSize: PANEL_FONT_SIZE_MOBILE,
+                    fontSize: PANEL_FONT_SIZE,
                     color: PANEL_TEXT,
                     ...lineRule,
                   }}
                 >
                   <span
-                    style={mTxt({
-                      minWidth: 16,
+                    style={txt({
+                      minWidth: 18,
                       letterSpacing: "0.06em",
                       fontVariantNumeric: "tabular-nums",
                       flexShrink: 0,
@@ -179,7 +170,7 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
                   >
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <span style={mTxt({ letterSpacing: "0.04em" })}>{track}</span>
+                  <span style={txt({ letterSpacing: "0.04em" })}>{track}</span>
                 </div>
               ))}
             </div>
