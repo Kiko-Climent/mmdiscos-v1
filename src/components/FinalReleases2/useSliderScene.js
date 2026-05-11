@@ -246,6 +246,7 @@ export function useSliderScene({
     let introStarted   = false;
     let unmounted      = false;
     let introTl        = null;
+    let panelTimerId   = null;
 
     const CARD_SMALL  = 0.12;
     const ENTRY_START = -W * 0.65;
@@ -327,12 +328,25 @@ export function useSliderScene({
           uTime: { value: 0 },
         },
       });
-      loader.load(src, (tex) => {
-        tex.minFilter = THREE.LinearFilter;
-        mat.uniforms.uTexture.value = tex;
-        loadedCount++;
-        tryStartIntro();
-      });
+      loader.load(
+        src,
+        (tex) => {
+          if (unmounted) {
+            tex.dispose();
+            return;
+          }
+          tex.minFilter = THREE.LinearFilter;
+          mat.uniforms.uTexture.value = tex;
+          loadedCount++;
+          tryStartIntro();
+        },
+        undefined,
+        () => {
+          if (unmounted) return;
+          loadedCount++;
+          tryStartIntro();
+        },
+      );
       const mesh = new THREE.Mesh(geo, mat);
       mesh.userData = { index: i };
       scene.add(mesh);
@@ -452,7 +466,9 @@ export function useSliderScene({
 
       if (data) {
         const panelDelay = (FOCUS_ENTER_HERO_DELAY + FOCUS_ENTER_HERO_DURATION * 0.6) * 1000;
-        setTimeout(() => {
+        if (panelTimerId) clearTimeout(panelTimerId);
+        panelTimerId = setTimeout(() => {
+          if (unmounted) return;
           if (infoPanelRef.current) {
             gsap.fromTo(
               infoPanelRef.current,
@@ -859,8 +875,9 @@ export function useSliderScene({
       pageRevealed = true;
       tryStartIntro();
     };
-    // { once: true } — auto-removes after first call
-    window.addEventListener("mm-page-revealed", onPageRevealed, { once: true });
+    // Late-mount safeguard: if _app already revealed this route, start immediately.
+    if (window.__MM_RELEASES_REVEALED_AT__) onPageRevealed();
+    else window.addEventListener("mm-page-revealed", onPageRevealed, { once: true });
 
     // Fallback: if the event never arrives (direct load without curtain,
     // or extremely slow routing), fire the intro after 3 s regardless.
@@ -908,11 +925,18 @@ export function useSliderScene({
       unmounted = true;
       cancelAnimationFrame(rafId);
       clearTimeout(fallbackTimer);
+      if (panelTimerId) clearTimeout(panelTimerId);
       window.removeEventListener("mm-page-revealed", onPageRevealed);
       if (introTl) introTl.kill();
       meshes.forEach((m) => {
         gsap.killTweensOf(m.position);
         gsap.killTweensOf(m.scale);
+        scene.remove(m);
+        m.geometry.dispose();
+        if (m.material.uniforms?.uTexture?.value) {
+          m.material.uniforms.uTexture.value.dispose();
+        }
+        m.material.dispose();
       });
       canvas.removeEventListener("wheel", onWheel);
       canvas.removeEventListener("touchstart", onTouchStart);
@@ -921,6 +945,7 @@ export function useSliderScene({
       canvas.removeEventListener("click", onClick);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("resize", onResize);
+      sceneApiRef.current = null;
       renderer.dispose();
     };
   }, []);

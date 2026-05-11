@@ -5,7 +5,6 @@ import "@/styles/aboutfinal.css";
 import { useRouter } from "next/router";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
-import Menu from "@/components/menu/Menu";
 import Menu2 from "@/components/menu/Menu2";
 
 /** Cortina About: borde superior de `.about-section` frente al logo animado. */
@@ -44,6 +43,17 @@ function syncHeroLogoAboutCurtain() {
   logoWhite.style.clipPath = `inset(${cutPercent}% 0 0 0)`;
 }
 
+function isReleasesUrl(url = "") {
+  const path = String(url).split("#")[0].split("?")[0];
+  return path.startsWith("/releases");
+}
+
+function dispatchReleasesReveal() {
+  if (typeof window === "undefined") return;
+  window.__MM_RELEASES_REVEALED_AT__ = Date.now();
+  window.dispatchEvent(new CustomEvent("mm-page-revealed"));
+}
+
 export default function App({ Component, pageProps }) {
   const router  = useRouter();
   const isHome  = router.pathname === "/";
@@ -58,60 +68,88 @@ export default function App({ Component, pageProps }) {
   const curtainRef      = useRef(null);
   const coverDoneRef    = useRef(false);
   const revealPendingRef = useRef(false);
+  const routeTokenRef = useRef(0);
 
   // Initial reveal when landing directly on /releases
   useEffect(() => {
     if (!router.pathname.startsWith("/releases")) return;
+    const killCurtainTweens = () => {
+      if (!curtainRef.current) return;
+      gsap.killTweensOf(curtainRef.current);
+    };
     // Small delay so FinalReleases2 / useSliderScene can register
     // the mm-page-revealed listener before we dispatch it.
     const timer = setTimeout(() => {
       if (!curtainRef.current) return;
+      killCurtainTweens();
       gsap.to(curtainRef.current, {
         yPercent: -100,
         duration: 0.85,
         ease: "expo.out",
-        onComplete: () => window.dispatchEvent(new CustomEvent("mm-page-revealed")),
+        onComplete: dispatchReleasesReveal,
       });
     }, 150);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      killCurtainTweens();
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Route-change transitions — curtain only when arriving at /releases
   useEffect(() => {
-    function doReveal() {
+    const killCurtainTweens = () => {
+      if (!curtainRef.current) return;
+      gsap.killTweensOf(curtainRef.current);
+    };
+
+    function doReveal(token) {
+      if (!curtainRef.current || token !== routeTokenRef.current) return;
       revealPendingRef.current = false;
+      killCurtainTweens();
       gsap.to(curtainRef.current, {
         yPercent: -100,
         duration: 0.85,
         ease: "expo.out",
-        onComplete: () => window.dispatchEvent(new CustomEvent("mm-page-revealed")),
+        onComplete: () => {
+          if (token !== routeTokenRef.current) return;
+          dispatchReleasesReveal();
+        },
       });
     }
 
     function onStart(url) {
-      if (!url.startsWith("/releases")) return;
+      if (!isReleasesUrl(url) || !curtainRef.current) return;
+      const token = routeTokenRef.current + 1;
+      routeTokenRef.current = token;
+      window.__MM_RELEASES_REVEALED_AT__ = 0;
       coverDoneRef.current  = false;
       revealPendingRef.current = false;
+      killCurtainTweens();
       gsap.set(curtainRef.current, { yPercent: 100 });
       gsap.to(curtainRef.current, {
         yPercent: 0,
         duration: 0.5,
         ease: "power2.inOut",
         onComplete: () => {
+          if (token !== routeTokenRef.current) return;
           coverDoneRef.current = true;
-          if (revealPendingRef.current) doReveal();
+          if (revealPendingRef.current) doReveal(token);
         },
       });
     }
 
     function onComplete(url) {
-      if (!url.startsWith("/releases")) return;
-      if (coverDoneRef.current) doReveal();
+      if (!isReleasesUrl(url)) return;
+      const token = routeTokenRef.current;
+      if (coverDoneRef.current) doReveal(token);
       else revealPendingRef.current = true;
     }
 
     function onError() {
       // Navigation cancelled — slide curtain away
+      window.__MM_RELEASES_REVEALED_AT__ = 0;
+      killCurtainTweens();
+      if (!curtainRef.current) return;
       gsap.to(curtainRef.current, { yPercent: 100, duration: 0.4, ease: "power2.in" });
     }
 
@@ -122,6 +160,7 @@ export default function App({ Component, pageProps }) {
       router.events.off("routeChangeStart",    onStart);
       router.events.off("routeChangeComplete", onComplete);
       router.events.off("routeChangeError",    onError);
+      killCurtainTweens();
     };
   }, [router.events]);
 

@@ -18,13 +18,8 @@ export default function Home() {
   const router = useRouter();
   const lenisRef = useRef(null);
 
-  const [isMobile, setIsMobile] = useState(null);
   const [lenisReady, setLenisReady] = useState(false);
-  useEffect(() => {
-    setIsMobile(window.innerWidth < 720);
-  }, []);
 
-  
   useLayoutEffect(() => {
     history.scrollRestoration = "manual";
     window.scrollTo(0, 0);
@@ -84,7 +79,7 @@ export default function Home() {
     };
   }, []);
 
-  const canRenderSections = isMobile === null ? false : isMobile || lenisReady;
+  const canRenderSections = lenisReady;
 
   useEffect(() => {
     const onScrollToY = (event) => {
