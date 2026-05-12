@@ -487,7 +487,7 @@ function MobileTrackRow({ label, raw, parsed, isLast }) {
         display: "flex",
         alignItems: "baseline",
         gap: 8,
-        padding: "4px 0",
+        padding: "2px 0",
         borderBottom: isLast ? "none" : RULE,
         color: PANEL_TEXT,
         minWidth: 0,
@@ -566,6 +566,15 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
   const isComp   = focusedData?.artist === "Various Artists";
   const [sideA, sideB] = hasVinyl ? splitInHalf(tracks) : [tracks, []];
 
+  // V.A for compilations — uses artistMobile from data when available.
+  const artistLabel = focusedData?.artistMobile || focusedData?.artist || "";
+  // Top meta line: ref · year · type (release format keyword now lives here).
+  const metaParts = [
+    (focusedData?.ref || "").toUpperCase(),
+    focusedData?.year,
+    focusedData?.type ? focusedData.type.toUpperCase() : null,
+  ].filter(Boolean);
+
   return (
     <div
       ref={forwardRef}
@@ -586,36 +595,17 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
     >
       {focusedData && (
         <>
-          {/* Meta — ref · year */}
-          <div style={{ paddingBottom: 4, borderBottom: RULE }}>
-            <p style={mobileMeta}>
-              {(focusedData.ref || "").toUpperCase()}
-              {focusedData.year ? ` · ${focusedData.year}` : ""}
-            </p>
+          {/* Meta — ref · year · type */}
+          <div style={{ paddingBottom: 2, borderBottom: RULE }}>
+            <p style={mobileMeta}>{metaParts.join(" · ")}</p>
           </div>
 
-          {/* Display — artist + title */}
-          <div style={{ paddingTop: 8, paddingBottom: 10, borderBottom: RULE }}>
-            <p
-              style={{
-                ...display,
-                fontSize: M_DISPLAY_SIZE,
-                lineHeight: 1,
-                marginBottom: 3,
-              }}
-            >
-              {focusedData.artist}
-            </p>
-            <p style={{ ...display, fontSize: M_DISPLAY_SIZE, lineHeight: 1 }}>
+          {/* Display — artist + title on one line */}
+          <div style={{ paddingTop: 4, paddingBottom: 5, borderBottom: RULE }}>
+            <p style={{ ...display, fontSize: M_DISPLAY_SIZE, lineHeight: 1.05 }}>
+              {artistLabel}
+              {artistLabel && focusedData.title ? " — " : ""}
               {focusedData.title}
-            </p>
-          </div>
-
-          {/* Format — single inline line. Drops FILES on mobile. */}
-          <div style={{ paddingTop: 6, paddingBottom: 6, borderBottom: RULE }}>
-            <p style={mobileMeta}>
-              {focusedData.type || focusedData.vinyl || "—"}
-              {focusedData.type && focusedData.vinyl ? ` · ${focusedData.vinyl}` : ""}
             </p>
           </div>
 
@@ -628,7 +618,7 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
               overflowX: "hidden",
               pointerEvents: "auto",
               WebkitOverflowScrolling: "touch",
-              paddingTop: 4,
+              paddingTop: 2,
             }}
           >
             {hasVinyl ? (
@@ -636,8 +626,8 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
                 <p
                   style={{
                     ...mobileMeta,
-                    paddingTop: 4,
-                    paddingBottom: 4,
+                    paddingTop: 3,
+                    paddingBottom: 2,
                     borderBottom: RULE,
                   }}
                 >
@@ -654,8 +644,8 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
                 <p
                   style={{
                     ...mobileMeta,
-                    paddingTop: 10,
-                    paddingBottom: 4,
+                    paddingTop: 6,
+                    paddingBottom: 2,
                     borderBottom: RULE,
                   }}
                 >
@@ -690,8 +680,8 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
               display: "flex",
               gap: 22,
               alignItems: "center",
-              paddingTop: 8,
-              paddingBottom: 2,
+              paddingTop: 5,
+              paddingBottom: 1,
               borderTop: RULE,
               pointerEvents: "auto",
             }}
