@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { useSliderScene } from "./useSliderScene";
-import { InfoPanel, TrackPanel, MobilePanel } from "./panels";
+import { InfoPanel, TrackPanel, MobilePanel } from "./panels3";
 import IndexView from "./IndexView";
 import { PADDING_PX, INFO_W_FRAC } from "./constants";
 import { CENTER_IDX, SLIDE_COUNT, TITLES } from "./releaseMap";
