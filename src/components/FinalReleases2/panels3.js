@@ -466,9 +466,9 @@ function CreditsStrip() {
 // drops credits and FILES line. Tracklist scrolls internally so the layout
 // survives short heights (small phones with browser chrome visible).
 
-const M_META_SIZE    = 9;
-const M_DISPLAY_SIZE = 18;
-const M_TRACK_SIZE   = 10;
+const M_META_SIZE    = 8;
+const M_DISPLAY_SIZE = 14;
+const M_TRACK_SIZE   = 9;
 
 const mobileMeta = {
   margin: 0,
@@ -487,7 +487,7 @@ function MobileTrackRow({ label, raw, parsed, isLast }) {
         display: "flex",
         alignItems: "baseline",
         gap: 8,
-        padding: "2px 0",
+        padding: "1px 0",
         borderBottom: isLast ? "none" : RULE,
         color: PANEL_TEXT,
         minWidth: 0,
@@ -495,7 +495,7 @@ function MobileTrackRow({ label, raw, parsed, isLast }) {
     >
       <span
         style={{
-          minWidth: 22,
+          minWidth: 20,
           fontSize: M_TRACK_SIZE,
           letterSpacing: "0.08em",
           fontVariantNumeric: "tabular-nums",
@@ -509,11 +509,10 @@ function MobileTrackRow({ label, raw, parsed, isLast }) {
           <span
             style={{
               display: "block",
-              fontSize: 8,
+              fontSize: 7,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
               lineHeight: 1.25,
-              marginBottom: 1,
             }}
           >
             {artist}
@@ -544,7 +543,7 @@ function MobileLink({ href, label }) {
         display: "inline-flex",
         alignItems: "center",
         gap: 4,
-        fontSize: 10,
+        fontSize: 9,
         letterSpacing: "0.16em",
         textTransform: "uppercase",
         color: PANEL_TEXT,
@@ -554,7 +553,7 @@ function MobileLink({ href, label }) {
         if (!href) e.preventDefault();
       }}
     >
-      <Arrow size={11} />
+      <Arrow size={10} />
       <span>{label}</span>
     </a>
   );
@@ -596,12 +595,12 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
       {focusedData && (
         <>
           {/* Meta — ref · year · type */}
-          <div style={{ paddingBottom: 2, borderBottom: RULE }}>
+          <div style={{ paddingBottom: 1, borderBottom: RULE }}>
             <p style={mobileMeta}>{metaParts.join(" · ")}</p>
           </div>
 
           {/* Display — artist + title on one line */}
-          <div style={{ paddingTop: 4, paddingBottom: 5, borderBottom: RULE }}>
+          <div style={{ paddingTop: 3, paddingBottom: 3, borderBottom: RULE }}>
             <p style={{ ...display, fontSize: M_DISPLAY_SIZE, lineHeight: 1.05 }}>
               {artistLabel}
               {artistLabel && focusedData.title ? " — " : ""}
@@ -618,7 +617,7 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
               overflowX: "hidden",
               pointerEvents: "auto",
               WebkitOverflowScrolling: "touch",
-              paddingTop: 2,
+              paddingTop: 1,
             }}
           >
             {hasVinyl ? (
@@ -626,8 +625,8 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
                 <p
                   style={{
                     ...mobileMeta,
-                    paddingTop: 3,
-                    paddingBottom: 2,
+                    paddingTop: 2,
+                    paddingBottom: 1,
                     borderBottom: RULE,
                   }}
                 >
@@ -644,8 +643,8 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
                 <p
                   style={{
                     ...mobileMeta,
-                    paddingTop: 6,
-                    paddingBottom: 2,
+                    paddingTop: 4,
+                    paddingBottom: 1,
                     borderBottom: RULE,
                   }}
                 >
@@ -680,7 +679,7 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
               display: "flex",
               gap: 22,
               alignItems: "center",
-              paddingTop: 5,
+              paddingTop: 3,
               paddingBottom: 1,
               borderTop: RULE,
               pointerEvents: "auto",
