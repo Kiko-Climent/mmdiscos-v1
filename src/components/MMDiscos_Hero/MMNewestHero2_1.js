@@ -36,7 +36,7 @@ const ARTIST_IMAGE_MAP = {
 };
 
 const ARTISTS = [
-  "Asa Tate", "Daichi", "Nic Jalusi", "Pleasure Voyage", "Mogwaa", "Statues",
+  "Asa Tate", "Daichi", "Nic Jalusi", "James Falco", "Pleasure Voyage", "Mogwaa", "Statues",
   "Mori Ra", "Longhair", "Kross Section", "Komodo", "Marvin & Guy", "Distance",
   "Guillaume", "Pontcho", "Saturn", "Corben", "Bonnie & Klein", "Celex",
   "Florin Büchel", "NairLess", "Hal Incandenza", "Volta Cab", "Coyote",

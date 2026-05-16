@@ -6,6 +6,18 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const SLIDES = [
   {
+    title: "Pelagos EP",
+    img: "/MMD042_Cover.jpg",
+    ref: "mmd042",
+    copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
+  },
+  {
+    title: "Brahmaputra EP",
+    img: "/MMD041_Cover.jpg",
+    ref: "mmd041",
+    copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
+  },
+  {
     title: "Socarrat vol.1",
     img: "/MMD040_Cover-1.jpg",
     ref: "mmd040.1",

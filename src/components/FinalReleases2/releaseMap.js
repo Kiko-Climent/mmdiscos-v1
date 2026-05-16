@@ -19,24 +19,58 @@ export const IMAGES = [
   "/Factory Edits - cover.jpg",
 ];
 
-export const OPTIMIZED_IMAGE_MAP = {
-  "/img1.jpg": "/img-opt/img1.webp",
-  "/img2.jpg": "/img-opt/img2.webp",
-  "/img3.jpg": "/img-opt/img3.webp",
-  "/img4.jpg": "/img-opt/img4.webp",
-  "/img5.jpg": "/img-opt/img5.webp",
-  "/MMD040_Cover-1.jpg": "/img-opt/MMD040_Cover-1.webp",
-  "/MMD039.png": "/img-opt/MMD039.webp",
-  "/img8.jpg": "/img-opt/img8.webp",
-  "/img9.jpg": "/img-opt/img9.webp",
-  "/img10.jpg": "/img-opt/img10.webp",
-  "/MMD038.png": "/img-opt/MMD038.webp",
-  "/MMD040-2.png": "/img-opt/MMD040-2.webp",
-  "/morira - cover.png": "/img-opt/morira - cover.webp",
-  "/Celex - cover.jpg": "/img-opt/Celex - cover.webp",
-  "/corben_peachland_cover.jpg": "/img-opt/corben_peachland_cover.webp",
-  "/Factory Edits - cover.jpg": "/img-opt/Factory Edits - cover.webp",
+const IMAGE_VARIANT_WIDTHS = [720, 960, 1280];
+
+const IMAGE_PROFILE_MAP = {
+  "/img1.jpg": "text",
+  "/img2.jpg": "text",
+  "/img3.jpg": "text",
+  "/img4.jpg": "text",
+  "/img5.jpg": "text",
+  "/MMD040_Cover-1.jpg": "text",
+  "/MMD039.png": "text",
+  "/img8.jpg": "text",
+  "/img9.jpg": "text",
+  "/img10.jpg": "text",
+  "/MMD038.png": "text",
+  "/MMD040-2.png": "text",
+  "/morira - cover.png": "text",
+  "/Celex - cover.jpg": "text",
+  "/corben_peachland_cover.jpg": "text",
+  "/Factory Edits - cover.jpg": "text",
 };
+
+function getVariantWidth(targetWidth, lowPerfMobile) {
+  const clamped = Math.max(480, Math.round(targetWidth || 960));
+  for (const width of IMAGE_VARIANT_WIDTHS) {
+    if (clamped <= width) return lowPerfMobile ? Math.min(width, 960) : width;
+  }
+  return lowPerfMobile ? 960 : IMAGE_VARIANT_WIDTHS[IMAGE_VARIANT_WIDTHS.length - 1];
+}
+
+function getBaseName(src = "") {
+  return src.replace(/^\/+/, "").replace(/\.[^/.]+$/, "");
+}
+
+export function getOptimizedImageCandidates(
+  src,
+  {
+    viewportWidth = 390,
+    dpr = 1,
+    lowPerfMobile = false,
+    prefersAvif = false,
+  } = {},
+) {
+  const profile = IMAGE_PROFILE_MAP[src] || "balanced";
+  const targetWidth = viewportWidth * Math.min(dpr, lowPerfMobile ? 1.25 : 2);
+  const width = getVariantWidth(targetWidth, lowPerfMobile);
+  const base = getBaseName(src);
+  const extOrder = prefersAvif ? ["avif", "webp"] : ["webp", "avif"];
+
+  return extOrder.map(
+    (ext) => `/img-opt/v2/${base}__${profile}-${width}.${ext}`,
+  );
+}
 
 export const SLIDE_COUNT = IMAGES.length;
 export const CENTER_IDX  = Math.floor(SLIDE_COUNT / 2);

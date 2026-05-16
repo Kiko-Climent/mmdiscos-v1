@@ -17,7 +17,7 @@ import {
   CENTER_IDX,
   TITLES,
   RELEASE_MAP,
-  OPTIMIZED_IMAGE_MAP,
+  getOptimizedImageCandidates,
 } from "./releaseMap";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -70,6 +70,9 @@ export function useSliderScene({
     const cpuCores = Number(navigator.hardwareConcurrency || 8);
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const lowPerfMobile = isMobile && (prefersReducedMotion || deviceMemory <= 4 || cpuCores <= 6);
+    const prefersAvif = typeof window !== "undefined"
+      && !!window.HTMLCanvasElement
+      && document.createElement("canvas").toDataURL("image/avif").startsWith("data:image/avif");
     const CW = isMobile ? 200 : CARD_W;   // card width  (world units ≈ px)
     const CH = isMobile ? 200 : CARD_H;   // card height
     const SP = isMobile ? 190 : SPACING;  // inter-card spacing
@@ -351,49 +354,46 @@ export function useSliderScene({
           uTime: { value: 0 },
         },
       });
-      const optimizedSrc = isMobile ? OPTIMIZED_IMAGE_MAP[src] || src : src;
-      loader.load(
-        optimizedSrc,
-        (tex) => {
-          if (unmounted) {
-            tex.dispose();
-            return;
-          }
-          tex.minFilter = THREE.LinearFilter;
-          mat.uniforms.uTexture.value = tex;
+      const optimizedCandidates = isMobile
+        ? getOptimizedImageCandidates(src, {
+          viewportWidth: W,
+          dpr: window.devicePixelRatio || 1,
+          lowPerfMobile,
+          prefersAvif,
+        })
+        : [];
+      const imageCandidates = [...optimizedCandidates, src];
+      let candidateIdx = 0;
+
+      const loadNextCandidate = () => {
+        if (unmounted) return;
+        if (candidateIdx >= imageCandidates.length) {
           loadedCount++;
           tryStartIntro();
-        },
-        undefined,
-        () => {
-          if (optimizedSrc === src || unmounted) {
-            if (!unmounted) {
-              loadedCount++;
-              tryStartIntro();
+          return;
+        }
+
+        const candidateSrc = imageCandidates[candidateIdx++];
+        loader.load(
+          candidateSrc,
+          (tex) => {
+            if (unmounted) {
+              tex.dispose();
+              return;
             }
-            return;
-          }
-          loader.load(
-            src,
-            (fallbackTex) => {
-              if (unmounted) {
-                fallbackTex.dispose();
-                return;
-              }
-              fallbackTex.minFilter = THREE.LinearFilter;
-              mat.uniforms.uTexture.value = fallbackTex;
-              loadedCount++;
-              tryStartIntro();
-            },
-            undefined,
-            () => {
-              if (unmounted) return;
-              loadedCount++;
-              tryStartIntro();
-            },
-          );
-        },
-      );
+            tex.minFilter = THREE.LinearFilter;
+            mat.uniforms.uTexture.value = tex;
+            loadedCount++;
+            tryStartIntro();
+          },
+          undefined,
+          () => {
+            loadNextCandidate();
+          },
+        );
+      };
+
+      loadNextCandidate();
       const mesh = new THREE.Mesh(geo, mat);
       mesh.userData = { index: i };
       scene.add(mesh);
