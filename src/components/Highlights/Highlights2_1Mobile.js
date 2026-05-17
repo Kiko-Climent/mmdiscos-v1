@@ -373,10 +373,10 @@ export default function Highlights2_1Mobile() {
         {/* Contenedor único — todo centrado en la interface
             (mismo patrón que Highlights2Mobile original). */}
         <div
-          className="absolute left-0 right-0 flex flex-col items-center justify-center px-6 z-[1]"
+          className="absolute inset-0 flex flex-col items-center justify-center px-6 z-[1]"
           style={{
-            top: "max(calc(env(safe-area-inset-top) + 6.25rem), 7rem)",
-            bottom: "max(calc(env(safe-area-inset-bottom) + 0.75rem), 1rem)",
+            paddingTop: "max(calc(env(safe-area-inset-top) + 5.9rem), 6.7rem)",
+            paddingBottom: "max(calc(env(safe-area-inset-bottom) + 0.9rem), 1.1rem)",
             gap: "clamp(0.75rem, 2.2vh, 1.35rem)",
           }}
         >
