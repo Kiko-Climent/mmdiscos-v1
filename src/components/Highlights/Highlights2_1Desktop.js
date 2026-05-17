@@ -39,7 +39,7 @@ const SLIDES = [
     title: "Eternal Sunset EP",
     img: "/MMD039.png",
     ref: "mmd039",
-    copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
+    copy: "Nic Jalusi distills his '90s-leaning house on Eternal Sunset — Italian dream house, Kwaito and dub textures, African-synth heat and late-night breaks. A sun-soaked cocktail for living rooms and dancefloors alike.",
   },
   {
     title: "Club Solsticio EP",

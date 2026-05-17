@@ -359,14 +359,12 @@ export function useSliderScene({
           uTime: { value: 0 },
         },
       });
-      const optimizedCandidates = isMobile
-        ? getOptimizedImageCandidates(src, {
-          viewportWidth: W,
-          dpr: deviceDpr,
-          lowPerfMobile,
-          prefersAvif,
-        })
-        : [];
+      const optimizedCandidates = getOptimizedImageCandidates(src, {
+        viewportWidth: W,
+        dpr: deviceDpr,
+        lowPerfMobile,
+        prefersAvif,
+      });
       const imageCandidates = [...optimizedCandidates, src];
       let candidateIdx = 0;
 
