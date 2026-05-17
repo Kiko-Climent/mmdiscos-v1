@@ -251,10 +251,6 @@ export default function MMNewestHero2_1() {
       end:                 `top+=${vh * 1.85}px top`,
       scrub:               1,
       invalidateOnRefresh: true,
-      onEnter: () => {
-        artistsContainerRef.current.style.pointerEvents = "none";
-        handleHoverLeave();
-      },
       onUpdate: (self) => {
         const p = self.progress;
         setTextY(-p * vh);

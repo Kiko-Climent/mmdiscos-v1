@@ -33,19 +33,13 @@ const SLIDES = [
     title: "Socarrat vol.2",
     img: "/MMD040-2.png",
     ref: "mmd040.2",
-    copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
+    copy: "The Socarrat continues. Volume II spans dark-Balearic moods, kraut-infused drifts, spatial post-Italo journeys, electronic funk and tropical psychedelia — a cosmic tutti-frutti charting ten years of MM Discos at full tilt.",
   },
   {
     title: "Eternal Sunset EP",
     img: "/MMD039.png",
     ref: "mmd039",
     copy: "Nic Jalusi distills his '90s-leaning house on Eternal Sunset — Italian dream house, Kwaito and dub textures, African-synth heat and late-night breaks. A sun-soaked cocktail for living rooms and dancefloors alike.",
-  },
-  {
-    title: "Club Solsticio EP",
-    img: "/MMD038.png",
-    ref: "mmd038",
-    copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
   },
 ];
 

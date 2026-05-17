@@ -6,10 +6,22 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const SLIDES = [
   {
+    title: "Pelagos EP",
+    img: "/MMD042_Cover.jpg",
+    ref: "mmd042",
+    copy: "Gritty basslines, sharp percussion and 80s-leaning house crossed with Balearic flashes, dub pressure and proto-trance heat. Four cuts caught between peak-time progressive and introspective drift.",
+  },
+  {
+    title: "Brahmaputra EP",
+    img: "/MMD041_Cover.jpg",
+    ref: "mmd041",
+    copy: "Gritty basslines, sharp percussion and 80s-leaning house crossed with Balearic flashes, dub pressure and proto-trance heat. Four cuts caught between peak-time progressive and introspective drift",
+  },
+  {
     title: "Socarrat vol.1",
     img: "/MMD040_Cover-1.jpg",
     ref: "mmd040.1",
-    copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
+    copy: "A decade of MM Discos, condensed. Volume one drifts from mid-tempo grooves to house-driven heat, threaded with a Balearic pulse. No trends, no labels — just the freewheeling spirit that defined us from day one.",
   },
   {
     title: "Deamwalker EP",
@@ -21,19 +33,13 @@ const SLIDES = [
     title: "Socarrat vol.2",
     img: "/MMD040-2.png",
     ref: "mmd040.2",
-    copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
+    copy: "The Socarrat continues. Volume II spans dark-Balearic moods, kraut-infused drifts, spatial post-Italo journeys, electronic funk and tropical psychedelia — a cosmic tutti-frutti charting ten years of MM Discos at full tilt.",
   },
   {
     title: "Eternal Sunset EP",
     img: "/MMD039.png",
     ref: "mmd039",
-    copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
-  },
-  {
-    title: "Club Solsticio EP",
-    img: "/MMD038.png",
-    ref: "mmd038",
-    copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
+    copy: "Nic Jalusi distills his '90s-leaning house on Eternal Sunset — Italian dream house, Kwaito and dub textures, African-synth heat and late-night breaks. A sun-soaked cocktail for living rooms and dancefloors alike.",
   },
 ];
 
