@@ -18,7 +18,7 @@ export default function FinalReleases2() {
   const [isIndex, setIsIndex] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
 
-  const { focusedData, panelLayout, viewportSize } = useSliderScene({
+  const { focusedData, panelLayout, viewportSize, debugOverlay } = useSliderScene({
     canvasRef,
     sceneApiRef,
     titleRef,
@@ -159,6 +159,53 @@ export default function FinalReleases2() {
         <span ref={titleRef} style={{ display: "none" }} />
         <span ref={counterRef} style={{ display: "none" }} />
       </div>
+
+      {debugOverlay?.enabled && (
+        <div
+          style={{
+            position: "absolute",
+            top: 8,
+            left: 8,
+            right: 8,
+            zIndex: 9999,
+            background: "rgba(0,0,0,0.82)",
+            color: "#eaffea",
+            padding: "10px 12px",
+            fontFamily: "monospace",
+            fontSize: 11,
+            lineHeight: 1.35,
+            borderRadius: 6,
+            pointerEvents: "none",
+            maxHeight: "42vh",
+            overflow: "hidden",
+          }}
+        >
+          <div>
+            DPR dev/applied/max:{" "}
+            {debugOverlay.renderer
+              ? `${debugOverlay.renderer.devicePixelRatio} / ${debugOverlay.renderer.appliedPixelRatio} / ${debugOverlay.renderer.maxDpr}`
+              : "-"}
+          </div>
+          <div>
+            mobile/lowPerf/avif:{" "}
+            {debugOverlay.renderer
+              ? `${String(debugOverlay.renderer.isMobile)} / ${String(debugOverlay.renderer.lowPerfMobile)} / ${String(debugOverlay.renderer.prefersAvif)}`
+              : "-"}
+          </div>
+          <div>
+            mem/cpu/reducedMotion:{" "}
+            {debugOverlay.renderer
+              ? `${debugOverlay.renderer.deviceMemory} / ${debugOverlay.renderer.cpuCores} / ${String(debugOverlay.renderer.prefersReducedMotion)}`
+              : "-"}
+          </div>
+          <div style={{ marginTop: 6, opacity: 0.95 }}>Load events:</div>
+          {(debugOverlay.events || []).map((line, idx) => (
+            <div key={`${idx}-${line}`} style={{ whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+              {line}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

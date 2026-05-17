@@ -9,7 +9,7 @@ const SLIDES = [
     title: "Pelagos EP",
     img: "/MMD042_Cover.jpg",
     ref: "mmd042",
-    copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
+    copy: "Gritty basslines, sharp percussion and 80s-leaning house crossed with Balearic flashes, dub pressure and proto-trance heat. Four cuts caught between peak-time progressive and introspective drift.",
   },
   {
     title: "Brahmaputra EP",
@@ -21,7 +21,7 @@ const SLIDES = [
     title: "Socarrat vol.1",
     img: "/MMD040_Cover-1.jpg",
     ref: "mmd040.1",
-    copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
+    copy: "A decade of MM Discos, condensed. Volume one drifts from mid-tempo grooves to house-driven heat, threaded with a Balearic pulse. No trends, no labels — just the freewheeling spirit that defined us from day one.",
   },
   {
     title: "Deamwalker EP",
