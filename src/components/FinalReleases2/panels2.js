@@ -417,29 +417,118 @@ function CreditsStrip() {
   );
 }
 
-// ─── MobilePanel — same language, single column ──────────────────────────────
+// ─── MobilePanel — single column, vertical stack ──────────────────────────────
+// Dedicated mobile layout. Editorial vertical reading, smaller type system,
+// drops credits and FILES line. Tracklist scrolls internally so the layout
+// survives short heights (small phones with browser chrome visible).
+
+const M_META_SIZE = 8;
+const M_DISPLAY_SIZE = 14;
+const M_TRACK_SIZE = 9;
+
+const mobileMeta = {
+  margin: 0,
+  fontSize: M_META_SIZE,
+  lineHeight: 1.25,
+  letterSpacing: "0.16em",
+  textTransform: "uppercase",
+  color: PANEL_TEXT,
+};
+
+function MobileTrackRow({ label, raw, parsed, isLast }) {
+  const { artist, title } = parsed ? parseTrack(raw) : { artist: null, title: raw };
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "baseline",
+        gap: 8,
+        padding: "1px 0",
+        borderBottom: isLast ? "none" : RULE,
+        color: PANEL_TEXT,
+        minWidth: 0,
+      }}
+    >
+      <span
+        style={{
+          minWidth: 20,
+          fontSize: M_TRACK_SIZE,
+          letterSpacing: "0.08em",
+          fontVariantNumeric: "tabular-nums",
+          flexShrink: 0,
+        }}
+      >
+        {label}
+      </span>
+      <span style={{ flex: 1, minWidth: 0, overflowWrap: "break-word" }}>
+        {artist && (
+          <span
+            style={{
+              display: "block",
+              fontSize: 7,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              lineHeight: 1.25,
+            }}
+          >
+            {artist}
+          </span>
+        )}
+        <span
+          style={{
+            display: "block",
+            fontSize: M_TRACK_SIZE,
+            letterSpacing: "0.02em",
+            lineHeight: 1.3,
+          }}
+        >
+          {title}
+        </span>
+      </span>
+    </div>
+  );
+}
+
+function MobileLink({ href, label }) {
+  return (
+    <a
+      href={href || "#"}
+      target="_blank"
+      rel="noreferrer noopener"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        fontSize: 9,
+        letterSpacing: "0.16em",
+        textTransform: "uppercase",
+        color: PANEL_TEXT,
+        textDecoration: "none",
+      }}
+      onClick={(e) => {
+        if (!href) e.preventDefault();
+      }}
+    >
+      <Arrow size={10} />
+      <span>{label}</span>
+    </a>
+  );
+}
 
 export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
-  const tracks    = focusedData?.tracklist || [];
-  const hasVinyl  = !!focusedData?.vinyl;
-  const isComp    = focusedData?.artist === "Various Artists";
-  const twoCol    = hasVinyl || tracks.length > 8;
-  const [colA, colB] = twoCol ? splitInHalf(tracks) : [tracks, []];
-  const longSide  = Math.max(colA.length, colB.length);
-  const compact   = isComp ? longSide > 4 : longSide > 6;
+  const tracks = focusedData?.tracklist || [];
+  const hasVinyl = !!focusedData?.vinyl;
+  const isComp = focusedData?.artist === "Various Artists";
+  const [sideA, sideB] = hasVinyl ? splitInHalf(tracks) : [tracks, []];
 
-  const trackBlock = twoCol ? (
-    <PairedTrackGrid
-      colA={colA}
-      colB={colB}
-      hasVinyl={hasVinyl}
-      parsed={isComp}
-      compact={compact}
-      columnGap={14}
-    />
-  ) : (
-    <SingleColumnTracks tracks={tracks} parsed={isComp} compact={compact} />
-  );
+  // V.A for compilations — uses artistMobile from data when available.
+  const artistLabel = focusedData?.artistMobile || focusedData?.artist || "";
+  // Top meta line: ref · year · type (release format keyword now lives here).
+  const metaParts = [
+    (focusedData?.ref || "").toUpperCase(),
+    focusedData?.year,
+    focusedData?.type ? focusedData.type.toUpperCase() : null,
+  ].filter(Boolean);
 
   return (
     <div
@@ -451,68 +540,110 @@ export function MobilePanel({ forwardRef, panelLayout, infoW, focusedData }) {
         width: infoW,
         height: panelLayout.height,
         opacity: 0,
+        // Container itself is click-through so taps outside the tracklist /
+        // links exit focus mode. Inner blocks re-enable pointer events as needed.
         pointerEvents: "none",
         zIndex: 3,
         display: "flex",
-        gap: 20,
-        overflow: "hidden",
+        flexDirection: "column",
       }}
     >
       {focusedData && (
         <>
-          {/* Left — meta */}
-          <div
-            style={{
-              flex: "0 0 auto",
-              width: "44%",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <div style={{ paddingBottom: 6, borderBottom: RULE }}>
-              <p style={metaValue}>
-                {(focusedData.ref || "").toUpperCase()}
-                {focusedData.year ? ` · ${focusedData.year}` : ""}
-              </p>
-            </div>
-
-            <div style={{ paddingTop: 10, paddingBottom: 12, borderBottom: RULE }}>
-              <p style={{ ...display, fontSize: 22, marginBottom: 4 }}>{focusedData.artist}</p>
-              <p style={{ ...display, fontSize: 22 }}>{focusedData.title}</p>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 4,
-                paddingTop: 10,
-                paddingBottom: 10,
-                borderBottom: RULE,
-              }}
-            >
-              <MetaRow
-                k="FORMAT"
-                v={
-                  focusedData.type
-                    ? focusedData.type + (focusedData.vinyl ? ` · ${focusedData.vinyl}` : "")
-                    : focusedData.vinyl || "—"
-                }
-              />
-              {focusedData.format && <MetaRow k="FILES" v={focusedData.format} />}
-            </div>
-
-            <div style={{ flex: 1, minHeight: 10 }} />
-
-            <div style={{ display: "flex", flexDirection: "column", pointerEvents: "auto" }}>
-              <div style={{ borderTop: RULE }} />
-              <ExternalLink href={focusedData.bandcamp}   label="BANDCAMP" />
-              <ExternalLink href={focusedData.soundcloud} label="SOUNDCLOUD" />
-            </div>
+          {/* Meta — ref · year · type */}
+          <div style={{ paddingBottom: 1, borderBottom: RULE }}>
+            <p style={mobileMeta}>{metaParts.join(" · ")}</p>
           </div>
 
-          {/* Right — tracklist */}
-          <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>{trackBlock}</div>
+          {/* Display — artist + title on one line */}
+          <div style={{ paddingTop: 3, paddingBottom: 3, borderBottom: RULE }}>
+            <p style={{ ...display, fontSize: M_DISPLAY_SIZE, lineHeight: 1.05 }}>
+              {artistLabel}
+              {artistLabel && focusedData.title ? " — " : ""}
+              {focusedData.title}
+            </p>
+          </div>
+
+          {/* Tracklist — scrolls internally if it overflows. */}
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflowY: "auto",
+              overflowX: "hidden",
+              pointerEvents: "auto",
+              WebkitOverflowScrolling: "touch",
+              paddingTop: 1,
+            }}
+          >
+            {hasVinyl ? (
+              <>
+                <p
+                  style={{
+                    ...mobileMeta,
+                    paddingTop: 2,
+                    paddingBottom: 1,
+                    borderBottom: RULE,
+                  }}
+                >
+                  SIDE A
+                </p>
+                {sideA.map((t, i) => (
+                  <MobileTrackRow
+                    key={`a-${i}`}
+                    label={`A${i + 1}`}
+                    raw={t}
+                    parsed={isComp}
+                  />
+                ))}
+                <p
+                  style={{
+                    ...mobileMeta,
+                    paddingTop: 4,
+                    paddingBottom: 1,
+                    borderBottom: RULE,
+                  }}
+                >
+                  SIDE B
+                </p>
+                {sideB.map((t, i) => (
+                  <MobileTrackRow
+                    key={`b-${i}`}
+                    label={`B${i + 1}`}
+                    raw={t}
+                    parsed={isComp}
+                    isLast={i === sideB.length - 1}
+                  />
+                ))}
+              </>
+            ) : (
+              tracks.map((t, i) => (
+                <MobileTrackRow
+                  key={i}
+                  label={String(i + 1).padStart(2, "0")}
+                  raw={t}
+                  parsed={isComp}
+                  isLast={i === tracks.length - 1}
+                />
+              ))
+            )}
+          </div>
+
+          {/* Footer — links inline, side by side. */}
+          <div
+            style={{
+              display: "flex",
+              gap: 22,
+              alignItems: "center",
+              paddingTop: 3,
+              paddingBottom: 1,
+              borderTop: RULE,
+              pointerEvents: "auto",
+            }}
+          >
+            <MobileLink href={focusedData.bandcamp} label="BANDCAMP" />
+            <MobileLink href={focusedData.soundcloud} label="SOUNDCLOUD" />
+          </div>
         </>
       )}
     </div>
