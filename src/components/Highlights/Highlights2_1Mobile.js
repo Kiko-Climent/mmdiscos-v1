@@ -368,7 +368,7 @@ export default function Highlights2_1Mobile() {
     <div ref={rootRef} className="hl-root w-full bg-white">
       <section
         ref={stickyRef}
-        className="hl-sticky relative w-screen h-svh bg-white overflow-hidden"
+        className="hl-sticky relative w-screen h-screen bg-white overflow-hidden"
       >
         {/* Contenedor único — todo centrado en la interface
             (mismo patrón que Highlights2Mobile original). */}
@@ -376,7 +376,7 @@ export default function Highlights2_1Mobile() {
           className="absolute inset-0 flex flex-col items-center justify-center px-6 z-[1]"
           style={{
             paddingTop: "max(calc(env(safe-area-inset-top) + 5.9rem), 6.7rem)",
-            paddingBottom: "max(calc(env(safe-area-inset-bottom) + 0.9rem), 1.1rem)",
+            paddingBottom: "clamp(0.75rem, 1.6vh, 1rem)",
             gap: "clamp(0.75rem, 2.2vh, 1.35rem)",
           }}
         >
