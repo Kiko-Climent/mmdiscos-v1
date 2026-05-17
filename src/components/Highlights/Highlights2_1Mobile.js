@@ -131,16 +131,9 @@ export default function Highlights2_1Mobile() {
     const frame = contentFrameRef.current;
     if (!frame) return;
 
-    const applyViewportInsets = () => {
-      const vv = window.visualViewport;
-      const visibleH = vv?.height || window.innerHeight;
+    const applyStaticScale = () => {
       const layoutH = window.innerHeight;
-      const chromeGap = Math.max(0, layoutH - visibleH);
-      const compact = clamp(visibleH / 760, 0.86, 1);
-      // Reserva base conservadora + ajuste dinámico para Android/Samsung.
-      // En algunos dispositivos la barra no reporta bien en todos los estados,
-      // así que la base evita que el copy quede oculto al volver hacia arriba.
-      const dynamicBottom = Math.max(26, Math.min(72, chromeGap + 28));
+      const compact = clamp(layoutH / 760, 0.86, 1);
       const topPadPx = Math.round(100 * compact);
       const gapPx = Math.round(18 * compact);
       const panelGapPx = Math.round(16 * compact);
@@ -148,8 +141,7 @@ export default function Highlights2_1Mobile() {
       const imageMaxPx = Math.round(220 * compact);
       const copyMaxPx = Math.round(360 * compact);
       const progressMaxPx = Math.round(420 * compact);
-
-      frame.style.setProperty("--hl-mobile-bottom-pad", `${dynamicBottom}px`);
+      frame.style.setProperty("--hl-mobile-bottom-pad", "26px");
       frame.style.setProperty("--hl-mobile-top-pad", `${topPadPx}px`);
       frame.style.setProperty("--hl-mobile-gap", `${gapPx}px`);
       frame.style.setProperty("--hl-mobile-panel-gap", `${panelGapPx}px`);
@@ -159,15 +151,27 @@ export default function Highlights2_1Mobile() {
       frame.style.setProperty("--hl-mobile-progress-max", `${progressMaxPx}px`);
     };
 
-    applyViewportInsets();
-    window.visualViewport?.addEventListener("resize", applyViewportInsets);
-    window.visualViewport?.addEventListener("scroll", applyViewportInsets);
-    window.addEventListener("orientationchange", applyViewportInsets);
+    const applyDynamicBottomInset = () => {
+      const vv = window.visualViewport;
+      const visibleH = vv?.height || window.innerHeight;
+      const layoutH = window.innerHeight;
+      const chromeGap = Math.max(0, layoutH - visibleH);
+      const dynamicBottom = Math.max(26, Math.min(72, chromeGap + 28));
+      frame.style.setProperty("--hl-mobile-bottom-pad", `${dynamicBottom}px`);
+    };
+
+    applyStaticScale();
+    applyDynamicBottomInset();
+    window.visualViewport?.addEventListener("resize", applyDynamicBottomInset);
+    window.visualViewport?.addEventListener("scroll", applyDynamicBottomInset);
+    window.addEventListener("orientationchange", applyStaticScale);
+    window.addEventListener("orientationchange", applyDynamicBottomInset);
 
     return () => {
-      window.visualViewport?.removeEventListener("resize", applyViewportInsets);
-      window.visualViewport?.removeEventListener("scroll", applyViewportInsets);
-      window.removeEventListener("orientationchange", applyViewportInsets);
+      window.visualViewport?.removeEventListener("resize", applyDynamicBottomInset);
+      window.visualViewport?.removeEventListener("scroll", applyDynamicBottomInset);
+      window.removeEventListener("orientationchange", applyStaticScale);
+      window.removeEventListener("orientationchange", applyDynamicBottomInset);
     };
   }, []);
 
@@ -385,6 +389,7 @@ export default function Highlights2_1Mobile() {
           });
 
           gsap.to(stripRef.current, {
+            // Altura fija por slide para un stepping 100% determinista.
             y: -(activeIndex * imgHeight),
             duration: 0.3,
             ease: "power3.inOut",
