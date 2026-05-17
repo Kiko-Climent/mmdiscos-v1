@@ -51,11 +51,13 @@ const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const easeInOutCubic = (t) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const easeOutExpo = (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
+const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
 export default function Highlights2_1Mobile() {
   const rootRef = useRef(null);
   const stickyRef = useRef(null);
   const contentFrameRef = useRef(null);
+  const copyWrapRef = useRef(null);
   const indicatorRef = useRef(null);
   const stripRef = useRef(null);
   const copyRef = useRef(null);
@@ -81,6 +83,51 @@ export default function Highlights2_1Mobile() {
 
   useLayoutEffect(() => {
     if (window.innerWidth > 900) return;
+    const wrap = copyWrapRef.current;
+    const copy = copyRef.current;
+    if (!wrap || !copy) return;
+
+    const syncCopyMinHeight = () => {
+      const cs = window.getComputedStyle(copy);
+      const probe = document.createElement("p");
+      probe.style.position = "absolute";
+      probe.style.visibility = "hidden";
+      probe.style.pointerEvents = "none";
+      probe.style.left = "-9999px";
+      probe.style.top = "0";
+      probe.style.width = `${wrap.clientWidth}px`;
+      probe.style.margin = "0";
+      probe.style.fontFamily = cs.fontFamily;
+      probe.style.fontSize = cs.fontSize;
+      probe.style.fontWeight = cs.fontWeight;
+      probe.style.letterSpacing = cs.letterSpacing;
+      probe.style.lineHeight = cs.lineHeight;
+      probe.style.textTransform = cs.textTransform;
+      probe.style.textAlign = cs.textAlign;
+
+      let maxH = 0;
+      for (const s of SLIDES) {
+        probe.textContent = s.copy;
+        document.body.appendChild(probe);
+        maxH = Math.max(maxH, probe.getBoundingClientRect().height);
+        document.body.removeChild(probe);
+      }
+
+      wrap.style.minHeight = `${Math.ceil(maxH)}px`;
+    };
+
+    syncCopyMinHeight();
+    window.addEventListener("resize", syncCopyMinHeight);
+    window.addEventListener("orientationchange", syncCopyMinHeight);
+
+    return () => {
+      window.removeEventListener("resize", syncCopyMinHeight);
+      window.removeEventListener("orientationchange", syncCopyMinHeight);
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    if (window.innerWidth > 900) return;
     const frame = contentFrameRef.current;
     if (!frame) return;
 
@@ -89,11 +136,27 @@ export default function Highlights2_1Mobile() {
       const visibleH = vv?.height || window.innerHeight;
       const layoutH = window.innerHeight;
       const chromeGap = Math.max(0, layoutH - visibleH);
+      const compact = clamp(visibleH / 760, 0.86, 1);
       // Reserva base conservadora + ajuste dinámico para Android/Samsung.
       // En algunos dispositivos la barra no reporta bien en todos los estados,
       // así que la base evita que el copy quede oculto al volver hacia arriba.
       const dynamicBottom = Math.max(26, Math.min(72, chromeGap + 28));
+      const topPadPx = Math.round(100 * compact);
+      const gapPx = Math.round(18 * compact);
+      const panelGapPx = Math.round(16 * compact);
+      const titleMaxPx = Math.round(26 * compact);
+      const imageMaxPx = Math.round(220 * compact);
+      const copyMaxPx = Math.round(360 * compact);
+      const progressMaxPx = Math.round(420 * compact);
+
       frame.style.setProperty("--hl-mobile-bottom-pad", `${dynamicBottom}px`);
+      frame.style.setProperty("--hl-mobile-top-pad", `${topPadPx}px`);
+      frame.style.setProperty("--hl-mobile-gap", `${gapPx}px`);
+      frame.style.setProperty("--hl-mobile-panel-gap", `${panelGapPx}px`);
+      frame.style.setProperty("--hl-mobile-title-max", `${titleMaxPx}px`);
+      frame.style.setProperty("--hl-mobile-image-max", `${imageMaxPx}px`);
+      frame.style.setProperty("--hl-mobile-copy-max", `${copyMaxPx}px`);
+      frame.style.setProperty("--hl-mobile-progress-max", `${progressMaxPx}px`);
     };
 
     applyViewportInsets();
@@ -404,17 +467,18 @@ export default function Highlights2_1Mobile() {
             (mismo patrón que Highlights2Mobile original). */}
         <div
           ref={contentFrameRef}
-          className="absolute inset-0 flex flex-col items-center justify-start px-6 z-[1]"
+          className="absolute inset-0 flex flex-col items-center justify-center px-6 z-[1]"
           style={{
-            paddingTop: "max(calc(env(safe-area-inset-top) + 4.95rem), 5.7rem)",
+            paddingTop: "max(calc(env(safe-area-inset-top) + var(--hl-mobile-top-pad, 100px)), 6.25rem)",
             paddingBottom: "max(var(--hl-mobile-bottom-pad, 26px), calc(env(safe-area-inset-bottom) + 16px))",
-            gap: "clamp(0.65rem, 1.75vh, 1.05rem)",
+            gap: "var(--hl-mobile-gap, 18px)",
           }}
         >
           {/* Grupo superior — titles + counter. Sube en split. */}
           <div
             ref={listPanelRef}
-            className="hl-panel flex flex-col items-center gap-[clamp(0.7rem,2vh,1.25rem)]"
+            className="hl-panel flex flex-col items-center"
+            style={{ gap: "var(--hl-mobile-panel-gap, 16px)" }}
           >
             <div className="hl-services flex flex-col items-center">
               <div ref={indicatorRef} className="hl-indicator" />
@@ -426,7 +490,10 @@ export default function Highlights2_1Mobile() {
                   }}
                   className={`hl-service ${i === 0 ? "hl-active" : ""}`}
                 >
-                  <p className="uppercase font-semibold leading-none text-[clamp(19px,4.8vw,26px)]">
+                  <p
+                    className="uppercase font-semibold leading-none"
+                    style={{ fontSize: "clamp(19px, 4.8vw, var(--hl-mobile-title-max, 26px))" }}
+                  >
                     {s.title}
                   </p>
                 </div>
@@ -442,6 +509,7 @@ export default function Highlights2_1Mobile() {
           <div
             ref={progressBarRef}
             className="hl-progress-bar-h relative w-full max-w-[420px] h-px bg-[#e0e0e0] z-[2] pointer-events-none"
+            style={{ maxWidth: "var(--hl-mobile-progress-max, 420px)" }}
           >
             <div ref={progressRef} className="hl-progress-h" />
           </div>
@@ -449,11 +517,12 @@ export default function Highlights2_1Mobile() {
           {/* Grupo inferior — imagen + copy. Baja en split. */}
           <div
             ref={imagePanelRef}
-            className="hl-panel flex flex-col items-center gap-[clamp(0.7rem,2vh,1.25rem)]"
+            className="hl-panel flex flex-col items-center"
+            style={{ gap: "var(--hl-mobile-panel-gap, 16px)" }}
           >
             <div
               className="hl-img-wrapper relative aspect-square overflow-hidden"
-              style={{ width: "min(55vw, 220px)" }}
+              style={{ width: "min(55vw, var(--hl-mobile-image-max, 220px))" }}
             >
               <div ref={stripRef} className="hl-service-img w-full">
                 {SLIDES.map((s) => (
@@ -472,7 +541,11 @@ export default function Highlights2_1Mobile() {
               </div>
             </div>
 
-            <div className="w-full max-w-[360px]">
+            <div
+              ref={copyWrapRef}
+              className="w-full"
+              style={{ maxWidth: "var(--hl-mobile-copy-max, 360px)" }}
+            >
               <p
                 ref={copyRef}
                 className="hl-copy text-[clamp(13px,3.6vw,15px)] leading-tight text-black text-center"
