@@ -368,15 +368,22 @@ export default function Highlights2_1Mobile() {
     <div ref={rootRef} className="hl-root w-full bg-white">
       <section
         ref={stickyRef}
-        className="hl-sticky relative w-screen h-screen bg-white overflow-hidden"
+        className="hl-sticky relative w-screen h-svh bg-white overflow-hidden"
       >
         {/* Contenedor único — todo centrado en la interface
             (mismo patrón que Highlights2Mobile original). */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-[3vh] px-6 z-[1]">
+        <div
+          className="absolute left-0 right-0 flex flex-col items-center justify-center px-6 z-[1]"
+          style={{
+            top: "max(calc(env(safe-area-inset-top) + 6.25rem), 7rem)",
+            bottom: "max(calc(env(safe-area-inset-bottom) + 0.75rem), 1rem)",
+            gap: "clamp(0.75rem, 2.2vh, 1.35rem)",
+          }}
+        >
           {/* Grupo superior — titles + counter. Sube en split. */}
           <div
             ref={listPanelRef}
-            className="hl-panel flex flex-col items-center gap-[3vh]"
+            className="hl-panel flex flex-col items-center gap-[clamp(0.7rem,2vh,1.25rem)]"
           >
             <div className="hl-services flex flex-col items-center">
               <div ref={indicatorRef} className="hl-indicator" />
@@ -388,7 +395,7 @@ export default function Highlights2_1Mobile() {
                   }}
                   className={`hl-service ${i === 0 ? "hl-active" : ""}`}
                 >
-                  <p className="uppercase font-semibold leading-none text-[clamp(22px,5.6vw,30px)]">
+                  <p className="uppercase font-semibold leading-none text-[clamp(20px,5.1vw,28px)]">
                     {s.title}
                   </p>
                 </div>
@@ -411,9 +418,12 @@ export default function Highlights2_1Mobile() {
           {/* Grupo inferior — imagen + copy. Baja en split. */}
           <div
             ref={imagePanelRef}
-            className="hl-panel flex flex-col items-center gap-[3vh]"
+            className="hl-panel flex flex-col items-center gap-[clamp(0.7rem,2vh,1.25rem)]"
           >
-            <div className="hl-img-wrapper relative aspect-square w-[60vw] max-w-[280px] overflow-hidden">
+            <div
+              className="hl-img-wrapper relative aspect-square overflow-hidden"
+              style={{ width: "min(58vw, 240px)" }}
+            >
               <div ref={stripRef} className="hl-service-img w-full">
                 {SLIDES.map((s) => (
                   <div
@@ -431,10 +441,10 @@ export default function Highlights2_1Mobile() {
               </div>
             </div>
 
-            <div className="w-full max-w-[420px]">
+            <div className="w-full max-w-[380px]">
               <p
                 ref={copyRef}
-                className="hl-copy text-[clamp(13px,3.6vw,15px)] leading-[1.55] text-black text-center"
+                className="hl-copy text-[clamp(13px,3.6vw,15px)] leading-tight text-black text-center"
               >
                 {SLIDES[0].copy}
               </p>
