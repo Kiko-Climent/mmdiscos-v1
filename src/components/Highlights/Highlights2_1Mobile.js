@@ -89,8 +89,10 @@ export default function Highlights2_1Mobile() {
       const visibleH = vv?.height || window.innerHeight;
       const layoutH = window.innerHeight;
       const chromeGap = Math.max(0, layoutH - visibleH);
-      // Mantén el copy fuera de la barra Android al hacer scroll back.
-      const dynamicBottom = Math.max(12, Math.min(48, chromeGap + 12));
+      // Reserva base conservadora + ajuste dinámico para Android/Samsung.
+      // En algunos dispositivos la barra no reporta bien en todos los estados,
+      // así que la base evita que el copy quede oculto al volver hacia arriba.
+      const dynamicBottom = Math.max(26, Math.min(72, chromeGap + 28));
       frame.style.setProperty("--hl-mobile-bottom-pad", `${dynamicBottom}px`);
     };
 
@@ -402,11 +404,11 @@ export default function Highlights2_1Mobile() {
             (mismo patrón que Highlights2Mobile original). */}
         <div
           ref={contentFrameRef}
-          className="absolute inset-0 flex flex-col items-center justify-center px-6 z-[1]"
+          className="absolute inset-0 flex flex-col items-center justify-start px-6 z-[1]"
           style={{
-            paddingTop: "max(calc(env(safe-area-inset-top) + 5.4rem), 6.15rem)",
-            paddingBottom: "max(var(--hl-mobile-bottom-pad, 12px), calc(env(safe-area-inset-bottom) + 8px))",
-            gap: "clamp(0.7rem, 2vh, 1.2rem)",
+            paddingTop: "max(calc(env(safe-area-inset-top) + 4.95rem), 5.7rem)",
+            paddingBottom: "max(var(--hl-mobile-bottom-pad, 26px), calc(env(safe-area-inset-bottom) + 16px))",
+            gap: "clamp(0.65rem, 1.75vh, 1.05rem)",
           }}
         >
           {/* Grupo superior — titles + counter. Sube en split. */}
@@ -424,7 +426,7 @@ export default function Highlights2_1Mobile() {
                   }}
                   className={`hl-service ${i === 0 ? "hl-active" : ""}`}
                 >
-                  <p className="uppercase font-semibold leading-none text-[clamp(20px,5vw,27px)]">
+                  <p className="uppercase font-semibold leading-none text-[clamp(19px,4.8vw,26px)]">
                     {s.title}
                   </p>
                 </div>
@@ -451,7 +453,7 @@ export default function Highlights2_1Mobile() {
           >
             <div
               className="hl-img-wrapper relative aspect-square overflow-hidden"
-              style={{ width: "min(58vw, 240px)" }}
+              style={{ width: "min(55vw, 220px)" }}
             >
               <div ref={stripRef} className="hl-service-img w-full">
                 {SLIDES.map((s) => (
@@ -470,7 +472,7 @@ export default function Highlights2_1Mobile() {
               </div>
             </div>
 
-            <div className="w-full max-w-[380px]">
+            <div className="w-full max-w-[360px]">
               <p
                 ref={copyRef}
                 className="hl-copy text-[clamp(13px,3.6vw,15px)] leading-tight text-black text-center"
