@@ -62,8 +62,10 @@ export function getOptimizedImageCandidates(
   } = {},
 ) {
   const profile = IMAGE_PROFILE_MAP[src] || "balanced";
-  const targetWidth = viewportWidth * Math.min(dpr, lowPerfMobile ? 1.25 : 2);
-  const width = getVariantWidth(targetWidth, lowPerfMobile);
+  const targetWidth = viewportWidth * Math.min(dpr, lowPerfMobile ? 1.35 : 2);
+  let width = getVariantWidth(targetWidth, lowPerfMobile);
+  // On very dense mobile displays, 720 can shimmer on fine typography.
+  if (lowPerfMobile && dpr >= 2.2 && width < 960) width = 960;
   const base = getBaseName(src);
   const extOrder = prefersAvif ? ["avif", "webp"] : ["webp", "avif"];
 

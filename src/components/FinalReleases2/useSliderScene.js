@@ -157,9 +157,14 @@ export function useSliderScene({
       alpha: true,
       powerPreference: lowPerfMobile ? "low-power" : "high-performance",
     });
-    const maxDpr = lowPerfMobile ? 1 : isMobile ? 1.25 : 2;
+    const deviceDpr = window.devicePixelRatio || 1;
+    const maxDpr = lowPerfMobile
+      ? (deviceDpr >= 2.2 ? 1.2 : 1.1)
+      : isMobile
+        ? 1.35
+        : 2;
     renderer.setSize(W, H);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDpr));
+    renderer.setPixelRatio(Math.min(deviceDpr, maxDpr));
     renderer.setClearColor(0x000000, 0);
     setDebugOverlay((prev) => ({
       ...prev,
@@ -183,8 +188,8 @@ export function useSliderScene({
       deviceMemory,
       cpuCores,
       prefersAvif,
-      devicePixelRatio: window.devicePixelRatio || 1,
-      appliedPixelRatio: Math.min(window.devicePixelRatio || 1, maxDpr),
+      devicePixelRatio: deviceDpr,
+      appliedPixelRatio: Math.min(deviceDpr, maxDpr),
       maxDpr,
     });
 
@@ -410,7 +415,7 @@ export function useSliderScene({
       const optimizedCandidates = isMobile
         ? getOptimizedImageCandidates(src, {
           viewportWidth: W,
-          dpr: window.devicePixelRatio || 1,
+          dpr: deviceDpr,
           lowPerfMobile,
           prefersAvif,
         })
@@ -439,7 +444,11 @@ export function useSliderScene({
               tex.dispose();
               return;
             }
-            tex.minFilter = THREE.LinearFilter;
+            tex.minFilter = THREE.LinearMipmapLinearFilter;
+            tex.magFilter = THREE.LinearFilter;
+            tex.generateMipmaps = true;
+            tex.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+            tex.needsUpdate = true;
             mat.uniforms.uTexture.value = tex;
             const usedFallback = candidateSrc === src;
             debug("image-loaded", {
@@ -1023,7 +1032,7 @@ export function useSliderScene({
       H = window.innerHeight;
       if (isMobile) updateNavBottom();
       renderer.setSize(W, H);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDpr));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
       camera.aspect = W / H;
       camera.position.z = getCamZ();
       camera.updateProjectionMatrix();
