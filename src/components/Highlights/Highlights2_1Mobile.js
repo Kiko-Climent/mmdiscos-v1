@@ -55,6 +55,7 @@ const easeOutExpo = (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
 export default function Highlights2_1Mobile() {
   const rootRef = useRef(null);
   const stickyRef = useRef(null);
+  const contentFrameRef = useRef(null);
   const indicatorRef = useRef(null);
   const stripRef = useRef(null);
   const copyRef = useRef(null);
@@ -77,6 +78,33 @@ export default function Highlights2_1Mobile() {
   const bottomMetaRef = useRef(null);
   const videoWrapRef = useRef(null);
   const videoRef = useRef(null);
+
+  useLayoutEffect(() => {
+    if (window.innerWidth > 900) return;
+    const frame = contentFrameRef.current;
+    if (!frame) return;
+
+    const applyViewportInsets = () => {
+      const vv = window.visualViewport;
+      const visibleH = vv?.height || window.innerHeight;
+      const layoutH = window.innerHeight;
+      const chromeGap = Math.max(0, layoutH - visibleH);
+      // Mantén el copy fuera de la barra Android al hacer scroll back.
+      const dynamicBottom = Math.max(12, Math.min(48, chromeGap + 12));
+      frame.style.setProperty("--hl-mobile-bottom-pad", `${dynamicBottom}px`);
+    };
+
+    applyViewportInsets();
+    window.visualViewport?.addEventListener("resize", applyViewportInsets);
+    window.visualViewport?.addEventListener("scroll", applyViewportInsets);
+    window.addEventListener("orientationchange", applyViewportInsets);
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", applyViewportInsets);
+      window.visualViewport?.removeEventListener("scroll", applyViewportInsets);
+      window.removeEventListener("orientationchange", applyViewportInsets);
+    };
+  }, []);
 
   useLayoutEffect(() => {
     // Variante móvil — si el viewport es desktop no registramos triggers.
@@ -373,11 +401,12 @@ export default function Highlights2_1Mobile() {
         {/* Contenedor único — todo centrado en la interface
             (mismo patrón que Highlights2Mobile original). */}
         <div
+          ref={contentFrameRef}
           className="absolute inset-0 flex flex-col items-center justify-center px-6 z-[1]"
           style={{
-            paddingTop: "max(calc(env(safe-area-inset-top) + 5.9rem), 6.7rem)",
-            paddingBottom: "clamp(0.75rem, 1.6vh, 1rem)",
-            gap: "clamp(0.75rem, 2.2vh, 1.35rem)",
+            paddingTop: "max(calc(env(safe-area-inset-top) + 5.4rem), 6.15rem)",
+            paddingBottom: "max(var(--hl-mobile-bottom-pad, 12px), calc(env(safe-area-inset-bottom) + 8px))",
+            gap: "clamp(0.7rem, 2vh, 1.2rem)",
           }}
         >
           {/* Grupo superior — titles + counter. Sube en split. */}
@@ -395,7 +424,7 @@ export default function Highlights2_1Mobile() {
                   }}
                   className={`hl-service ${i === 0 ? "hl-active" : ""}`}
                 >
-                  <p className="uppercase font-semibold leading-none text-[clamp(20px,5.1vw,28px)]">
+                  <p className="uppercase font-semibold leading-none text-[clamp(20px,5vw,27px)]">
                     {s.title}
                   </p>
                 </div>
