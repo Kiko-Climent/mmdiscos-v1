@@ -44,11 +44,6 @@ export function useSliderScene({
     left: 0, top: 0, height: 0, availableW: 0, gap: 0,
   });
   const [viewportSize, setViewportSize] = useState({ w: 0, h: 0 });
-  const [debugOverlay, setDebugOverlay] = useState({
-    enabled: false,
-    renderer: null,
-    events: [],
-  });
 
   // useEffect (not useLayoutEffect) — safe for SSR in Pages Router.
   // viewportSize starts as { w:0, h:0 } and is set after first paint; the
@@ -75,31 +70,9 @@ export function useSliderScene({
     const cpuCores = Number(navigator.hardwareConcurrency || 8);
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const lowPerfMobile = isMobile && (prefersReducedMotion || deviceMemory <= 4 || cpuCores <= 6);
-    const debugImageLoading = typeof window !== "undefined"
-      && (
-        window.location.search.includes("mmDebugImages=1")
-        || window.localStorage.getItem("mmDebugImages") === "1"
-      );
     const prefersAvif = typeof window !== "undefined"
       && !!window.HTMLCanvasElement
       && document.createElement("canvas").toDataURL("image/avif").startsWith("data:image/avif");
-    const debugPrefix = "[MM][FinalReleases2]";
-    const debug = (...args) => {
-      if (!debugImageLoading) return;
-      console.log(debugPrefix, ...args);
-    };
-    const pushDebugEvent = (line) => {
-      if (!debugImageLoading) return;
-      setDebugOverlay((prev) => {
-        const nextEvents = [...prev.events, line].slice(-8);
-        return { ...prev, enabled: true, events: nextEvents };
-      });
-    };
-    if (typeof window !== "undefined" && !window.__MM_IMAGE_DEBUG_HELPERS__) {
-      window.__MM_IMAGE_DEBUG_HELPERS__ = true;
-      window.mmDebugImagesOn = () => window.localStorage.setItem("mmDebugImages", "1");
-      window.mmDebugImagesOff = () => window.localStorage.removeItem("mmDebugImages");
-    }
     const CW = isMobile ? 200 : CARD_W;   // card width  (world units ≈ px)
     const CH = isMobile ? 200 : CARD_H;   // card height
     const SP = isMobile ? 190 : SPACING;  // inter-card spacing
@@ -166,32 +139,6 @@ export function useSliderScene({
     renderer.setSize(W, H);
     renderer.setPixelRatio(Math.min(deviceDpr, maxDpr));
     renderer.setClearColor(0x000000, 0);
-    setDebugOverlay((prev) => ({
-      ...prev,
-      enabled: debugImageLoading,
-      renderer: {
-        isMobile,
-        lowPerfMobile,
-        prefersReducedMotion,
-        deviceMemory,
-        cpuCores,
-        prefersAvif,
-        devicePixelRatio: window.devicePixelRatio || 1,
-        appliedPixelRatio: Math.min(window.devicePixelRatio || 1, maxDpr),
-        maxDpr,
-      },
-    }));
-    debug("renderer-config", {
-      isMobile,
-      lowPerfMobile,
-      prefersReducedMotion,
-      deviceMemory,
-      cpuCores,
-      prefersAvif,
-      devicePixelRatio: deviceDpr,
-      appliedPixelRatio: Math.min(deviceDpr, maxDpr),
-      maxDpr,
-    });
 
     const scene = new THREE.Scene();
     const getCamZ = () => H / (2 * Math.tan(((FOV * Math.PI) / 180) / 2));
@@ -422,15 +369,10 @@ export function useSliderScene({
         : [];
       const imageCandidates = [...optimizedCandidates, src];
       let candidateIdx = 0;
-      const key = `${i + 1}/${SLIDE_COUNT} ${src}`;
-      debug("image-candidates", key, imageCandidates);
-      pushDebugEvent(`candidates ${key} -> ${imageCandidates[0] || "none"}`);
 
       const loadNextCandidate = () => {
         if (unmounted) return;
         if (candidateIdx >= imageCandidates.length) {
-          debug("image-load-exhausted", key);
-          pushDebugEvent(`exhausted ${key}`);
           loadedCount++;
           tryStartIntro();
           return;
@@ -450,23 +392,11 @@ export function useSliderScene({
             tex.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
             tex.needsUpdate = true;
             mat.uniforms.uTexture.value = tex;
-            const usedFallback = candidateSrc === src;
-            debug("image-loaded", {
-              key,
-              selected: candidateSrc,
-              usedFallback,
-              nextCandidateIndex: candidateIdx,
-            });
-            pushDebugEvent(
-              `loaded ${key} -> ${candidateSrc}${usedFallback ? " [fallback]" : ""}`,
-            );
             loadedCount++;
             tryStartIntro();
           },
           undefined,
           () => {
-            debug("image-load-failed", { key, candidate: candidateSrc });
-            pushDebugEvent(`failed ${key} -> ${candidateSrc}`);
             loadNextCandidate();
           },
         );
@@ -1087,9 +1017,8 @@ export function useSliderScene({
       window.removeEventListener("resize", onResize);
       sceneApiRef.current = null;
       renderer.dispose();
-      setDebugOverlay((prev) => ({ ...prev, events: [] }));
     };
   }, []);
 
-  return { focusedData, panelLayout, viewportSize, debugOverlay };
+  return { focusedData, panelLayout, viewportSize };
 }

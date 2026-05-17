@@ -15,7 +15,7 @@ const SLIDES = [
     title: "Brahmaputra EP",
     img: "/MMD041_Cover.jpg",
     ref: "mmd041",
-    copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
+    copy: "Gritty basslines, sharp percussion and 80s-leaning house crossed with Balearic flashes, dub pressure and proto-trance heat. Four cuts caught between peak-time progressive and introspective drift",
   },
   {
     title: "Socarrat vol.1",
