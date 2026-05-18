@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { getResponsiveVideoSources } from "@/lib/videoSources";
 
 const SLIDES = [
   {
@@ -44,6 +45,7 @@ const SLIDES = [
 ];
 
 const ALFREDOS_QUOTE = `We played without rules, without thinking about styles or what would come next. One track could be slow, the next dark, then something pop or an impossible guitar, but it all made sense in that moment. The dancefloor didn't ask for coherence, it asked for emotion — and as long as people stayed there, smiling and lost, you knew you were doing it right.`;
+const HEADER_VIDEO = getResponsiveVideoSources("/video/Video MM Header.mp4");
 
 const HEADLINE_FONT = "'Favorit', sans-serif";
 
@@ -84,8 +86,8 @@ export default function Highlights2_1Mobile() {
   useLayoutEffect(() => {
     // Escalado proporcional al alto de viewport. Se ejecuta una vez al
     // montar; con ScrollTrigger.config({ignoreMobileResize:true}) global
-    // no necesitamos reaccionar al toggle de la URL bar — la sección
-    // sobrecubre unos px para evitar rendijas del pin en mobile.
+    // no necesitamos reaccionar al toggle de la URL bar — la sección usa
+    // 100svh y siempre cabe en el viewport visible.
     if (window.innerWidth > 900) return;
     const frame = contentFrameRef.current;
     if (!frame) return;
@@ -162,7 +164,6 @@ export default function Highlights2_1Mobile() {
         ? textBoxRef.current.getBoundingClientRect()
         : { left: 0, top: 0, width: 0, height: 0 };
       const sectionRect = sticky.getBoundingClientRect();
-      const vh = sectionRect.height || window.innerHeight;
       const videoCx = sectionRect.left + sectionRect.width / 2;
       const videoCy = sectionRect.top + sectionRect.height / 2;
 
@@ -181,6 +182,7 @@ export default function Highlights2_1Mobile() {
       });
 
       const total = SLIDES.length;
+      const vh = window.innerHeight;
       const slidesRange = vh * total;
       const splitRange = vh * 1;
       const quoteRange = vh * 0.9;
@@ -197,17 +199,8 @@ export default function Highlights2_1Mobile() {
         trigger: sticky,
         start: "top top",
         end: `+=${totalRange}`,
-        pin: sticky,
-        pinSpacing: true,
-        pinType: "fixed",
-        anticipatePin: 1,
+        pin: true,
         invalidateOnRefresh: true,
-        onRefresh: (self) => {
-          const spacer = self.pin?.parentNode;
-          if (!spacer) return;
-          spacer.style.backgroundColor = "#fff";
-          spacer.style.overflow = "hidden";
-        },
         onUpdate: (self) => {
           const p = self.progress;
 
@@ -231,10 +224,10 @@ export default function Highlights2_1Mobile() {
           const counterOp = clamp01((0.55 - splitp) / 0.55);
 
           if (listPanelRef.current) {
-            listPanelRef.current.style.transform = `translate3d(0, ${-vh * colP}px, 0)`;
+            listPanelRef.current.style.transform = `translate3d(0, ${-100 * colP}vh, 0)`;
           }
           if (imagePanelRef.current) {
-            imagePanelRef.current.style.transform = `translate3d(0, ${vh * colP}px, 0)`;
+            imagePanelRef.current.style.transform = `translate3d(0, ${100 * colP}vh, 0)`;
           }
           if (progressBarRef.current) {
             const inset = 50 * barCollapse;
@@ -391,12 +384,7 @@ export default function Highlights2_1Mobile() {
     <div ref={rootRef} className="hl-root w-full bg-white">
       <section
         ref={stickyRef}
-        className="hl-sticky relative w-screen bg-white overflow-hidden"
-        style={{
-          height: "calc(100dvh + 2px)",
-          minHeight: "calc(100svh + 2px)",
-          marginBottom: "-2px",
-        }}
+        className="hl-sticky relative w-screen h-[100svh] bg-white overflow-hidden"
       >
         {/* Contenedor único — todo centrado en la interface
             (mismo patrón que Highlights2Mobile original). */}
@@ -405,7 +393,7 @@ export default function Highlights2_1Mobile() {
           className="absolute inset-0 flex flex-col items-center justify-center px-6 z-[1]"
           style={{
             paddingTop: "max(calc(env(safe-area-inset-top) + var(--hl-mobile-top-pad, 100px)), 6.25rem)",
-            paddingBottom: "var(--hl-mobile-bottom-pad, 26px)",
+            paddingBottom: "max(var(--hl-mobile-bottom-pad, 26px), calc(env(safe-area-inset-bottom) + 16px))",
             gap: "var(--hl-mobile-gap, 18px)",
           }}
         >
@@ -555,9 +543,12 @@ export default function Highlights2_1Mobile() {
                 muted
                 loop
                 playsInline
-                preload="auto"
+                preload="metadata"
               >
-                <source src="/video/Video MM Header.mp4" type="video/mp4" />
+                <source media="(max-width: 719px)" src={HEADER_VIDEO.mobile} type="video/mp4" />
+                <source media="(max-width: 1279px)" src={HEADER_VIDEO.tablet} type="video/mp4" />
+                <source src={HEADER_VIDEO.desktop} type="video/mp4" />
+                <source src={HEADER_VIDEO.fallback} type="video/mp4" />
               </video>
             </div>
 

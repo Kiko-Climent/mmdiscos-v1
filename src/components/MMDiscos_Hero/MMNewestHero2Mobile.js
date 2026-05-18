@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { getResponsiveVideoSources } from "@/lib/videoSources";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -11,6 +12,7 @@ const LOGO_END_WIDTH_MOBILE = 200;
 const LOGO_FIT_FACTOR       = 0.96;
 const LOGO_PADDING          = "1rem 2.5rem 2.5rem";
 const LOGO_LAYER_INSET      = "1rem 2.5rem 2.5rem 2.5rem";
+const HERO_VIDEO = getResponsiveVideoSources("/video/MM Hero BG_1.mp4");
 
 // ── Artist list (sin hover en móvil — sin map de imágenes) ──────────────────
 const ARTISTS = [
@@ -253,9 +255,13 @@ export default function MMNewestHero2Mobile() {
         <video
           ref={videoRef}
           autoPlay muted loop playsInline
+          preload="metadata"
           className="w-full h-full object-cover"
         >
-          <source src="/video/MM Hero BG_1.mp4" type="video/mp4" />
+          <source media="(max-width: 719px)" src={HERO_VIDEO.mobile} type="video/mp4" />
+          <source media="(max-width: 1279px)" src={HERO_VIDEO.tablet} type="video/mp4" />
+          <source src={HERO_VIDEO.desktop} type="video/mp4" />
+          <source src={HERO_VIDEO.fallback} type="video/mp4" />
         </video>
       </div>
 

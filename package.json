@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "next lint",
     "optimize:images": "node src/components/tools/OptimizedImages.js",
-    "optimize:images:v2": "node src/components/tools/OptimizedImagesV2.js"
+    "optimize:images:v2": "node src/components/tools/OptimizedImagesV2.js",
+    "optimize:videos:v2": "node src/components/tools/OptimizedVideosV2.js"
   },
   "dependencies": {
     "gsap": "^3.13.0",

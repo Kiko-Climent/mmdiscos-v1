@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { getResponsiveVideoSources } from "@/lib/videoSources";
 
 const SLIDES = [
   {
@@ -44,6 +45,7 @@ const SLIDES = [
 ];
 
 const ALFREDOS_QUOTE = `We played without rules, without thinking about styles or what would come next. One track could be slow, the next dark, then something pop or an impossible guitar, but it all made sense in that moment. The dancefloor didn't ask for coherence, it asked for emotion — and as long as people stayed there, smiling and lost, you knew you were doing it right.`;
+const HEADER_VIDEO = getResponsiveVideoSources("/video/Video MM Header.mp4");
 
 const HEADLINE_FONT = "'Favorit', sans-serif";
 
@@ -460,9 +462,12 @@ export default function Highlights2_1Desktop() {
                 muted
                 loop
                 playsInline
-                preload="auto"
+                preload="metadata"
               >
-                <source src="/video/Video MM Header.mp4" type="video/mp4" />
+                <source media="(max-width: 719px)" src={HEADER_VIDEO.mobile} type="video/mp4" />
+                <source media="(max-width: 1279px)" src={HEADER_VIDEO.tablet} type="video/mp4" />
+                <source src={HEADER_VIDEO.desktop} type="video/mp4" />
+                <source src={HEADER_VIDEO.fallback} type="video/mp4" />
               </video>
             </div>
 
