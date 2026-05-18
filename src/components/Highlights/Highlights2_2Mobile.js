@@ -382,7 +382,7 @@ export default function Highlights2_1Mobile() {
     <div ref={rootRef} className="hl-root w-full bg-white">
       <section
         ref={stickyRef}
-        className="hl-sticky relative w-screen h-[100svh] bg-white overflow-hidden"
+        className="hl-sticky relative w-screen h-[100dvh] bg-white overflow-hidden"
       >
         {/* Contenedor único — todo centrado en la interface
             (mismo patrón que Highlights2Mobile original). */}

@@ -67,7 +67,15 @@ export default function MMNewestHero2Mobile() {
     box.style.willChange  = "transform, background-color";
     logo.style.willChange = "transform";
 
+    // Clavamos top/left a píxeles capturados (no a porcentajes del
+    // viewport). Si dejamos top:50% left:50% (Tailwind), Android Chrome
+    // re-resuelve esos porcentajes al toggle de la URL bar → el box
+    // "salta" verticalmente al scroll, sumándose al translateY del
+    // exit. Resultado: sensación de resize/no fluidez. Fijando en px
+    // capturados, el box es inmune a esos toggles.
     gsap.set(box, {
+      top:             vh / 2,
+      left:            vw / 2,
       width:           vw,
       height:          vh,
       xPercent:        -50,
@@ -105,7 +113,16 @@ export default function MMNewestHero2Mobile() {
     });
 
     const spans = artistsSpansRef.current.filter(Boolean);
-    gsap.set(artistsContainerRef.current, { xPercent: -50, yPercent: -50, opacity: 0 });
+    // Mismo razonamiento que el box: clavamos top/left en px para
+    // que el contenedor de artists no se desplace con el toggle de
+    // la URL bar de Android.
+    gsap.set(artistsContainerRef.current, {
+      top: vh / 2,
+      left: vw / 2,
+      xPercent: -50,
+      yPercent: -50,
+      opacity: 0,
+    });
     gsap.set(spans, { opacity: 0 });
 
     // ── Reveal artists tras snap ────────────────────────────────────────
@@ -208,8 +225,17 @@ export default function MMNewestHero2Mobile() {
 
     const artistsExitTrigger = ScrollTrigger.create({
       trigger:             spacer,
-      start:               `top+=${vh * 1.2}px top`,
-      end:                 `top+=${vh * 1.85}px top`,
+      // Exit a ritmo de scroll natural (1:1) y sincronizado con la
+      // entrada de Highlights desde abajo:
+      // - start en scrollY = 1*vh → en ese punto el top de Highlights
+      //   toca el bottom del viewport (spacer es 200svh, viewport ≈ svh).
+      // - end en scrollY = 2*vh → coincide con el pin de Highlights
+      //   en "top top". El box llega a y=-vh exactamente cuando
+      //   Highlights se pinea — handoff limpio, sin gap ni overlap.
+      // El borde inferior del box y el top de Highlights se mueven
+      // a la misma velocidad (1:1 con scroll) → no hay efecto cortina.
+      start:               `top+=${vh}px top`,
+      end:                 `top+=${vh * 2}px top`,
       scrub:               1,
       invalidateOnRefresh: true,
       onUpdate: (self) => {
