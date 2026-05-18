@@ -162,6 +162,7 @@ export default function Highlights2_1Mobile() {
         ? textBoxRef.current.getBoundingClientRect()
         : { left: 0, top: 0, width: 0, height: 0 };
       const sectionRect = sticky.getBoundingClientRect();
+      const vh = sectionRect.height || window.innerHeight;
       const videoCx = sectionRect.left + sectionRect.width / 2;
       const videoCy = sectionRect.top + sectionRect.height / 2;
 
@@ -180,7 +181,6 @@ export default function Highlights2_1Mobile() {
       });
 
       const total = SLIDES.length;
-      const vh = window.innerHeight;
       const slidesRange = vh * total;
       const splitRange = vh * 1;
       const quoteRange = vh * 0.9;
@@ -222,10 +222,10 @@ export default function Highlights2_1Mobile() {
           const counterOp = clamp01((0.55 - splitp) / 0.55);
 
           if (listPanelRef.current) {
-            listPanelRef.current.style.transform = `translate3d(0, ${-100 * colP}vh, 0)`;
+            listPanelRef.current.style.transform = `translate3d(0, ${-vh * colP}px, 0)`;
           }
           if (imagePanelRef.current) {
-            imagePanelRef.current.style.transform = `translate3d(0, ${100 * colP}vh, 0)`;
+            imagePanelRef.current.style.transform = `translate3d(0, ${vh * colP}px, 0)`;
           }
           if (progressBarRef.current) {
             const inset = 50 * barCollapse;
@@ -382,7 +382,7 @@ export default function Highlights2_1Mobile() {
     <div ref={rootRef} className="hl-root w-full bg-white">
       <section
         ref={stickyRef}
-        className="hl-sticky relative w-screen h-[100svh] bg-white overflow-hidden"
+        className="hl-sticky relative w-screen h-[100dvh] min-h-[100svh] bg-white overflow-hidden"
       >
         {/* Contenedor único — todo centrado en la interface
             (mismo patrón que Highlights2Mobile original). */}
