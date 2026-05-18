@@ -67,15 +67,7 @@ export default function MMNewestHero2Mobile() {
     box.style.willChange  = "transform, background-color";
     logo.style.willChange = "transform";
 
-    // Clavamos top/left a píxeles capturados (no a porcentajes del
-    // viewport). Si dejamos top:50% left:50% (Tailwind), Android Chrome
-    // re-resuelve esos porcentajes al toggle de la URL bar → el box
-    // "salta" verticalmente al scroll, sumándose al translateY del
-    // exit. Resultado: sensación de resize/no fluidez. Fijando en px
-    // capturados, el box es inmune a esos toggles.
     gsap.set(box, {
-      top:             vh / 2,
-      left:            vw / 2,
       width:           vw,
       height:          vh,
       xPercent:        -50,
@@ -113,16 +105,7 @@ export default function MMNewestHero2Mobile() {
     });
 
     const spans = artistsSpansRef.current.filter(Boolean);
-    // Mismo razonamiento que el box: clavamos top/left en px para
-    // que el contenedor de artists no se desplace con el toggle de
-    // la URL bar de Android.
-    gsap.set(artistsContainerRef.current, {
-      top: vh / 2,
-      left: vw / 2,
-      xPercent: -50,
-      yPercent: -50,
-      opacity: 0,
-    });
+    gsap.set(artistsContainerRef.current, { xPercent: -50, yPercent: -50, opacity: 0 });
     gsap.set(spans, { opacity: 0 });
 
     // ── Reveal artists tras snap ────────────────────────────────────────
