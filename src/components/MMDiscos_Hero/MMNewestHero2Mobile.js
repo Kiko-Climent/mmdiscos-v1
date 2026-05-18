@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { getResponsiveVideoSources } from "@/lib/videoSources";
@@ -33,6 +33,12 @@ export default function MMNewestHero2Mobile() {
   const logoRef             = useRef(null);
   const artistsContainerRef = useRef(null);
   const artistsSpansRef     = useRef([]);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setShouldLoadVideo(window.innerWidth < 720);
+  }, []);
 
   useEffect(() => {
     // Guard: variante mobile — si viewport es desktop, no hace nada.
@@ -255,13 +261,17 @@ export default function MMNewestHero2Mobile() {
         <video
           ref={videoRef}
           autoPlay muted loop playsInline
-          preload="metadata"
+          preload={shouldLoadVideo ? "auto" : "none"}
           className="w-full h-full object-cover"
         >
-          <source media="(max-width: 719px)" src={HERO_VIDEO.mobile} type="video/mp4" />
-          <source media="(max-width: 1279px)" src={HERO_VIDEO.tablet} type="video/mp4" />
-          <source src={HERO_VIDEO.desktop} type="video/mp4" />
-          <source src={HERO_VIDEO.fallback} type="video/mp4" />
+          {shouldLoadVideo ? (
+            <>
+              <source media="(max-width: 719px)" src={HERO_VIDEO.mobile} type="video/mp4" />
+              <source media="(max-width: 1279px)" src={HERO_VIDEO.tablet} type="video/mp4" />
+              <source src={HERO_VIDEO.desktop} type="video/mp4" />
+              <source src={HERO_VIDEO.fallback} type="video/mp4" />
+            </>
+          ) : null}
         </video>
       </div>
 

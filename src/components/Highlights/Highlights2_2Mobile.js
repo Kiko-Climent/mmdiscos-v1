@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { getResponsiveVideoSources } from "@/lib/videoSources";
@@ -82,6 +82,12 @@ export default function Highlights2_1Mobile() {
   const bottomMetaRef = useRef(null);
   const videoWrapRef = useRef(null);
   const videoRef = useRef(null);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setShouldLoadVideo(window.innerWidth <= 900);
+  }, []);
 
   useLayoutEffect(() => {
     // Escalado proporcional al alto de viewport. Se ejecuta una vez al
@@ -543,12 +549,16 @@ export default function Highlights2_1Mobile() {
                 muted
                 loop
                 playsInline
-                preload="metadata"
+                preload={shouldLoadVideo ? "auto" : "none"}
               >
-                <source media="(max-width: 719px)" src={HEADER_VIDEO.mobile} type="video/mp4" />
-                <source media="(max-width: 1279px)" src={HEADER_VIDEO.tablet} type="video/mp4" />
-                <source src={HEADER_VIDEO.desktop} type="video/mp4" />
-                <source src={HEADER_VIDEO.fallback} type="video/mp4" />
+                {shouldLoadVideo ? (
+                  <>
+                    <source media="(max-width: 719px)" src={HEADER_VIDEO.mobile} type="video/mp4" />
+                    <source media="(max-width: 1279px)" src={HEADER_VIDEO.tablet} type="video/mp4" />
+                    <source src={HEADER_VIDEO.desktop} type="video/mp4" />
+                    <source src={HEADER_VIDEO.fallback} type="video/mp4" />
+                  </>
+                ) : null}
               </video>
             </div>
 

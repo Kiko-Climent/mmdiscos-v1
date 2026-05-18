@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { getResponsiveVideoSources } from "@/lib/videoSources";
@@ -58,6 +58,7 @@ export default function MMNewestHero2_1() {
   const hoverImageRef       = useRef(null);
   // Tracks hover capability — set once in useEffect, read in handlers
   const hasHoverRef         = useRef(false);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
 
   // ── Hover handlers ───────────────────────────────────────────────────────────
   // clipPath wipe: enter grows up from bottom, exit snaps. Single <img>, src swapped.
@@ -81,6 +82,11 @@ export default function MMNewestHero2_1() {
     gsap.killTweensOf(hoverImageRef.current);
     hoverImageRef.current.style.display = "none";
   };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setShouldLoadVideo(window.innerWidth >= 720);
+  }, []);
 
   useEffect(() => {
     if (window.innerWidth < 720) return;
@@ -295,13 +301,17 @@ export default function MMNewestHero2_1() {
         <video
           ref={videoRef}
           autoPlay muted loop playsInline
-          preload="metadata"
+          preload={shouldLoadVideo ? "auto" : "none"}
           className="w-full h-full object-cover"
         >
-          <source media="(max-width: 719px)" src={HERO_VIDEO.mobile} type="video/mp4" />
-          <source media="(max-width: 1279px)" src={HERO_VIDEO.tablet} type="video/mp4" />
-          <source src={HERO_VIDEO.desktop} type="video/mp4" />
-          <source src={HERO_VIDEO.fallback} type="video/mp4" />
+          {shouldLoadVideo ? (
+            <>
+              <source media="(max-width: 719px)" src={HERO_VIDEO.mobile} type="video/mp4" />
+              <source media="(max-width: 1279px)" src={HERO_VIDEO.tablet} type="video/mp4" />
+              <source src={HERO_VIDEO.desktop} type="video/mp4" />
+              <source src={HERO_VIDEO.fallback} type="video/mp4" />
+            </>
+          ) : null}
         </video>
       </div>
 
