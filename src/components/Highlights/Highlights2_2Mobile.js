@@ -390,8 +390,8 @@ export default function Highlights2_1Mobile() {
           ref={contentFrameRef}
           className="absolute inset-0 flex flex-col items-center justify-center px-6 z-[1]"
           style={{
-            paddingTop: "max(calc(env(safe-area-inset-top) + var(--hl-mobile-top-pad, 100px)), 6.25rem)",
-            paddingBottom: "max(var(--hl-mobile-bottom-pad, 26px), calc(env(safe-area-inset-bottom) + 16px))",
+            paddingTop: "var(--hl-mobile-top-pad, 100px)",
+            paddingBottom: "var(--hl-mobile-bottom-pad, 26px)",
             gap: "var(--hl-mobile-gap, 18px)",
           }}
         >
