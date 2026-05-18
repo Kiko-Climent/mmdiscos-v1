@@ -193,6 +193,22 @@ export default function Highlights2_1Mobile() {
         (slidesRange + splitRange + quoteRange) / totalRange;
       const manifestoProgress = 0.995;
 
+      // Fade-in cinemático — opacity 0→1 durante los últimos ~15% de
+      // viewport antes del pin. Coincide con el final del exit del
+      // Hero, así que Highlights aparece justo cuando el Hero acaba
+      // de salir. Reversible automáticamente al scroll-back.
+      gsap.set(sticky, { opacity: 0 });
+      ScrollTrigger.create({
+        trigger: sticky,
+        start: "top 15%",
+        end: "top top",
+        scrub: true,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => {
+          sticky.style.opacity = String(self.progress);
+        },
+      });
+
       const mainTrigger = ScrollTrigger.create({
         trigger: sticky,
         start: "top top",
