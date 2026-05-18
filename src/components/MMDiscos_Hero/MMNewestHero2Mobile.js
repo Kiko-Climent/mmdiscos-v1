@@ -42,7 +42,13 @@ export default function MMNewestHero2Mobile() {
     if (!box || !logo || !spacer) return;
 
     // Freeze viewport dims on mount — pixel values, no resize jank.
-    const vh = window.innerHeight;
+    // vh se mide desde el propio spacer (h-[200svh]) para garantizar
+    // consistencia con la sección Highlights que también usa svh. Si
+    // usáramos innerHeight, en mounts con la URL bar oculta capturaríamos
+    // un viewport mayor que svh → el rango de exit de los artists (1.85*vh)
+    // se solapaba con el inicio del pin de Highlights (2*svh).
+    const spacerH = spacer.getBoundingClientRect().height;
+    const vh = spacerH > 0 ? spacerH / 2 : window.innerHeight;
     const vw = window.innerWidth;
 
     if (videoContainerRef.current) {
@@ -214,10 +220,15 @@ export default function MMNewestHero2Mobile() {
       onLeave: () => {
         gsap.set([box, artistsContainerRef.current], { display: "none" });
       },
-      onEnterBack: () => {
+      onEnterBack: (self) => {
+        // Al re-entrar desde abajo (scroll-up), progress ≈ 1 → los elementos
+        // deben empezar en y = -vh (off-screen top) y deslizarse hacia abajo
+        // conforme progress decrece. Si forzáramos y=0 (centro), veríamos un
+        // flicker de un frame antes de que scrub recompute.
         gsap.set([box, artistsContainerRef.current], { clearProps: "display" });
-        setTextY(0);
-        setBoxY(0);
+        const p = self.progress;
+        setTextY(-p * vh);
+        setBoxY(-p * vh);
       },
     });
 
