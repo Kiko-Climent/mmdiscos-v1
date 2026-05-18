@@ -193,6 +193,36 @@ export default function Highlights2_1Mobile() {
         (slidesRange + splitRange + quoteRange) / totalRange;
       const manifestoProgress = 0.995;
 
+      // ── Fade-in cinemático ─────────────────────────────────────
+      // La sección arranca invisible (opacity: 0) y solo se revela
+      // durante el último ~15% de viewport antes del pin. Evita el
+      // "curtain" del Hero: mientras el box del Hero sale (z-[100],
+      // blanco opaco) la sección Highlights sigue oculta detrás, en
+      // vez de revelar sus titles a través del corte horizontal que
+      // hace el borde inferior del box al subir.
+      //
+      // Por qué 15% exactamente: el spacer del Hero mide 200svh y su
+      // artistsExitTrigger termina en scrollY = 1.85svh. La sección
+      // Highlights está en scrollY = 2svh (top doc). Cuando el Hero
+      // termina su exit, el top de Highlights está a 0.15svh del top
+      // del viewport → "top 15%" sincroniza el inicio del fade con
+      // el final exacto del exit del Hero. Handoff limpio sin overlap.
+      //
+      // scrub: true → la opacidad sigue el scroll exactamente, sin
+      // lag de tween-based duration. Reversible automáticamente al
+      // volver hacia arriba (opacity 1→0).
+      gsap.set(sticky, { opacity: 0 });
+      ScrollTrigger.create({
+        trigger: sticky,
+        start: "top 15%",
+        end: "top top",
+        scrub: true,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => {
+          sticky.style.opacity = String(self.progress);
+        },
+      });
+
       const mainTrigger = ScrollTrigger.create({
         trigger: sticky,
         start: "top top",
