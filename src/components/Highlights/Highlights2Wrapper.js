@@ -1,5 +1,6 @@
 import Highlights2Desktop from "./Highlights2Desktop";
 import Highlights2_1Desktop from "./Highlights2_1Desktop";
+import Highlights2_3Desktop from "./Highlights2_3Desktop";
 import Highlights2Mobile from "./Highlights2Mobile";
 import Highlights2_1Mobile from "./Highlights2_1Mobile";
 import Highlights2_2Mobile from "./Highlights2_2Mobile";
@@ -20,7 +21,7 @@ export default function Highlights2Wrapper() {
   return (
     <>
       <div className="hidden min-[901px]:block">
-        <Highlights2_1Desktop />
+        <Highlights2_3Desktop />
       </div>
       <div className="block min-[901px]:hidden">
         <Highlights2_3Mobile />
