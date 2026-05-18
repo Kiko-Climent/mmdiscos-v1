@@ -220,47 +220,52 @@ export default function Highlights2_3Mobile() {
       const textBoxW = textRect.width;
       const textBoxH = textRect.height;
 
-      // ── Quote droppers — física scroll-tied al estilo AboutFinal2 ────
-      // Recolectamos los spans con clase .hl-q-drop de las DOS capas
-      // (negra y blanca clipada) para animarlos en sync. Cada par tiene
-      // personalidad random pre-computada que se aplica multiplicada por
-      // la progresión local (t) durante la fase video.
+      // ── Quote drop chars — física gravitacional pura scroll-tied ────
+      // Granularidad per-CHAR (no per-word). Cada letra cae al vacío
+      // con su propia personalidad. Recolectamos los spans con clase
+      // .hl-q-drop-char de las DOS capas (negra y blanca clipada) para
+      // animarlos en sync. Cada par tiene physics random pre-computada.
       //
-      // Personalidad por palabra:
-      //  - v0y: velocidad inicial vertical. ~30% de las palabras "popean"
-      //    hacia arriba antes de caer (v0y > 0), el resto cae directo.
-      //  - vx: deriva horizontal random (±40px).
-      //  - rotSpeed: rotación final acumulada (±0.6 rad ≈ ±34°).
-      //  - delay: cuándo arranca la caída dentro de vp (0–0.25).
-      //  - duration: cuánto dura la caída (0.5–0.75 de vp).
+      // Personalidad por letra (tuneada para "caer de verdad"):
+      //  - vx: deriva horizontal sutil (±10px) — caen casi rectas.
+      //  - rotSpeed: rotación moderada (±0.4 rad ≈ ±23°), tipo hoja.
+      //  - delay: 0–0.4 de vp. Stagger para caída progresiva.
+      //  - duration: 0.3–0.5 de vp.
       //
-      // Físicas mid-flight (en píxeles, vs progresión local t ∈ [0,1]):
+      // CRÍTICO: delay + duration ≤ 0.9 garantizado → todos los chars
+      // completan su trayectoria por vp = 0.9, dejando 10% de buffer
+      // antes de salir del pin. Si no constreñimos esto, chars con
+      // delay alto + duration alta quedaban a t < 1 al acabar la
+      // sección y se veían colgados al hacer scroll a About.
+      //
+      // Física: v0y = 0 (gravedad pura, sin pop-up).
       //  x(t) = vx · t
-      //  y(t) = -v0y · t + 0.5 · g · t²    (g = 350)
+      //  y(t) = 0.5 · g · t²        (g = 1500 → y(1) = 750px)
       //  rot(t) = rotSpeed · t
-      //  opacity(t) = 1 - t²                (fade más rápido al final)
+      //  opacity(t) = 1 - t³        (cube fade: chars se quedan
+      //    visibles más tiempo MIENTRAS caen; solo se desvanecen
+      //    al final, cuando ya están saliendo del overflow-hidden
+      //    del section. Así "se les ve caer", no "se evaporan").
       //
-      // Al revertir scroll (vp baja), t baja con scrub → las palabras
-      // "vuelven" a su sitio suavemente. Cero ScrollTrigger extra,
-      // todo dentro del onUpdate del mainTrigger.
-      const blackDropEls = quoteTextRef.current
-        ? Array.from(quoteTextRef.current.querySelectorAll(".hl-q-drop"))
+      // g = 1500 garantiza que un char de la línea superior del quote
+      // (a ~175px del centro de viewport) cae 750px → llega bien
+      // pasado el bottom del section (clipado por overflow-hidden).
+      const blackDropChars = quoteTextRef.current
+        ? Array.from(quoteTextRef.current.querySelectorAll(".hl-q-drop-char"))
         : [];
-      const whiteDropEls = quoteTextWhiteRef.current
-        ? Array.from(quoteTextWhiteRef.current.querySelectorAll(".hl-q-drop"))
+      const whiteDropChars = quoteTextWhiteRef.current
+        ? Array.from(quoteTextWhiteRef.current.querySelectorAll(".hl-q-drop-char"))
         : [];
-      const QUOTE_DROP_G = 350;
-      const quoteDroppers = blackDropEls.map((black, i) => {
-        const white = whiteDropEls[i] || null;
-        const popUp = Math.random() < 0.3;
+      const QUOTE_DROP_G = 1500;
+      const quoteDropChars = blackDropChars.map((black, i) => {
+        const white = whiteDropChars[i] || null;
         return {
           black,
           white,
-          v0y: popUp ? 40 + Math.random() * 60 : 0,
-          vx: (Math.random() - 0.5) * 80,
-          rotSpeed: (Math.random() - 0.5) * 1.2,
-          delay: Math.random() * 0.25,
-          duration: 0.5 + Math.random() * 0.25,
+          vx: (Math.random() - 0.5) * 20,
+          rotSpeed: (Math.random() - 0.5) * 0.8,
+          delay: Math.random() * 0.4,
+          duration: 0.3 + Math.random() * 0.2,
         };
       });
 
@@ -386,20 +391,21 @@ export default function Highlights2_3Mobile() {
             quoteTextWhiteRef.current.style.clipPath = `inset(${insetTop}px ${insetRight}px ${insetBottom}px ${insetLeft}px)`;
           }
 
-          // ── Drop droppers ───────────────────────────────────────
-          // Caen las palabras NO-keeper en sync con el avance del video
-          // (vp). Cada palabra: x = vx·t, y = -v0y·t + 0.5g·t², rot, op.
-          // Aplicamos el MISMO transform a ambas capas (negra + blanca)
-          // para que el clip-path del video siga funcionando correcto
-          // sobre las palabras que caen — donde una palabra cae sobre el
-          // video se ve blanca, fuera del video negra.
-          for (let i = 0; i < quoteDroppers.length; i++) {
-            const d = quoteDroppers[i];
+          // ── Drop chars (per-letter gravity into void) ───────────
+          // Cada letra NO-keeper cae al vacío con física gravitacional
+          // pura (v0y=0). Stagger amplio (delay 0–0.55) → diferentes
+          // letras empiezan a caer en distintos puntos del scroll, no
+          // todas a la vez. El mismo transform se aplica a las DOS
+          // capas (negra + blanca clipada) para que el clip-path del
+          // video siga renderizando cada letra con el color correcto
+          // según esté dentro o fuera del footprint del video.
+          for (let i = 0; i < quoteDropChars.length; i++) {
+            const d = quoteDropChars[i];
             const t = clamp01((vp - d.delay) / d.duration);
             const x = d.vx * t;
-            const y = -d.v0y * t + 0.5 * QUOTE_DROP_G * t * t;
+            const y = 0.5 * QUOTE_DROP_G * t * t;
             const rot = d.rotSpeed * t;
-            const op = 1 - t * t;
+            const op = 1 - t * t * t;
             const tr = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) rotate(${rot.toFixed(3)}rad)`;
             const opStr = op.toFixed(3);
             d.black.style.transform = tr;
@@ -671,13 +677,14 @@ export default function Highlights2_3Mobile() {
               </video>
             </div>
 
-            {/* Quote dual-layer + scattered drop:
+            {/* Quote dual-layer + per-char gravity drop:
                 - capa negra siempre legible sobre blanco.
                 - capa blanca encima, clipada al footprint del video.
-                Ambas con la misma estructura de spans (.hl-q-word) para
-                que el drop se aplique en sync. Las .hl-q-drop son las
-                que caen con física scroll-tied; las .hl-q-keep quedan
-                en su sitio formando el endpoint poético scattered. */}
+                Ambas con la misma estructura: keepers como spans
+                inline-block intactos; droppers como spans inline-block
+                cuyo contenido son letras (.hl-q-drop-char) — cada letra
+                con su propia física scroll-tied de caída al vacío.
+                Mismo orden en ambas capas → pareo por índice. */}
             <div className="relative w-full max-w-[480px] text-center">
               <div ref={textBoxRef} className="relative">
                 <p
@@ -695,12 +702,23 @@ export default function Highlights2_3Mobile() {
                 >
                   {QUOTE_RENDER_ITEMS.map((item, i) => {
                     if (item.type === "space") return " ";
+                    if (item.keep) {
+                      return (
+                        <span key={i} className="hl-q-word hl-q-keep inline-block">
+                          {item.text}
+                        </span>
+                      );
+                    }
                     return (
-                      <span
-                        key={i}
-                        className={`hl-q-word inline-block ${item.keep ? "hl-q-keep" : "hl-q-drop will-change-[transform,opacity]"}`}
-                      >
-                        {item.text}
+                      <span key={i} className="hl-q-word inline-block">
+                        {[...item.text].map((ch, ci) => (
+                          <span
+                            key={ci}
+                            className="hl-q-drop-char inline-block will-change-[transform,opacity]"
+                          >
+                            {ch}
+                          </span>
+                        ))}
                       </span>
                     );
                   })}
@@ -722,12 +740,23 @@ export default function Highlights2_3Mobile() {
                 >
                   {QUOTE_RENDER_ITEMS.map((item, i) => {
                     if (item.type === "space") return " ";
+                    if (item.keep) {
+                      return (
+                        <span key={i} className="hl-q-word hl-q-keep inline-block">
+                          {item.text}
+                        </span>
+                      );
+                    }
                     return (
-                      <span
-                        key={i}
-                        className={`hl-q-word inline-block ${item.keep ? "hl-q-keep" : "hl-q-drop will-change-[transform,opacity]"}`}
-                      >
-                        {item.text}
+                      <span key={i} className="hl-q-word inline-block">
+                        {[...item.text].map((ch, ci) => (
+                          <span
+                            key={ci}
+                            className="hl-q-drop-char inline-block will-change-[transform,opacity]"
+                          >
+                            {ch}
+                          </span>
+                        ))}
                       </span>
                     );
                   })}
