@@ -208,8 +208,17 @@ export default function MMNewestHero2Mobile() {
 
     const artistsExitTrigger = ScrollTrigger.create({
       trigger:             spacer,
-      start:               `top+=${vh * 1.2}px top`,
-      end:                 `top+=${vh * 1.85}px top`,
+      // Exit a ritmo de scroll natural (1:1) y sincronizado con la
+      // entrada de Highlights desde abajo:
+      // - start en scrollY = 1*vh → en ese punto el top de Highlights
+      //   toca el bottom del viewport (spacer es 200svh, viewport ≈ svh).
+      // - end en scrollY = 2*vh → coincide con el pin de Highlights
+      //   en "top top". El box llega a y=-vh exactamente cuando
+      //   Highlights se pinea — handoff limpio, sin gap ni overlap.
+      // El borde inferior del box y el top de Highlights se mueven
+      // a la misma velocidad (1:1 con scroll) → no hay efecto cortina.
+      start:               `top+=${vh}px top`,
+      end:                 `top+=${vh * 2}px top`,
       scrub:               1,
       invalidateOnRefresh: true,
       onUpdate: (self) => {
