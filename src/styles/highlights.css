@@ -29,10 +29,9 @@
     color: #fff;
   }
   
-  /* Wrapper recorta la imagen con el polygon original del tutorial.
-     Tailwind no tiene utility para clip-path arbitrario sin arbitrary value largo. */
+  /* Wrapper sin corte diagonal: imagen limpia en desktop + mobile. */
   .hl-img-wrapper {
-    clip-path: polygon(50% 0%, 100% 0, 100% 85%, 90% 100%, 50% 100%, 0 100%, 0 0);
+    clip-path: inset(0);
   }
   
   .hl-service-img {
