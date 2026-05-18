@@ -50,13 +50,14 @@ export default function MMNewestHero2Mobile() {
     if (!box || !logo || !spacer) return;
 
     // Freeze viewport dims on mount — pixel values, no resize jank.
-    // vh se mide desde el propio spacer (h-[200svh]) para garantizar
-    // consistencia con la sección Highlights que también usa svh. Si
-    // usáramos innerHeight, en mounts con la URL bar oculta capturaríamos
-    // un viewport mayor que svh → el rango de exit de los artists (1.85*vh)
-    // se solapaba con el inicio del pin de Highlights (2*svh).
+    // Spacer es h-[100lvh] (1 viewport, lvh = largest viewport height,
+    // estable a través del toggle de la URL bar). vh = spacerH = lvh
+    // garantiza que el box y el video container cubran SIEMPRE el
+    // viewport visible, sin importar si la URL bar está visible u oculta.
+    // Con svh nos quedábamos cortos cuando Chrome ocultaba la URL bar
+    // (viewport = lvh > svh) → aparecía banda blanca abajo.
     const spacerH = spacer.getBoundingClientRect().height;
-    const vh = spacerH > 0 ? spacerH / 2 : window.innerHeight;
+    const vh = spacerH > 0 ? spacerH : window.innerHeight;
     const vw = window.innerWidth;
 
     if (videoContainerRef.current) {
@@ -75,7 +76,13 @@ export default function MMNewestHero2Mobile() {
     box.style.willChange  = "transform, background-color";
     logo.style.willChange = "transform";
 
+    // Posición clavada en px (no porcentajes del viewport). Si dejamos
+    // top:50% left:50% del Tailwind, Android Chrome re-resuelve esos
+    // porcentajes al toggle de la URL bar → el box "salta" verticalmente
+    // sumándose al translateY del exit (sensación de step-down).
     gsap.set(box, {
+      top:             vh / 2,
+      left:            vw / 2,
       width:           vw,
       height:          vh,
       xPercent:        -50,
@@ -113,7 +120,14 @@ export default function MMNewestHero2Mobile() {
     });
 
     const spans = artistsSpansRef.current.filter(Boolean);
-    gsap.set(artistsContainerRef.current, { xPercent: -50, yPercent: -50, opacity: 0 });
+    // Mismo motivo que el box: top/left en px para inmunidad a URL bar.
+    gsap.set(artistsContainerRef.current, {
+      top: vh / 2,
+      left: vw / 2,
+      xPercent: -50,
+      yPercent: -50,
+      opacity: 0,
+    });
     gsap.set(spans, { opacity: 0 });
 
     // ── Reveal artists tras snap ────────────────────────────────────────
@@ -216,9 +230,14 @@ export default function MMNewestHero2Mobile() {
 
     const artistsExitTrigger = ScrollTrigger.create({
       trigger:             spacer,
-      start:               `top+=${vh * 1.2}px top`,
-      end:                 `top+=${vh * 1.85}px top`,
-      scrub:               1,
+      // Exit a ritmo 1:1 con el scroll, ocupando el spacer entero
+      // (1 viewport). El box (z-100, blanco opaco, height=lvh) cubre
+      // siempre el viewport visible; conforme se translateY hacia
+      // arriba, Highlights va apareciendo desde abajo en lockstep
+      // perfecto — sin gap, sin parallax. Total Hero scroll: 1 viewport.
+      start:               "top top",
+      end:                 "bottom top",
+      scrub:               0.3,
       invalidateOnRefresh: true,
       onUpdate: (self) => {
         const p = self.progress;
@@ -252,7 +271,7 @@ export default function MMNewestHero2Mobile() {
 
   return (
     <>
-      <div ref={spacerRef} className="h-[200svh] pointer-events-none" />
+      <div ref={spacerRef} className="h-[100lvh] pointer-events-none" />
 
       <div
         ref={videoContainerRef}
