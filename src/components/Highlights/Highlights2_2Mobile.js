@@ -60,7 +60,7 @@ export default function Highlights2_1Mobile() {
   const copyWrapRef = useRef(null);
   const indicatorRef = useRef(null);
   const stripRef = useRef(null);
-  const copyRef = useRef(null);
+  const copiesRef = useRef([]);
   const counterRef = useRef(null);
   const progressRef = useRef(null);
   const progressBarRef = useRef(null);
@@ -82,97 +82,23 @@ export default function Highlights2_1Mobile() {
   const videoRef = useRef(null);
 
   useLayoutEffect(() => {
-    if (window.innerWidth > 900) return;
-    const wrap = copyWrapRef.current;
-    const copy = copyRef.current;
-    if (!wrap || !copy) return;
-
-    const syncCopyMinHeight = () => {
-      const cs = window.getComputedStyle(copy);
-      const probe = document.createElement("p");
-      probe.style.position = "absolute";
-      probe.style.visibility = "hidden";
-      probe.style.pointerEvents = "none";
-      probe.style.left = "-9999px";
-      probe.style.top = "0";
-      probe.style.width = `${wrap.clientWidth}px`;
-      probe.style.margin = "0";
-      probe.style.fontFamily = cs.fontFamily;
-      probe.style.fontSize = cs.fontSize;
-      probe.style.fontWeight = cs.fontWeight;
-      probe.style.letterSpacing = cs.letterSpacing;
-      probe.style.lineHeight = cs.lineHeight;
-      probe.style.textTransform = cs.textTransform;
-      probe.style.textAlign = cs.textAlign;
-
-      let maxH = 0;
-      for (const s of SLIDES) {
-        probe.textContent = s.copy;
-        document.body.appendChild(probe);
-        maxH = Math.max(maxH, probe.getBoundingClientRect().height);
-        document.body.removeChild(probe);
-      }
-
-      wrap.style.minHeight = `${Math.ceil(maxH)}px`;
-    };
-
-    syncCopyMinHeight();
-    window.addEventListener("resize", syncCopyMinHeight);
-    window.addEventListener("orientationchange", syncCopyMinHeight);
-
-    return () => {
-      window.removeEventListener("resize", syncCopyMinHeight);
-      window.removeEventListener("orientationchange", syncCopyMinHeight);
-    };
-  }, []);
-
-  useLayoutEffect(() => {
+    // Escalado proporcional al alto de viewport. Se ejecuta una vez al
+    // montar; con ScrollTrigger.config({ignoreMobileResize:true}) global
+    // no necesitamos reaccionar al toggle de la URL bar — la sección usa
+    // 100svh y siempre cabe en el viewport visible.
     if (window.innerWidth > 900) return;
     const frame = contentFrameRef.current;
     if (!frame) return;
 
-    const applyStaticScale = () => {
-      const layoutH = window.innerHeight;
-      const compact = clamp(layoutH / 760, 0.86, 1);
-      const topPadPx = Math.round(100 * compact);
-      const gapPx = Math.round(18 * compact);
-      const panelGapPx = Math.round(16 * compact);
-      const titleMaxPx = Math.round(26 * compact);
-      const imageMaxPx = Math.round(220 * compact);
-      const copyMaxPx = Math.round(360 * compact);
-      const progressMaxPx = Math.round(420 * compact);
-      frame.style.setProperty("--hl-mobile-bottom-pad", "26px");
-      frame.style.setProperty("--hl-mobile-top-pad", `${topPadPx}px`);
-      frame.style.setProperty("--hl-mobile-gap", `${gapPx}px`);
-      frame.style.setProperty("--hl-mobile-panel-gap", `${panelGapPx}px`);
-      frame.style.setProperty("--hl-mobile-title-max", `${titleMaxPx}px`);
-      frame.style.setProperty("--hl-mobile-image-max", `${imageMaxPx}px`);
-      frame.style.setProperty("--hl-mobile-copy-max", `${copyMaxPx}px`);
-      frame.style.setProperty("--hl-mobile-progress-max", `${progressMaxPx}px`);
-    };
-
-    const applyDynamicBottomInset = () => {
-      const vv = window.visualViewport;
-      const visibleH = vv?.height || window.innerHeight;
-      const layoutH = window.innerHeight;
-      const chromeGap = Math.max(0, layoutH - visibleH);
-      const dynamicBottom = Math.max(26, Math.min(72, chromeGap + 28));
-      frame.style.setProperty("--hl-mobile-bottom-pad", `${dynamicBottom}px`);
-    };
-
-    applyStaticScale();
-    applyDynamicBottomInset();
-    window.visualViewport?.addEventListener("resize", applyDynamicBottomInset);
-    window.visualViewport?.addEventListener("scroll", applyDynamicBottomInset);
-    window.addEventListener("orientationchange", applyStaticScale);
-    window.addEventListener("orientationchange", applyDynamicBottomInset);
-
-    return () => {
-      window.visualViewport?.removeEventListener("resize", applyDynamicBottomInset);
-      window.visualViewport?.removeEventListener("scroll", applyDynamicBottomInset);
-      window.removeEventListener("orientationchange", applyStaticScale);
-      window.removeEventListener("orientationchange", applyDynamicBottomInset);
-    };
+    const layoutH = window.innerHeight;
+    const compact = clamp(layoutH / 760, 0.86, 1);
+    frame.style.setProperty("--hl-mobile-top-pad", `${Math.round(100 * compact)}px`);
+    frame.style.setProperty("--hl-mobile-gap", `${Math.round(18 * compact)}px`);
+    frame.style.setProperty("--hl-mobile-panel-gap", `${Math.round(16 * compact)}px`);
+    frame.style.setProperty("--hl-mobile-title-max", `${Math.round(26 * compact)}px`);
+    frame.style.setProperty("--hl-mobile-image-max", `${Math.round(220 * compact)}px`);
+    frame.style.setProperty("--hl-mobile-copy-max", `${Math.round(360 * compact)}px`);
+    frame.style.setProperty("--hl-mobile-progress-max", `${Math.round(420 * compact)}px`);
   }, []);
 
   useLayoutEffect(() => {
@@ -184,7 +110,6 @@ export default function Highlights2_1Mobile() {
     if (!sticky || items.length === 0) return;
 
     let currentIndex = 0;
-    let copyTween = null;
     let removeManifestoListener = null;
 
     const ctx = gsap.context(() => {
@@ -417,24 +342,16 @@ export default function Highlights2_1Mobile() {
             });
           }
 
-          if (copyTween) copyTween.kill();
-          copyTween = gsap.to(copyRef.current, {
-            opacity: 0,
-            y: -12,
-            duration: 0.2,
-            ease: "power2.in",
-            force3D: true,
-            onComplete: () => {
-              copyRef.current.textContent = SLIDES[activeIndex].copy;
-              gsap.set(copyRef.current, { opacity: 0, y: 12 });
-              copyTween = gsap.to(copyRef.current, {
-                opacity: 1,
-                y: 0,
-                duration: 0.3,
-                ease: "power3.out",
-                force3D: true,
-              });
-            },
+          copiesRef.current.forEach((p, i) => {
+            if (!p) return;
+            gsap.to(p, {
+              opacity: i === activeIndex ? 1 : 0,
+              y: i === activeIndex ? 0 : 10,
+              duration: 0.35,
+              ease: "power3.out",
+              overwrite: true,
+              force3D: true,
+            });
           });
         },
       });
@@ -456,7 +373,6 @@ export default function Highlights2_1Mobile() {
     }, rootRef);
 
     return () => {
-      if (copyTween) copyTween.kill();
       if (removeManifestoListener) removeManifestoListener();
       ctx.revert();
     };
@@ -466,7 +382,7 @@ export default function Highlights2_1Mobile() {
     <div ref={rootRef} className="hl-root w-full bg-white">
       <section
         ref={stickyRef}
-        className="hl-sticky relative w-screen h-screen bg-white overflow-hidden"
+        className="hl-sticky relative w-screen h-[100svh] bg-white overflow-hidden"
       >
         {/* Contenedor único — todo centrado en la interface
             (mismo patrón que Highlights2Mobile original). */}
@@ -548,15 +464,24 @@ export default function Highlights2_1Mobile() {
 
             <div
               ref={copyWrapRef}
-              className="w-full"
+              className="w-full grid"
               style={{ maxWidth: "var(--hl-mobile-copy-max, 360px)" }}
             >
-              <p
-                ref={copyRef}
-                className="hl-copy text-[clamp(13px,3.6vw,15px)] leading-tight text-black text-center"
-              >
-                {SLIDES[0].copy}
-              </p>
+              {SLIDES.map((s, i) => (
+                <p
+                  key={s.ref}
+                  ref={(el) => {
+                    copiesRef.current[i] = el;
+                  }}
+                  className="hl-copy text-[clamp(13px,3.6vw,15px)] leading-tight text-black text-center will-change-[transform,opacity]"
+                  style={{
+                    gridArea: "1 / 1",
+                    opacity: i === 0 ? 1 : 0,
+                  }}
+                >
+                  {s.copy}
+                </p>
+              ))}
             </div>
           </div>
         </div>
