@@ -84,8 +84,8 @@ export default function Highlights2_1Mobile() {
   useLayoutEffect(() => {
     // Escalado proporcional al alto de viewport. Se ejecuta una vez al
     // montar; con ScrollTrigger.config({ignoreMobileResize:true}) global
-    // no necesitamos reaccionar al toggle de la URL bar — la sección usa
-    // 100svh y siempre cabe en el viewport visible.
+    // no necesitamos reaccionar al toggle de la URL bar — la sección
+    // sobrecubre unos px para evitar rendijas del pin en mobile.
     if (window.innerWidth > 900) return;
     const frame = contentFrameRef.current;
     if (!frame) return;
@@ -197,8 +197,17 @@ export default function Highlights2_1Mobile() {
         trigger: sticky,
         start: "top top",
         end: `+=${totalRange}`,
-        pin: true,
+        pin: sticky,
+        pinSpacing: true,
+        pinType: "fixed",
+        anticipatePin: 1,
         invalidateOnRefresh: true,
+        onRefresh: (self) => {
+          const spacer = self.pin?.parentNode;
+          if (!spacer) return;
+          spacer.style.backgroundColor = "#fff";
+          spacer.style.overflow = "hidden";
+        },
         onUpdate: (self) => {
           const p = self.progress;
 
@@ -382,7 +391,12 @@ export default function Highlights2_1Mobile() {
     <div ref={rootRef} className="hl-root w-full bg-white">
       <section
         ref={stickyRef}
-        className="hl-sticky relative w-screen h-[100dvh] min-h-[100svh] bg-white overflow-hidden"
+        className="hl-sticky relative w-screen bg-white overflow-hidden"
+        style={{
+          height: "calc(100dvh + 2px)",
+          minHeight: "calc(100svh + 2px)",
+          marginBottom: "-2px",
+        }}
       >
         {/* Contenedor único — todo centrado en la interface
             (mismo patrón que Highlights2Mobile original). */}
