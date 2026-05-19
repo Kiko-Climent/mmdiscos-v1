@@ -16,26 +16,33 @@ const LOGO_LAYER_INSET       = "1rem 2.5rem 2.5rem 2.5rem";
 const LOGO_INITIAL_SRC       = "/logo/Balearic Sound System Logo.svg";
 const HERO_VIDEO = getResponsiveVideoSources("/video/MM Hero BG_1.mp4");
 
-// ── Artist → release image map ────────────────────────────────────────────────
-const ARTIST_IMAGE_MAP = {
-  "mogwaa":          "/img3.jpg",
-  "daichi":          "/Daichi - cover.jpg",
-  "nic jalusi":      "/MMD039.png",
-  "pleasure voyage": "/img5.jpg",
-  "statues":         "/statues.jpeg",
-  "mori ra":         "/morira - cover.png",
-  "guillaume":       "/img2.jpg",
-  "pontcho":         "/MMD038.png",
-  "corben":          "/corben_peachland_cover.jpg",
-  "celex":           "/Celex - cover.jpg",
-  "nairless":        "/img4.jpg",
-  "jaisiel":         "/Factory Edits - cover.jpg",
-  "trepanado":       "/Factory Edits - cover.jpg",
-  "ruf dug":         "/MMD040-2.png",
-  "saturn":          "/MMD040-2.png",
-  "atlantic brain":  "/MMD040-2.png",
-  "distance":        "/MMD040_Cover-1.jpg",
+// ── Artist → release cover base (resuelve a /img-opt/v2/{base}__balanced-1280.{avif|webp})
+// Render máximo del hover image: clamp(220px, 36vmin, 420px). DPR 3 ⇒ 1260px
+// reales, por eso usamos la variante 1280. Originales en /public pesaban ~14 MB
+// sumados; con AVIF-1280 bajamos a ~2 MB y con WebP-1280 a ~3 MB.
+const ARTIST_COVER_BASES = {
+  "mogwaa":          "img3",
+  "daichi":          "Daichi - cover",
+  "nic jalusi":      "MMD039",
+  "pleasure voyage": "img5",
+  "statues":         "statues",
+  "mori ra":         "morira - cover",
+  "guillaume":       "img2",
+  "pontcho":         "MMD038",
+  "corben":          "corben_peachland_cover",
+  "celex":           "Celex - cover",
+  "nairless":        "img4",
+  "jaisiel":         "Factory Edits - cover",
+  "trepanado":       "Factory Edits - cover",
+  "ruf dug":         "MMD040-2",
+  "saturn":          "MMD040-2",
+  "atlantic brain":  "MMD040-2",
+  "distance":        "MMD040_Cover-1",
 };
+
+const COVER_OPT_SIZE = 1280;
+const coverUrl = (base, ext) =>
+  `/img-opt/v2/${base}__balanced-${COVER_OPT_SIZE}.${ext}`;
 
 const ARTISTS = [
   "Asa Tate", "Daichi", "Nic Jalusi", "James Falco", "Pleasure Voyage", "Mogwaa", "Statues",
@@ -61,17 +68,19 @@ export default function MMNewestHero2_1() {
   const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
 
   // ── Hover handlers ───────────────────────────────────────────────────────────
-  // clipPath wipe: enter grows up from bottom, exit snaps. Single <img>, src swapped.
-  // No-op on touch/mobile devices (hasHoverRef is false).
+  // Single <img>, src swapped. AVIF primario; si el navegador no decodifica
+  // AVIF, el onerror cae a WebP de la misma variante. No-op en touch/mobile.
   const handleHoverEnter = (name) => {
     if (!hasHoverRef.current) return;
-    const src = ARTIST_IMAGE_MAP[name.toLowerCase()];
-    if (!src || !hoverImageRef.current) return;
-    hoverImageRef.current.src = src;
-    hoverImageRef.current.style.display = "block";
-    gsap.killTweensOf(hoverImageRef.current);
+    const base = ARTIST_COVER_BASES[name.toLowerCase()];
+    const img = hoverImageRef.current;
+    if (!base || !img) return;
+    img.onerror = () => { img.onerror = null; img.src = coverUrl(base, "webp"); };
+    img.src = coverUrl(base, "avif");
+    img.style.display = "block";
+    gsap.killTweensOf(img);
     gsap.fromTo(
-      hoverImageRef.current,
+      img,
       { scale: 1.05 },
       { scale: 1, duration: 0.28, ease: "power2.out" }
     );
@@ -165,9 +174,10 @@ export default function MMNewestHero2_1() {
     gsap.set(artistsContainerRef.current, { xPercent: -50, yPercent: -50, opacity: 0 });
     gsap.set(spans, { opacity: 0 });
 
-    // ── Hover image: center via GSAP transform, preload all mapped covers ─────
+    // ── Hover image: center via GSAP transform ───────────────────────────────
+    // Preload de covers se difiere a revealArtists (post hero-scrub) dentro de
+    // requestIdleCallback — así no compite con el video/logo del LCP del hero.
     gsap.set(hoverImageRef.current, { xPercent: -50, yPercent: -50, scale: 1, force3D: true });
-    Object.values(ARTIST_IMAGE_MAP).forEach((src) => { new Image().src = src; });
 
     // ── Reveal: fires when logo settles at top ────────────────────────────────
     const revealArtists = () => {
@@ -195,6 +205,26 @@ export default function MMNewestHero2_1() {
         { opacity: 0 },
         { opacity: 1, duration: 0.85, ease: "power3.out", stagger: { each: 0.04, from: "random" } }
       );
+
+      // Preload diferido de covers únicos. AVIF primario; el onerror cae a
+      // WebP en navegadores sin soporte AVIF. Se ejecuta una sola vez por
+      // sesión gracias al flag en window.
+      if (!window.__mmHeroCoversPreloaded) {
+        window.__mmHeroCoversPreloaded = true;
+        const preloadCovers = () => {
+          const uniqueBases = new Set(Object.values(ARTIST_COVER_BASES));
+          uniqueBases.forEach((base) => {
+            const img = new Image();
+            img.onerror = () => { img.onerror = null; img.src = coverUrl(base, "webp"); };
+            img.src = coverUrl(base, "avif");
+          });
+        };
+        if (typeof window.requestIdleCallback === "function") {
+          window.requestIdleCallback(preloadCovers, { timeout: 1500 });
+        } else {
+          setTimeout(preloadCovers, 300);
+        }
+      }
     };
 
     // ── Reset: fires when user scrolls back above the logo trigger ────────────
@@ -379,6 +409,7 @@ export default function MMNewestHero2_1() {
       <img
         ref={hoverImageRef}
         alt="" aria-hidden
+        decoding="async"
         className="fixed top-1/2 left-1/2 z-[500] object-cover pointer-events-none will-change-transform"
         style={{
           display: "none",
@@ -407,7 +438,7 @@ export default function MMNewestHero2_1() {
               ref={(el) => { artistsSpansRef.current[i] = el; }}
               onMouseEnter={() => handleHoverEnter(name)}
               onMouseLeave={handleHoverLeave}
-              className={ARTIST_IMAGE_MAP[name.toLowerCase()] ? "cursor-crosshair" : "cursor-default"}
+              className={ARTIST_COVER_BASES[name.toLowerCase()] ? "cursor-crosshair" : "cursor-default"}
             >
               {name}{i < ARTISTS.length - 1 ? ", " : ""}
             </span>

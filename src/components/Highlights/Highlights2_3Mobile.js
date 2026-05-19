@@ -55,53 +55,14 @@ const SLIDER_IMG_SIZES = "(min-width: 400px) 220px, 55vw";
 const ALFREDOS_QUOTE = `We played without rules, without thinking about styles or what would come next. One track could be slow, the next dark, then something pop or an impossible guitar, but it all made sense in that moment. The dancefloor didn't ask for coherence, it asked for emotion — and as long as people stayed there, smiling and lost, you knew you were doing it right.`;
 const HEADER_VIDEO = getResponsiveVideoSources("/video/Video MM Header.mp4");
 
-// ── Quote tokenization para la animación de "scattered drop" ──────────────
-// Tokens del quote separados por whitespace. Los índices KEEPER son las
-// palabras que sobreviven al video (fase vp); el resto cae con física
-// scroll-tied (gravedad parametrizada, mismo espíritu que AboutFinal2).
+// ── Quote tokenization para la animación de "lateral sweep" ───────────────
+// Todas las letras del quote se barren hacia los lados durante la fase
+// video, apilándose en dos columnas que solapan ligeramente los bordes del
+// video que crece. Sin keepers — ninguna palabra sobrevive. Cada letra
+// preserva su Y original (con micro-jitter) → las líneas del quote se
+// "pliegan" lateralmente en lugar de caer. Coherencia con AboutFinal2:
+// per-char, easing power3-style, target stable computado en setup.
 const QUOTE_TOKENS = ALFREDOS_QUOTE.split(/\s+/).filter(Boolean);
-const KEEPER_INDICES = new Set([
-  // "We played without rules"
-  0, 1, 2, 3,
-  // "all made sense in that moment"
-  30, 31, 32, 33, 34, 35,
-  // "— and"
-  46, 47,
-  // "people stayed"
-  51, 52,
-  // "smiling and lost"
-  54, 55, 56,
-]);
-const PUNCT_TRAIL = /[,.!?;:—]+$/;
-// renderItems: lista plana de { type: 'space' | 'word', text, keep }. Para
-// keepers con puntuación final (rules,/moment./lost,) separamos el signo
-// en su propio span (el signo cae con los droppers, la palabra se queda
-// limpia) — así el endpoint visual es exactamente como lo pidió el user:
-// "We played without rules" sin coma, "moment" sin punto, etc.
-//
-// Edge case: tokens que SON solo puntuación (como el em-dash "—" que es
-// keeper) no se splittean — m.index === 0 indicaría que el token entero
-// es puntuación, sin prefijo de palabra. En ese caso mantenemos el token
-// intacto como keeper.
-const QUOTE_RENDER_ITEMS = (() => {
-  const items = [];
-  QUOTE_TOKENS.forEach((tok, i) => {
-    if (i > 0) items.push({ type: "space" });
-    const isKeeper = KEEPER_INDICES.has(i);
-    if (isKeeper) {
-      const m = tok.match(PUNCT_TRAIL);
-      if (m && m.index > 0) {
-        items.push({ type: "word", text: tok.slice(0, m.index), keep: true });
-        items.push({ type: "word", text: m[0], keep: false });
-      } else {
-        items.push({ type: "word", text: tok, keep: true });
-      }
-    } else {
-      items.push({ type: "word", text: tok, keep: false });
-    }
-  });
-  return items;
-})();
 
 const HEADLINE_FONT = "'Favorit', sans-serif";
 
@@ -235,52 +196,94 @@ export default function Highlights2_3Mobile() {
       const textBoxW = textRect.width;
       const textBoxH = textRect.height;
 
-      // ── Quote drop chars — física gravitacional pura scroll-tied ────
-      // Granularidad per-CHAR (no per-word). Cada letra cae al vacío
-      // con su propia personalidad. Recolectamos los spans con clase
-      // .hl-q-drop-char de las DOS capas (negra y blanca clipada) para
-      // animarlos en sync. Cada par tiene physics random pre-computada.
+      // ── Quote sweep chars — barrido lateral scroll-tied ──────────────
+      // Per-CHAR (no per-word). Todas las letras del quote escapan hacia
+      // los lados durante la fase video, apilándose en dos columnas que
+      // solapan ligeramente los bordes del video que crece. Sin keepers
+      // — ninguna palabra sobrevive en el centro.
       //
-      // Personalidad por letra (tuneada para "caer de verdad"):
-      //  - vx: deriva horizontal sutil (±10px) — caen casi rectas.
-      //  - rotSpeed: rotación moderada (±0.4 rad ≈ ±23°), tipo hoja.
-      //  - delay: 0–0.4 de vp. Stagger para caída progresiva.
-      //  - duration: 0.3–0.5 de vp.
+      // Topología:
+      //  - Char con cx0 < textBoxW/2 → columna izquierda
+      //  - Char con cx0 ≥ textBoxW/2 → columna derecha
+      //  - Columnas centradas sobre videoCxLocal ± videoBaseW/2 (justo
+      //    sobre los bordes del video al tamaño final). Pequeño inset
+      //    hacia dentro → solapan el video por unos px (intencional).
+      //  - Cada char preserva su Y original (con micro-jitter ±4px)
+      //    → las líneas del quote se "pliegan" lateralmente, mantienen
+      //    su topología vertical. Más tipográficamente honesto que un
+      //    apilamiento secuencial.
       //
-      // CRÍTICO: delay + duration ≤ 0.9 garantizado → todos los chars
-      // completan su trayectoria por vp = 0.9, dejando 10% de buffer
-      // antes de salir del pin. Si no constreñimos esto, chars con
-      // delay alto + duration alta quedaban a t < 1 al acabar la
-      // sección y se veían colgados al hacer scroll a About.
+      // Personalidad por char (mismo espíritu que AboutFinal2 recruit):
+      //  - jitterX/Y: pequeño offset random → la columna no parece una
+      //    línea de píxeles perfecta, tiene textura.
+      //  - rotFinal: ±12° (0.21 rad) → vibra de "physics-y" sin física.
+      //  - scaleFinal: 0.72–0.84 → compresión que ayuda a leer las
+      //    columnas como un margen, no como texto principal.
+      //  - delay: biased por distancia al centro horizontal. Chars
+      //    LEJOS del centro salen ANTES (low delay), chars cerca del
+      //    centro salen DESPUÉS → la sensación es "el video empuja
+      //    los chars hacia fuera a medida que crece". Las columnas
+      //    se rellenan de fuera hacia dentro.
+      //  - duration: 0.45–0.55 de vp.
+      //  - delay + duration ≤ 0.81 garantizado → todos finalizan antes
+      //    de salir del pin con buffer.
       //
-      // Física: v0y = 0 (gravedad pura, sin pop-up).
-      //  x(t) = vx · t
-      //  y(t) = 0.5 · g · t²        (g = 1500 → y(1) = 750px)
-      //  rot(t) = rotSpeed · t
-      //  opacity(t) = 1 - t³        (cube fade: chars se quedan
-      //    visibles más tiempo MIENTRAS caen; solo se desvanecen
-      //    al final, cuando ya están saliendo del overflow-hidden
-      //    del section. Así "se les ve caer", no "se evaporan").
-      //
-      // g = 1500 garantiza que un char de la línea superior del quote
-      // (a ~175px del centro de viewport) cae 750px → llega bien
-      // pasado el bottom del section (clipado por overflow-hidden).
-      const blackDropChars = quoteTextRef.current
-        ? Array.from(quoteTextRef.current.querySelectorAll(".hl-q-drop-char"))
+      // Easing: easeInOutCubic (mismo que el resto de fases del scrub).
+      const COLUMN_INSET     = 12;   // px que las columnas solapan hacia dentro del video
+      const COLUMN_V_INSET   = 6;    // padding vertical de las columnas
+      const CHAR_SCALE_MIN   = 0.72;
+      const CHAR_SCALE_RANGE = 0.12;
+      const CHAR_ROT_MAX     = 0.21; // rad ≈ ±12°
+      const JITTER_X         = 18;   // px range
+      const JITTER_Y         = 8;    // px range
+
+      const blackChars = quoteTextRef.current
+        ? Array.from(quoteTextRef.current.querySelectorAll(".hl-q-char"))
         : [];
-      const whiteDropChars = quoteTextWhiteRef.current
-        ? Array.from(quoteTextWhiteRef.current.querySelectorAll(".hl-q-drop-char"))
+      const whiteChars = quoteTextWhiteRef.current
+        ? Array.from(quoteTextWhiteRef.current.querySelectorAll(".hl-q-char"))
         : [];
-      const QUOTE_DROP_G = 1500;
-      const quoteDropChars = blackDropChars.map((black, i) => {
-        const white = whiteDropChars[i] || null;
+
+      const halfTextBoxW = textBoxW / 2;
+      const halfMaxDistX = halfTextBoxW || 1;
+      const leftColumnX  = videoCxLocal - videoBaseW / 2 + COLUMN_INSET;
+      const rightColumnX = videoCxLocal + videoBaseW / 2 - COLUMN_INSET;
+      const columnTopY    = videoCyLocal - videoBaseH / 2 + COLUMN_V_INSET;
+      const columnBottomY = videoCyLocal + videoBaseH / 2 - COLUMN_V_INSET;
+
+      const quoteSweepChars = blackChars.map((black, i) => {
+        const white = whiteChars[i] || null;
+        const rect = black.getBoundingClientRect();
+        // Centro del char en coordenadas locales del textBox
+        const cx0 = (rect.left + rect.right) / 2 - textRect.left;
+        const cy0 = (rect.top + rect.bottom) / 2 - textRect.top;
+
+        const goesLeft = cx0 < halfTextBoxW;
+        const columnX  = goesLeft ? leftColumnX : rightColumnX;
+
+        const jx = (Math.random() - 0.5) * JITTER_X;
+        const jy = (Math.random() - 0.5) * JITTER_Y;
+
+        // Y final clamped al rango de la columna — chars de líneas
+        // extremas no se salen del footprint del video.
+        const targetCx = columnX + jx;
+        const targetCy = clamp(cy0 + jy, columnTopY, columnBottomY);
+
+        // Delay biased por distancia al centro: chars cerca del centro
+        // se quedan más tiempo (el video tarda en alcanzarlos).
+        const distRatio = clamp01(Math.abs(cx0 - halfTextBoxW) / halfMaxDistX);
+        const delay     = (1 - distRatio) * 0.22 + Math.random() * 0.08;
+        const duration  = 0.45 + Math.random() * 0.10;
+
         return {
           black,
           white,
-          vx: (Math.random() - 0.5) * 20,
-          rotSpeed: (Math.random() - 0.5) * 0.8,
-          delay: Math.random() * 0.4,
-          duration: 0.3 + Math.random() * 0.2,
+          dx:         targetCx - cx0,
+          dy:         targetCy - cy0,
+          rotFinal:   (Math.random() - 0.5) * 2 * CHAR_ROT_MAX,
+          scaleFinal: CHAR_SCALE_MIN + Math.random() * CHAR_SCALE_RANGE,
+          delay,
+          duration,
         };
       });
 
@@ -406,28 +409,29 @@ export default function Highlights2_3Mobile() {
             quoteTextWhiteRef.current.style.clipPath = `inset(${insetTop}px ${insetRight}px ${insetBottom}px ${insetLeft}px)`;
           }
 
-          // ── Drop chars (per-letter gravity into void) ───────────
-          // Cada letra NO-keeper cae al vacío con física gravitacional
-          // pura (v0y=0). Stagger amplio (delay 0–0.55) → diferentes
-          // letras empiezan a caer en distintos puntos del scroll, no
-          // todas a la vez. El mismo transform se aplica a las DOS
-          // capas (negra + blanca clipada) para que el clip-path del
-          // video siga renderizando cada letra con el color correcto
-          // según esté dentro o fuera del footprint del video.
-          for (let i = 0; i < quoteDropChars.length; i++) {
-            const d = quoteDropChars[i];
+          // ── Sweep chars (per-letter lateral escape) ─────────────
+          // Cada letra interpola hacia su target precomputado (en su
+          // columna lateral) con easeInOutCubic. Sin opacity changes
+          // — las letras permanecen visibles, apiladas en las
+          // columnas que solapan los bordes del video. El mismo
+          // transform se aplica a las DOS capas (negra + blanca
+          // clipada al footprint del video) → el dual-layer renderiza
+          // cada char con el color correcto según esté sobre el video
+          // o sobre el fondo blanco, gratis.
+          for (let i = 0; i < quoteSweepChars.length; i++) {
+            const d = quoteSweepChars[i];
             const t = clamp01((vp - d.delay) / d.duration);
-            const x = d.vx * t;
-            const y = 0.5 * QUOTE_DROP_G * t * t;
-            const rot = d.rotSpeed * t;
-            const op = 1 - t * t * t;
-            const tr = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) rotate(${rot.toFixed(3)}rad)`;
-            const opStr = op.toFixed(3);
+            const e = easeInOutCubic(t);
+            const x = d.dx * e;
+            const y = d.dy * e;
+            const rot = d.rotFinal * e;
+            const scale = 1 + (d.scaleFinal - 1) * e;
+            const tr =
+              `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) ` +
+              `rotate(${rot.toFixed(3)}rad) scale(${scale.toFixed(3)})`;
             d.black.style.transform = tr;
-            d.black.style.opacity = opStr;
             if (d.white) {
               d.white.style.transform = tr;
-              d.white.style.opacity = opStr;
             }
           }
 
@@ -707,14 +711,14 @@ export default function Highlights2_3Mobile() {
               </video>
             </div>
 
-            {/* Quote dual-layer + per-char gravity drop:
+            {/* Quote dual-layer + per-char lateral sweep:
                 - capa negra siempre legible sobre blanco.
                 - capa blanca encima, clipada al footprint del video.
-                Ambas con la misma estructura: keepers como spans
-                inline-block intactos; droppers como spans inline-block
-                cuyo contenido son letras (.hl-q-drop-char) — cada letra
-                con su propia física scroll-tied de caída al vacío.
-                Mismo orden en ambas capas → pareo por índice. */}
+                Ambas con la misma estructura: cada palabra es un
+                .hl-q-word inline-block, cada letra un .hl-q-char
+                inline-block. Sin keepers — todas las letras escapan
+                lateralmente durante la fase video. Mismo orden en
+                ambas capas → pareo por índice en JS. */}
             <div className="relative w-full max-w-[480px] text-center">
               <div ref={textBoxRef} className="relative">
                 <p
@@ -730,27 +734,20 @@ export default function Highlights2_3Mobile() {
                     opacity: 0,
                   }}
                 >
-                  {QUOTE_RENDER_ITEMS.map((item, i) => {
-                    if (item.type === "space") return " ";
-                    if (item.keep) {
-                      return (
-                        <span key={i} className="hl-q-word hl-q-keep inline-block">
-                          {item.text}
-                        </span>
-                      );
-                    }
-                    return (
-                      <span key={i} className="hl-q-word inline-block">
-                        {[...item.text].map((ch, ci) => (
+                  {QUOTE_TOKENS.flatMap((tok, i) => {
+                    const word = (
+                      <span key={`w${i}`} className="hl-q-word inline-block">
+                        {[...tok].map((ch, ci) => (
                           <span
                             key={ci}
-                            className="hl-q-drop-char inline-block will-change-[transform,opacity]"
+                            className="hl-q-char inline-block will-change-transform"
                           >
                             {ch}
                           </span>
                         ))}
                       </span>
                     );
+                    return i === 0 ? [word] : [" ", word];
                   })}
                 </p>
                 <p
@@ -768,27 +765,20 @@ export default function Highlights2_3Mobile() {
                     clipPath: "inset(50% 50% 50% 50%)",
                   }}
                 >
-                  {QUOTE_RENDER_ITEMS.map((item, i) => {
-                    if (item.type === "space") return " ";
-                    if (item.keep) {
-                      return (
-                        <span key={i} className="hl-q-word hl-q-keep inline-block">
-                          {item.text}
-                        </span>
-                      );
-                    }
-                    return (
-                      <span key={i} className="hl-q-word inline-block">
-                        {[...item.text].map((ch, ci) => (
+                  {QUOTE_TOKENS.flatMap((tok, i) => {
+                    const word = (
+                      <span key={`w${i}`} className="hl-q-word inline-block">
+                        {[...tok].map((ch, ci) => (
                           <span
                             key={ci}
-                            className="hl-q-drop-char inline-block will-change-[transform,opacity]"
+                            className="hl-q-char inline-block will-change-transform"
                           >
                             {ch}
                           </span>
                         ))}
                       </span>
                     );
+                    return i === 0 ? [word] : [" ", word];
                   })}
                 </p>
               </div>
