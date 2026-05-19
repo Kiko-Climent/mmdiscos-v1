@@ -8,41 +8,49 @@ import { getResponsiveVideoSources } from "@/lib/videoSources";
 const SLIDES = [
   {
     title: "Pelagos EP",
-    img: "/MMD042_Cover.jpg",
+    base: "MMD042_Cover",
     ref: "mmd042",
     copy: "Gritty basslines, sharp percussion and 80s-leaning house crossed with Balearic flashes, dub pressure and proto-trance heat. Four cuts caught between peak-time progressive and introspective drift.",
   },
   {
     title: "Brahmaputra EP",
-    img: "/MMD041_Cover.jpg",
+    base: "MMD041_Cover",
     ref: "mmd041",
     copy: "Gritty basslines, sharp percussion and 80s-leaning house crossed with Balearic flashes, dub pressure and proto-trance heat. Four cuts caught between peak-time progressive and introspective drift",
   },
   {
     title: "Socarrat vol.1",
-    img: "/MMD040_Cover-1.jpg",
+    base: "MMD040_Cover-1",
     ref: "mmd040.1",
     copy: "A decade of MM Discos, condensed. Volume one drifts from mid-tempo grooves to house-driven heat, threaded with a Balearic pulse. No trends, no labels — just the freewheeling spirit that defined us from day one.",
   },
   {
     title: "Deamwalker EP",
-    img: "/img4.jpg",
+    base: "img4",
     ref: "mmd036",
     copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
   },
   {
     title: "Socarrat vol.2",
-    img: "/MMD040-2.png",
+    base: "MMD040-2",
     ref: "mmd040.2",
     copy: "The Socarrat continues. Volume II spans dark-Balearic moods, kraut-infused drifts, spatial post-Italo journeys, electronic funk and tropical psychedelia — a cosmic tutti-frutti charting ten years of MM Discos at full tilt.",
   },
   {
     title: "Eternal Sunset EP",
-    img: "/MMD039.png",
+    base: "MMD039",
     ref: "mmd039",
     copy: "Nic Jalusi distills his '90s-leaning house on Eternal Sunset — Italian dream house, Kwaito and dub textures, African-synth heat and late-night breaks. A sun-soaked cocktail for living rooms and dancefloors alike.",
   },
 ];
+
+// Helpers para responsive images optimizadas (sharp → /public/img-opt/v2)
+const optBase = (base) => `/img-opt/v2/${base}__balanced`;
+const buildSrcSet = (base, ext) =>
+  `${optBase(base)}-720.${ext} 720w, ${optBase(base)}-960.${ext} 960w, ${optBase(base)}-1280.${ext} 1280w`;
+// Móvil: imagen renderiza a min(55vw, 220px). 55vw alcanza 220px a partir
+// de ~400px de viewport — por encima quedamos clavados en 220px CSS.
+const SLIDER_IMG_SIZES = "(min-width: 400px) 220px, 55vw";
 
 const ALFREDOS_QUOTE = `We played without rules, without thinking about styles or what would come next. One track could be slow, the next dark, then something pop or an impossible guitar, but it all made sense in that moment. The dancefloor didn't ask for coherence, it asked for emotion — and as long as people stayed there, smiling and lost, you knew you were doing it right.`;
 const HEADER_VIDEO = getResponsiveVideoSources("/video/Video MM Header.mp4");
@@ -576,17 +584,32 @@ export default function Highlights2_3Mobile() {
               style={{ width: "min(55vw, var(--hl-mobile-image-max, 220px))" }}
             >
               <div ref={stripRef} className="hl-service-img w-full">
-                {SLIDES.map((s) => (
+                {SLIDES.map((s, i) => (
                   <div
-                    key={s.img}
+                    key={s.ref}
                     className="hl-img relative w-full aspect-square"
                   >
-                    <img
-                      src={s.img}
-                      alt=""
-                      className="absolute inset-0 w-full h-full object-cover"
-                      draggable={false}
-                    />
+                    <picture>
+                      <source
+                        type="image/avif"
+                        srcSet={buildSrcSet(s.base, "avif")}
+                        sizes={SLIDER_IMG_SIZES}
+                      />
+                      <source
+                        type="image/webp"
+                        srcSet={buildSrcSet(s.base, "webp")}
+                        sizes={SLIDER_IMG_SIZES}
+                      />
+                      <img
+                        src={`${optBase(s.base)}-720.webp`}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover"
+                        draggable={false}
+                        loading={i === 0 ? "eager" : "lazy"}
+                        fetchPriority={i === 0 ? "high" : "auto"}
+                        decoding="async"
+                      />
+                    </picture>
                   </div>
                 ))}
               </div>
