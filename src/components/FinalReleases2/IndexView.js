@@ -14,16 +14,88 @@ const COLS_DESKTOP = [
 
 const DASH = "—";
 
+// ── Responsive images optimizadas (sharp → /public/img-opt/v2) ─────────────
+// AVIF primario (~97% soporte 2026, ~30-40% más pequeño que WebP), WebP
+// fallback vía onerror. srcSet 720/960/1280w + sizes ajustado al render
+// real (480 desktop / 220 mobile) → el browser elige la variante exacta.
+const COVER_OPT_BASE = "/img-opt/v2";
+const imageBase = (path) => {
+  if (!path) return null;
+  return path.replace(/^\//, "").replace(/\.[^.]+$/, "");
+};
+const optUrl = (base, size, ext) =>
+  `${COVER_OPT_BASE}/${base}__balanced-${size}.${ext}`;
+const buildSrcSet = (base, ext) =>
+  `${optUrl(base, 720, ext)} 720w, ${optUrl(base, 960, ext)} 960w, ${optUrl(base, 1280, ext)} 1280w`;
+
 export default function IndexView() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const hoveredRelease = hoveredIndex !== null ? DataReleases[hoveredIndex] : null;
+  const hoveredBase = hoveredRelease ? imageBase(hoveredRelease.image) : null;
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
+  }, []);
+
+  // ── Deferred preload + decode de todos los covers ───────────────────────
+  // El problema crítico de UX en producción: cada hover/tap dispara un fetch
+  // de red Y un decode en el frame de paint → stall visible. Solución doble:
+  //   1. Preload (descarga el archivo) dentro de requestIdleCallback.
+  //   2. img.decode() (decodifica AVIF/WebP a bitmap en RAM) → cuando el
+  //      user hace hover, paint = instant, sin frame stall.
+  // AVIF primario; si decode falla, fallback a WebP con decode también.
+  // Connection-aware: si el user está en saveData o conexión muy lenta,
+  // saltamos el preload (el <picture> hará lazy fetch al primer hover).
+  // Flag one-shot por sesión (window.__mmReleasesCoversPreloaded).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.__mmReleasesCoversPreloaded) return;
+
+    // Respeta data-saver y conexiones lentas (Network Information API,
+    // solo Chromium — undefined en Safari/Firefox = procedemos normal).
+    const conn = navigator.connection;
+    if (conn?.saveData) return;
+    if (conn?.effectiveType === "slow-2g" || conn?.effectiveType === "2g") return;
+
+    window.__mmReleasesCoversPreloaded = true;
+
+    const mobile = window.innerWidth < 768;
+    const dpr = window.devicePixelRatio || 1;
+    // Render máx: 480 desktop, 220 mobile. DPR 2 desktop → 960 cubre.
+    // DPR 3 desktop (retina alto) → 1280. Mobile DPR 3 (220×3=660) → 720 cubre.
+    const size = mobile ? 720 : (dpr > 2 ? 1280 : 960);
+
+    const preloadCovers = () => {
+      const bases = new Set();
+      DataReleases.forEach((r) => {
+        const b = imageBase(r.image);
+        if (b) bases.add(b);
+      });
+      bases.forEach((base) => {
+        const img = new Image();
+        img.src = optUrl(base, size, "avif");
+        // decode() devuelve Promise. .catch() encadena fallback a WebP.
+        // Doble .catch() final silencia cualquier fallo (browser muy viejo,
+        // network error) — en ese caso el <picture> hará fetch en el hover,
+        // comportamiento idéntico al estado pre-optimización.
+        img.decode()
+          .catch(() => {
+            img.src = optUrl(base, size, "webp");
+            return img.decode();
+          })
+          .catch(() => {});
+      });
+    };
+
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(preloadCovers, { timeout: 1500 });
+    } else {
+      setTimeout(preloadCovers, 300);
+    }
   }, []);
 
   const GRID = `repeat(${COLS_DESKTOP.length}, 1fr)`;
@@ -41,17 +113,33 @@ export default function IndexView() {
         }}
       />
 
-      {/* Hover image */}
+      {/* Hover image — <picture> con AVIF + WebP fallback. srcSet 720/960/1280w
+          permite al browser elegir según DPR. Preload diferido (useEffect arriba)
+          garantiza que el file ya está en cache cuando React monta este nodo. */}
       <div
         className="pointer-events-none absolute inset-0 flex items-center justify-center"
         style={{ zIndex: 1 }}
       >
-        {hoveredRelease?.image && (
-          <img
-            src={hoveredRelease.image}
-            alt={hoveredRelease.title}
-            style={{ width: isMobile ? 220 : 480, height: isMobile ? 220 : 480, objectFit: "cover" }}
-          />
+        {hoveredBase && (
+          <picture>
+            <source
+              type="image/avif"
+              srcSet={buildSrcSet(hoveredBase, "avif")}
+              sizes={isMobile ? "220px" : "480px"}
+            />
+            <source
+              type="image/webp"
+              srcSet={buildSrcSet(hoveredBase, "webp")}
+              sizes={isMobile ? "220px" : "480px"}
+            />
+            <img
+              src={optUrl(hoveredBase, isMobile ? 720 : 960, "webp")}
+              alt={hoveredRelease.title}
+              decoding="async"
+              fetchPriority="high"
+              style={{ width: isMobile ? 220 : 480, height: isMobile ? 220 : 480, objectFit: "cover" }}
+            />
+          </picture>
         )}
       </div>
 
