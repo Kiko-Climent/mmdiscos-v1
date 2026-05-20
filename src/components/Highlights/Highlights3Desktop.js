@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { Fragment, useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -44,26 +44,43 @@ const SLIDES = [
 ];
 
 // Helpers para responsive images optimizadas (sharp → /public/img-opt/v2)
-// Variante "balanced" (mejor compresión global); existe "text" si en algún
-// momento el cover se mostrara grande con tipografía legible.
 const optBase = (base) => `/img-opt/v2/${base}__balanced`;
 const buildSrcSet = (base, ext) =>
   `${optBase(base)}-720.${ext} 720w, ${optBase(base)}-960.${ext} 960w, ${optBase(base)}-1280.${ext} 1280w`;
-// Desktop slider: imagen renderiza a clamp(220px, 26vw, 360px). 26vw alcanza
-// 360px a partir de 1385px de viewport.
 const SLIDER_IMG_SIZES = "(min-width: 1385px) 360px, 26vw";
 
 const ALFREDOS_QUOTE = `We played without rules, without thinking about styles or what would come next. One track could be slow, the next dark, then something pop or an impossible guitar, but it all made sense in that moment. The dancefloor didn't ask for coherence, it asked for emotion — and as long as people stayed there, smiling and lost, you knew you were doing it right.`;
 
+// Split por palabras para preservar el wrap natural; dentro de cada
+// palabra, split por chars para la onda Locomotive char-level. Las
+// palabras se mantienen unidas (inline-block, sin break interno) y los
+// espacios entre palabras quedan como text-nodes → break point.
+const QUOTE_WORDS = ALFREDOS_QUOTE.split(" ");
+
+const META_TEXT = "— Alfredo · Amnesia · Ibiza 1987";
+const META_CHARS = Array.from(META_TEXT);
 
 const HEADLINE_FONT = "'Favorit', sans-serif";
+
+// Wrapper "mask" para el reveal Locomotive: overflow:hidden contiene el
+// char en yPercent 130 (debajo de la línea); el hijo translada a 0.
+// padding-bottom + margin-bottom negativo da espacio para descendentes
+// (g, p, y) sin alterar la métrica visual aunque el lineHeight sea muy
+// cerrado.
+const MASK_STYLE = {
+  display: "inline-block",
+  overflow: "hidden",
+  verticalAlign: "bottom",
+  paddingBottom: "0.24em",
+  marginBottom: "-0.24em",
+};
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const easeInOutCubic = (t) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const easeOutExpo = (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
 
-export default function Highlights2_3Desktop() {
+export default function Highlights3Desktop() {
   const rootRef = useRef(null);
   const stickyRef = useRef(null);
   const indicatorRef = useRef(null);
@@ -82,9 +99,7 @@ export default function Highlights2_3Desktop() {
   const quoteRef = useRef(null);
   const topRuleRef = useRef(null);
   const bottomRuleRef = useRef(null);
-  const textBoxRef = useRef(null);
   const quoteTextRef = useRef(null);
-  const quoteTextWhiteRef = useRef(null);
   const bottomMetaRef = useRef(null);
   const videoWrapRef = useRef(null);
   const videoRef = useRef(null);
@@ -125,19 +140,6 @@ export default function Highlights2_3Desktop() {
       const firstImg = stripRef.current?.querySelector(".hl-img");
       const imgHeight = firstImg ? firstImg.getBoundingClientRect().height : 0;
 
-      // Dimensiones base para el dual-layer del quote.
-      // offsetWidth/Height ignoran el scale(0) del videoWrap → tamaño final.
-      // Estas medidas alimentan el clip-path inset de la capa blanca
-      // para que solo se vea blanca donde el video la cubre.
-      const videoBaseW = videoWrapRef.current
-        ? videoWrapRef.current.offsetWidth
-        : 0;
-      const videoBaseH = videoWrapRef.current
-        ? videoWrapRef.current.offsetHeight
-        : 0;
-      const textBoxW = textBoxRef.current ? textBoxRef.current.offsetWidth : 0;
-      const textBoxH = textBoxRef.current ? textBoxRef.current.offsetHeight : 0;
-
       gsap.set(indicatorRef.current, {
         width: titleWidths[0],
         xPercent: -50,
@@ -146,18 +148,117 @@ export default function Highlights2_3Desktop() {
         force3D: true,
       });
 
+      // ── Reveal timelines (Locomotive-style, char-level + liquid) ─
+      // Cada char es triple-tween en paralelo:
+      //   · yPercent 130 → 0   (entra desde abajo del baseline)
+      //   · scaleY    1.18 → 1 (estirada al entrar, asienta al settle)
+      //   · todo eased con expo.out por char + stagger fino
+      //
+      // El blur se aplica al PADRE (`<p>` / `<div>`), NO por char. Un
+      // único filter rasteriza una vez por frame en lugar de 430 →
+      // ~50× más barato en GPU. Como el filter es scrubbed sobre la
+      // misma TL y dura todo el wave, las letras emergen "líquidas"
+      // (estiradas + difuminadas globalmente) y se asientan nítidas
+      // al final de su onda individual. Sin tocar opacity.
+      const quoteCharEls = quoteTextRef.current
+        ? Array.from(quoteTextRef.current.querySelectorAll(".hl-q-char"))
+        : [];
+      const metaCharEls = bottomMetaRef.current
+        ? Array.from(bottomMetaRef.current.querySelectorAll(".hl-m-char"))
+        : [];
+
+      gsap.set(quoteCharEls, {
+        yPercent: 130,
+        scaleY: 1.18,
+        force3D: true,
+      });
+      gsap.set(quoteTextRef.current, { filter: "blur(7px)" });
+      gsap.set(metaCharEls, {
+        yPercent: 130,
+        scaleY: 1.1,
+        force3D: true,
+      });
+      gsap.set(bottomMetaRef.current, { filter: "blur(3px)" });
+
+      const charDuration = 1.1;
+      const charStagger = 0.010;
+      const totalQuoteWave =
+        charDuration + Math.max(0, quoteCharEls.length - 1) * charStagger;
+
+      const quoteRevealTl = gsap.timeline({ paused: true });
+      quoteRevealTl
+        .to(
+          quoteCharEls,
+          {
+            yPercent: 0,
+            scaleY: 1,
+            duration: charDuration,
+            ease: "expo.out",
+            stagger: charStagger,
+            force3D: true,
+          },
+          0
+        )
+        .to(
+          quoteTextRef.current,
+          {
+            filter: "blur(0px)",
+            duration: totalQuoteWave,
+            ease: "power2.out",
+          },
+          0
+        );
+
+      const metaDuration = 0.7;
+      const metaStagger = 0.022;
+      const totalMetaWave =
+        metaDuration + Math.max(0, metaCharEls.length - 1) * metaStagger;
+
+      const metaRevealTl = gsap.timeline({ paused: true });
+      metaRevealTl
+        .to(
+          metaCharEls,
+          {
+            yPercent: 0,
+            scaleY: 1,
+            duration: metaDuration,
+            ease: "expo.out",
+            stagger: metaStagger,
+            force3D: true,
+          },
+          0
+        )
+        .to(
+          bottomMetaRef.current,
+          {
+            filter: "blur(0px)",
+            duration: totalMetaWave,
+            ease: "power2.out",
+          },
+          0
+        );
+
+      // ── Phase budget ───────────────────────────────────────────────
+      //  1. slides     — un viewport por slide                    (scrub)
+      //  2. split      — paneles se separan, crossbar colapsa     (scrub)
+      //  3. videoGrow  — el vídeo se expande desde el centro      (scrub)
+      //  4. videoRecede — vídeo retrocede + reglas + quote + firma (scrub)
+      //
+      // recedeRange deliberadamente corto (0.6 vh) → mismo recorrido
+      // animado en menos scroll = sensación de "golpe" sin perder la
+      // consistencia del scrub. Lenis añade la inercia que lo asienta.
       const total = SLIDES.length;
       const vh = window.innerHeight;
       const slidesRange = vh * total;
       const splitRange = vh * 1;
-      const quoteRange = vh * 0.9;
-      const videoRange = vh * 1.0;
-      const totalRange = slidesRange + splitRange + quoteRange + videoRange;
+      const growRange = vh * 0.9;
+      const recedeRange = vh * 0.6;
+      const totalRange = slidesRange + splitRange + growRange + recedeRange;
 
       const slidePhaseEnd = slidesRange / totalRange;
       const splitPhaseEnd = (slidesRange + splitRange) / totalRange;
-      const quotePhaseEnd =
-        (slidesRange + splitRange + quoteRange) / totalRange;
+      const growPhaseEnd =
+        (slidesRange + splitRange + growRange) / totalRange;
       const manifestoProgress = 0.995;
 
       const mainTrigger = ScrollTrigger.create({
@@ -173,14 +274,16 @@ export default function Highlights2_3Desktop() {
           const splitp = clamp01(
             (p - slidePhaseEnd) / (splitPhaseEnd - slidePhaseEnd)
           );
-          const qp = clamp01(
-            (p - splitPhaseEnd) / (quotePhaseEnd - splitPhaseEnd)
+          const gp = clamp01(
+            (p - splitPhaseEnd) / (growPhaseEnd - splitPhaseEnd)
           );
-          const vp = clamp01((p - quotePhaseEnd) / (1 - quotePhaseEnd));
+          const rp = clamp01((p - growPhaseEnd) / (1 - growPhaseEnd));
 
           gsap.set(progressRef.current, { scaleY: sp, force3D: true });
 
           // ── Fase split ──────────────────────────────────────────
+          // Paneles se desplazan en Y opuesta, crossbar colapsa de los
+          // extremos hacia el centro (inset clip-path), índice fade.
           const barCollapse = clamp01(splitp / 0.7);
           const colP = easeInOutCubic(splitp);
           const counterOp = clamp01((0.55 - splitp) / 0.55);
@@ -204,54 +307,57 @@ export default function Highlights2_3Desktop() {
             );
           }
 
-          // ── Fase editorial / quote (qp) ─────────────────────────
-          // 1. Rules horizontales: scaleX desde la izquierda con expo.out.
-          // 2. Quote centrado: fade + translate up.
-          // 3. Bottom meta (firma): stagger al final del qp.
-          const ruleP = clamp01(qp / 0.42);
-          const ruleEased = easeOutExpo(ruleP);
-          const textP = clamp01((qp - 0.25) / 0.65);
-          const metaP = clamp01((qp - 0.7) / 0.3);
+          // ── Fase videoGrow (gp) — scrubbed ──────────────────────
+          // Vídeo expande desde el centro: scale 0 → 1, opacidad rápida.
+          const grow = easeInOutCubic(gp);
+          const growOpacity = clamp01(gp / 0.12);
 
+          // ── Fase videoRecede (rp) — scrubbed con cascade ────────
+          // Todo tied a scroll → no hay desync posible al hacer scroll
+          // back rápido. El "golpe" viene del recedeRange corto (0.6vh)
+          // + easings agresivos (power4/expo.out) + stagger interno.
+          //
+          // Cascade (sub-rangos dentro de rp, todos en [0..1]):
+          //   vídeo:   rp 0.00 → 0.55  scale 1→0.50, opacity 1→0.60
+          //   reglas:  rp 0.25 → 0.70  scaleX 0→1   (expo.out)
+          //   quote:   rp 0.40 → 0.95  opacity+y     (power4-equiv)
+          //   firma:   rp 0.70 → 1.00  opacity+y     (expo.out)
+          //
+          // El vídeo NO desaparece — queda al fondo a opacity 0.6 +
+          // scale 0.5, dándole profundidad atmosférica al quote.
+          const VIDEO_REST_SCALE = 0.5;
+          const VIDEO_REST_OPACITY = 0.6;
+          const recedeP = easeInOutCubic(clamp01(rp / 0.55));
+          const videoScale =
+            rp > 0 ? 1 - recedeP * (1 - VIDEO_REST_SCALE) : grow;
+          const videoOpacity =
+            rp > 0
+              ? growOpacity * (1 - recedeP * (1 - VIDEO_REST_OPACITY))
+              : growOpacity;
+
+          if (videoWrapRef.current) {
+            videoWrapRef.current.style.transform = `translate(-50%, -50%) scale(${videoScale.toFixed(4)})`;
+            videoWrapRef.current.style.opacity = String(videoOpacity);
+          }
+
+          const ruleP = easeOutExpo(clamp01((rp - 0.25) / 0.45));
           if (topRuleRef.current) {
-            topRuleRef.current.style.transform = `scaleX(${ruleEased})`;
+            topRuleRef.current.style.transform = `scaleX(${ruleP})`;
           }
           if (bottomRuleRef.current) {
-            bottomRuleRef.current.style.transform = `scaleX(${ruleEased})`;
-          }
-          if (quoteTextRef.current) {
-            quoteTextRef.current.style.opacity = String(textP);
-            quoteTextRef.current.style.transform = `translate3d(0, ${(1 - textP) * 18}px, 0)`;
-          }
-          if (quoteTextWhiteRef.current) {
-            // La capa blanca acompaña a la negra en opacity + translate.
-            quoteTextWhiteRef.current.style.opacity = String(textP);
-            quoteTextWhiteRef.current.style.transform = `translate3d(0, ${(1 - textP) * 18}px, 0)`;
-          }
-          if (bottomMetaRef.current) {
-            bottomMetaRef.current.style.opacity = String(metaP);
-            bottomMetaRef.current.style.transform = `translate3d(0, ${(1 - metaP) * 8}px, 0)`;
+            bottomRuleRef.current.style.transform = `scaleX(${ruleP})`;
           }
 
-          // ── Fase video ──────────────────────────────────────────
-          // Crece detrás del texto vía scale (GPU). En paralelo, la
-          // capa blanca del quote se desclipa exactamente al footprint
-          // del video — fuera del video el texto es negro sobre blanco,
-          // dentro del video es blanco sobre vídeo. Contraste perfecto
-          // sin mix-blend ni shifts cromáticos.
-          const vEased = easeInOutCubic(vp);
-          if (videoWrapRef.current) {
-            const vOpacity = clamp01(vp / 0.15);
-            videoWrapRef.current.style.transform = `translate3d(-50%, -50%, 0) scale(${vEased})`;
-            videoWrapRef.current.style.opacity = String(vOpacity);
-          }
-          if (quoteTextWhiteRef.current && textBoxW && textBoxH) {
-            const curW = videoBaseW * vEased;
-            const curH = videoBaseH * vEased;
-            const insetX = Math.max(0, (textBoxW - curW) / 2);
-            const insetY = Math.max(0, (textBoxH - curH) / 2);
-            quoteTextWhiteRef.current.style.clipPath = `inset(${insetY}px ${insetX}px ${insetY}px ${insetX}px)`;
-          }
+          // Quote word reveal — cascade Locomotive scrubbed por rp.
+          // textP es lineal a propósito: la curva expo.out vive dentro
+          // de la TL (per-word). Componer easings aquí amortiguaría el
+          // snap inicial del wave.
+          const textP = clamp01((rp - 0.4) / 0.55);
+          quoteRevealTl.progress(textP);
+
+          // Signature char reveal — mismo patrón, char-level.
+          const metaP = clamp01((rp - 0.7) / 0.3);
+          metaRevealTl.progress(metaP);
 
           // ── Activación slide ────────────────────────────────────
           let activeIndex = Math.floor(sp * total);
@@ -434,9 +540,11 @@ export default function Highlights2_3Desktop() {
         </div>
 
         {/* ── Editorial overlay ─────────────────────────────────────
-            Tras el split: dos rules cruzan la interfaz, quote
-            centrado emerge, video crece progresivamente detrás del
-            texto, y firma centrada al fondo. */}
+            Orden de profundidad:
+              · z[2] vídeo (centrado, scale GPU)
+              · z[3] reglas + quote + firma (delante del vídeo)
+            En grow el vídeo es solo; en recede el vídeo retrocede
+            mientras reglas y texto pintan encima. */}
         <div
           ref={quoteRef}
           className="absolute inset-0 z-[3] pointer-events-none text-black"
@@ -455,84 +563,92 @@ export default function Highlights2_3Desktop() {
             style={{ transform: "scaleX(0)" }}
           />
 
-          {/* Firma — centrada al fondo */}
+          {/* Firma — chars-as-masks (reveal char-level estilo Locomotive) */}
           <div
             ref={bottomMetaRef}
-            className="absolute left-1/2 -translate-x-1/2 bottom-8 text-[11px] tracking-[0.25em] uppercase font-medium opacity-0 will-change-[transform,opacity] whitespace-nowrap"
-            style={{ fontFamily: HEADLINE_FONT }}
+            className="absolute left-1/2 -translate-x-1/2 bottom-8 text-[11px] tracking-[0.25em] uppercase font-medium whitespace-nowrap"
+            style={{ fontFamily: HEADLINE_FONT, lineHeight: 1.1 }}
           >
-            — Alfredo · Amnesia · Ibiza 1987
+            {META_CHARS.map((c, i) => (
+              <span key={i} style={MASK_STYLE}>
+                <span className="hl-m-char inline-block">
+                  {c === " " ? " " : c}
+                </span>
+              </span>
+            ))}
           </div>
 
-          {/* Stage central — video detrás (DOM order), quote delante */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            {/* Video — absolute centrado, GPU scale */}
-            <div
-              ref={videoWrapRef}
-              aria-hidden
-              className="absolute top-1/2 left-1/2 overflow-hidden will-change-[transform,opacity]"
-              style={{
-                width: "clamp(280px, 30vw, 460px)",
-                aspectRatio: "16 / 9",
-                transform: "translate3d(-50%, -50%, 0) scale(0)",
-                transformOrigin: "center center",
-                opacity: 0,
-              }}
-            >
-              <video
-                ref={videoRef}
-                className="w-full h-full object-cover block"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
+          {/* Quote — char-level masks dentro de word-containers. La
+              palabra es inline-block para que sus chars no se separen
+              en wrap; los espacios entre palabras son text-nodes →
+              break points naturales. lineHeight 0.92 cierra el bloque
+              tipográficamente; el padding del MASK_STYLE absorbe los
+              descendentes sin afectar la métrica visual. */}
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ paddingTop: "10rem", paddingBottom: "5.5rem" }}
+          >
+            <div className="relative w-[min(88vw,74rem)] text-center">
+              <p
+                ref={quoteTextRef}
+                className="hl-quote-text text-black"
+                style={{
+                  fontFamily: HEADLINE_FONT,
+                  fontSize: "clamp(1.5rem, 3.4vw, 3.25rem)",
+                  fontWeight: 400,
+                  letterSpacing: "-0.02em",
+                  lineHeight: 0.92,
+                  textTransform: "lowercase",
+                  padding: "0 clamp(1rem, 2vw, 2rem)",
+                }}
               >
-                <source src="/video/Video MM Header.mp4" type="video/mp4" />
-              </video>
-            </div>
-
-            {/* Quote dual-layer:
-                - capa negra siempre legible sobre blanco
-                - capa blanca encima, clipada al footprint del video
-                Resultado: texto siempre con contraste, sin mix-blend. */}
-            <div className="relative w-[min(86vw,72rem)] px-6 lg:px-10 text-center">
-              <div ref={textBoxRef} className="relative">
-                <p
-                  ref={quoteTextRef}
-                  className="hl-quote-text text-black will-change-[transform,opacity]"
-                  style={{
-                    fontFamily: HEADLINE_FONT,
-                    fontSize: "clamp(1.5rem, 3.4vw, 3.25rem)",
-                    fontWeight: 400,
-                    letterSpacing: "-0.02em",
-                    lineHeight: 0.98,
-                    textTransform: "lowercase",
-                    opacity: 0,
-                  }}
-                >
-                  {ALFREDOS_QUOTE}
-                </p>
-                <p
-                  ref={quoteTextWhiteRef}
-                  aria-hidden
-                  className="hl-quote-text absolute inset-0 text-white will-change-[transform,opacity,clip-path]"
-                  style={{
-                    fontFamily: HEADLINE_FONT,
-                    fontSize: "clamp(1.5rem, 3.4vw, 3.25rem)",
-                    fontWeight: 400,
-                    letterSpacing: "-0.02em",
-                    lineHeight: 0.98,
-                    textTransform: "lowercase",
-                    opacity: 0,
-                    clipPath: "inset(50% 50% 50% 50%)",
-                  }}
-                >
-                  {ALFREDOS_QUOTE}
-                </p>
-              </div>
+                {QUOTE_WORDS.map((w, i) => (
+                  <Fragment key={i}>
+                    <span className="inline-block">
+                      {Array.from(w).map((c, ci) => (
+                        <span key={ci} style={MASK_STYLE}>
+                          <span className="hl-q-char inline-block will-change-transform">
+                            {c}
+                          </span>
+                        </span>
+                      ))}
+                    </span>
+                    {i < QUOTE_WORDS.length - 1 ? " " : ""}
+                  </Fragment>
+                ))}
+              </p>
             </div>
           </div>
+        </div>
+
+        {/* Vídeo — centrado, scale GPU desde 0. z[2] queda detrás de
+            las reglas/quote del overlay (z[3]) cuando aparecen, pero
+            sigue por encima del slider (z[1]). */}
+        <div
+          ref={videoWrapRef}
+          aria-hidden
+          className="absolute overflow-hidden will-change-[transform,opacity] z-[2]"
+          style={{
+            top: "calc(50vh + 2.25rem)",
+            left: "50%",
+            width: "clamp(300px, min(54vw, calc(44vh * 16 / 9)), 700px)",
+            aspectRatio: "16 / 9",
+            transform: "translate(-50%, -50%) scale(0)",
+            transformOrigin: "center center",
+            opacity: 0,
+          }}
+        >
+          <video
+            ref={videoRef}
+            className="w-full h-full object-cover block"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+          >
+            <source src="/video/Video MM Header.mp4" type="video/mp4" />
+          </video>
         </div>
 
         <div ref={grainRef} className="hl-grain" aria-hidden />
