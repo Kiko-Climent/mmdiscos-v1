@@ -9,7 +9,7 @@ const SLIDES = [
     title: "Pelagos EP",
     base: "MMD042_Cover",
     ref: "mmd042",
-    copy: "Gritty basslines, sharp percussion and 80s-leaning house crossed with Balearic flashes, dub pressure and proto-trance heat. Four cuts caught between peak-time progressive and introspective drift.",
+    copy: "James Falco's Pelagos EP lands somewhere between Amnesia Ibiza and The Ha\u00e7ienda \u2014 four sun-faded cuts of dub, dream house and Mediterranean afterhours heat.",
   },
   {
     title: "Brahmaputra EP",

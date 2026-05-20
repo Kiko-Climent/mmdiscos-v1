@@ -101,7 +101,7 @@ export default function Tests() {
       {/* <ParallaxGallery /> */}
       {/* <ParallaxGallery2 /> */}
       {/* <ParallaxGallery2 /> */}
-      {/* <AboutSection5 /> */}
+      <AboutSection5 />
       {/* <MMNewestHero /> */}
       {/* <MMNewestAproach3 /> */}
       {/* <AnimatedQuote /> */}
@@ -109,7 +109,7 @@ export default function Tests() {
       {/* <Alfredo /> */}
       {/* <Highlights /> */}
       {/* <AboutFinal /> */}
-      <Highlights2Wrapper />
+      {/* <Highlights2Wrapper /> */}
       {/* <Footer /> */}
     </>
   );

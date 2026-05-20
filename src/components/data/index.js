@@ -319,5 +319,83 @@ export const DataReleases = [
     bandcamp: "https://mogwaa.bandcamp.com/album/del-mar",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/mogwaa-del-mar-mini-album"
   },
+  // MORI RA GAIA
+  { 
+    artist: "Mori Ra",
+    artist_name: "Mori Ra",
+    title: "Gaia Edits",
+    image: "/img8.jpg",
+    year: "2021",
+    format: "AIFF, FLAC, MP3, WAV",
+    vinyl: "12\" 33 ⅓ RPM",
+    type: "EP",
+    ref: "mmd043",
+    tracklist: [
+      "Gaia Chaos",
+      "Goreate",
+      "Gaia Disco",
+      "Penguins Repair"
+    ],
+    bandcamp: "https://mmdiscos.bandcamp.com/album/gaia-edits",
+    soundcloud: "https://soundcloud.com/mmdiscos/sets/mori-ra-gaia-edits"
+  },
+  // MORI MM DISOCOS 13
+  { 
+    artist: "Mori Ra",
+    artist_name: "Mori Ra",
+    title: "月と男ディスコス13",
+    image: "/morira - cover.png",
+    year: "2020",
+    format: "AIFF, FLAC, MP3, WAV",
+    vinyl: "12\" 33 ⅓ RPM",
+    type: "EP",
+    ref: "mmd013",
+    tracklist: [
+      "El Grito Del Disco",
+      "Tsimmairuudiralla",
+      "Natural Kogili",
+      "Der Hangecrukenlator"
+    ],
+    bandcamp: "https://mmdiscos.bandcamp.com/album/mm-discos-13",
+    soundcloud: "https://soundcloud.com/mmdiscos/sets/mori-ra-mm-discos-13"
+  },
+  // ASA TATE BRAHMAPUTRA EP
+  { 
+    artist: "Asa Tate",
+    artist_name: "Asa Tate",
+    title: "Brahmaputra EP",
+    image: "/MMD041_Cover.jpg",
+    year: "2026",
+    format: "AIFF, FLAC, MP3, WAV",
+    type: "EP",
+    ref: "mmd041",
+    tracklist: [
+      "Gizmo!",
+      "Maximum",
+      "Brahmaputra",
+      "Silk"
+    ],
+    bandcamp: "https://asatate-techsupport.bandcamp.com/album/brahmaputra-ep",
+    soundcloud: "https://soundcloud.com/asatatemusic/sets/asa-tate-brahmaputra-ep"
+  },
+  // ASA TATE BRAHMAPUTRA EP
+  { 
+    artist: "James Falco",
+    artist_name: "James Falco",
+    title: "Pelagos EP",
+    image: "/MMD042_Cover.jpg",
+    year: "2026",
+    format: "AIFF, FLAC, MP3, WAV",
+    type: "EP",
+    ref: "mmd042",
+    tracklist: [
+      "All Through The Dub",
+      "Pelagos",
+      "Acqua Jam",
+      "Ooohhh"
+    ],
+    bandcamp: "https://mmdiscos.bandcamp.com/album/brahmaputra-ep",
+    soundcloud: "https://soundcloud.com/mmdiscos/sets/asa-tate-brahmaputra-ep"
+  },
   
 ]

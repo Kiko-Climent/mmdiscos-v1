@@ -10,7 +10,7 @@ const SLIDES = [
     title: "Pelagos EP",
     base: "MMD042_Cover",
     ref: "mmd042",
-    copy: "James Falco's Pelagos EP lands somewhere between Amnesia Ibiza and The Ha\u00e7ienda \u2014 four sun-faded cuts of dub, dream house and Mediterranean afterhours heat.",
+    copy: "James Falco's Pelagos EP lands somewhere between Amnesia Ibiza and The Haçienda — four sun-faded cuts of dub, dream house and Mediterranean afterhours heat.",
   },
   {
     title: "Brahmaputra EP",
@@ -44,12 +44,9 @@ const SLIDES = [
   },
 ];
 
-// Helpers para responsive images optimizadas (sharp → /public/img-opt/v2)
 const optBase = (base) => `/img-opt/v2/${base}__balanced`;
 const buildSrcSet = (base, ext) =>
   `${optBase(base)}-720.${ext} 720w, ${optBase(base)}-960.${ext} 960w, ${optBase(base)}-1280.${ext} 1280w`;
-// Móvil: imagen renderiza a min(55vw, 220px). 55vw alcanza 220px a partir
-// de ~400px de viewport — por encima quedamos clavados en 220px CSS.
 const SLIDER_IMG_SIZES = "(min-width: 400px) 220px, 55vw";
 
 const ALFREDOS_QUOTE = `We played without rules, without thinking about styles or what would come next. One track could be slow, the next dark, then something pop or an impossible guitar, but it all made sense in that moment. The dancefloor didn't ask for coherence, it asked for emotion — and as long as people stayed there, smiling and lost, you knew you were doing it right.`;
@@ -62,9 +59,8 @@ const HEADER_VIDEO = getResponsiveVideoSources("/video/Video MM Header.mp4");
 
 const HEADLINE_FONT = "'Favorit', sans-serif";
 
-// Wrapper "mask" para el reveal Locomotive char-level. padding + margin
-// negativo absorben descendentes (g, p, y) sin alterar la métrica visual
-// aunque el lineHeight sea muy cerrado.
+// Mask wrapper sólo para la firma (char-level Locomotive). El quote
+// usa reveal word-level segment-as-unit, sin masks.
 const MASK_STYLE = {
   display: "inline-block",
   overflow: "hidden",
@@ -79,7 +75,7 @@ const easeInOutCubic = (t) =>
 const easeOutExpo = (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
-export default function Highlights3Mobile() {
+export default function Highlights3_3Mobile() {
   const rootRef = useRef(null);
   const stickyRef = useRef(null);
   const contentFrameRef = useRef(null);
@@ -96,7 +92,6 @@ export default function Highlights3Mobile() {
   const grainRef = useRef(null);
   const itemsRef = useRef([]);
 
-  // Editorial overlay refs
   const quoteRef = useRef(null);
   const topRuleRef = useRef(null);
   const bottomRuleRef = useRef(null);
@@ -113,9 +108,6 @@ export default function Highlights3Mobile() {
   }, []);
 
   useLayoutEffect(() => {
-    // Escalado proporcional al alto de viewport — mismo patrón que el
-    // original mobile. ScrollTrigger.config({ignoreMobileResize:true})
-    // global evita recálculo al toggle de la URL bar.
     if (window.innerWidth > 900) return;
     const frame = contentFrameRef.current;
     if (!frame) return;
@@ -132,7 +124,6 @@ export default function Highlights3Mobile() {
   }, []);
 
   useLayoutEffect(() => {
-    // Variante móvil — si el viewport es desktop no registramos triggers.
     if (window.innerWidth > 900) return;
 
     const sticky = stickyRef.current;
@@ -175,26 +166,81 @@ export default function Highlights3Mobile() {
         force3D: true,
       });
 
-      // ── Reveal timelines (Locomotive-style, char-level + liquid) ─
-      // Mobile-tuned vs desktop:
-      //   · blur radius más pequeño (5px / 2px) — la GPU móvil paga
-      //     mucho más caro el filter; con 1 solo filter por padre el
-      //     coste es asumible incluso en gama media.
-      //   · scaleY un punto más conservador (1.16 / 1.08) — el texto
-      //     es más pequeño, deformaciones grandes se ven ruidosas.
-      //   · stagger un punto más amplio (0.012 / 0.024) — wave más
-      //     legible en pantallas pequeñas.
-      const quoteCharEls = quoteTextRef.current
-        ? Array.from(quoteTextRef.current.querySelectorAll(".hl-q-char"))
+      // ── Reveal timelines ───────────────────────────────────────────
+      // Quote (mobile): mismo approach que el _3 desktop — seam zigzag
+      // + segment-as-unit + spread tightening — con valores tuneados
+      // para pantalla pequeña:
+      //   · offX más corto (60% del viewport — mobile tiene menos
+      //     ancho que recorrer y un offset enorme se ve menos
+      //     dramático).
+      //   · SPREAD más bajo (0.10) — segmentos cortos (2-4 palabras
+      //     tras el wrap mobile) → poco margen para spacing visible
+      //     sin verse forzado.
+      //   · blur menor (5px → 0) — la GPU mobile paga caro el filter.
+      //   · segDuration ligeramente más corta y lineCascade un punto
+      //     mayor (más líneas en mobile por wrap más estrecho).
+      //
+      // Firma: mantiene char-level Locomotive (texto corto, sin wrap).
+      const quoteWordEls = quoteTextRef.current
+        ? Array.from(quoteTextRef.current.querySelectorAll(".hl-q-word"))
         : [];
       const metaCharEls = bottomMetaRef.current
         ? Array.from(bottomMetaRef.current.querySelectorAll(".hl-m-char"))
         : [];
 
-      gsap.set(quoteCharEls, {
-        yPercent: 130,
-        scaleY: 1.16,
-        force3D: true,
+      const containerRect = quoteTextRef.current.getBoundingClientRect();
+      const containerCenterX = containerRect.left + containerRect.width / 2;
+
+      const wordMeta = quoteWordEls.map((el) => {
+        const r = el.getBoundingClientRect();
+        return {
+          el,
+          top: r.top,
+          centerX: r.left + r.width / 2,
+        };
+      });
+
+      const lineKeyOf = (top) => Math.round(top / 5) * 5;
+      const sortedTops = [...wordMeta].sort((a, b) => a.top - b.top);
+      const lineIdxMap = new Map();
+      sortedTops.forEach((w) => {
+        const key = lineKeyOf(w.top);
+        if (!lineIdxMap.has(key)) lineIdxMap.set(key, lineIdxMap.size);
+      });
+
+      const segmentsMap = new Map();
+      wordMeta.forEach((w) => {
+        const side = w.centerX < containerCenterX ? "L" : "R";
+        const key = `${lineKeyOf(w.top)}|${side}`;
+        if (!segmentsMap.has(key)) segmentsMap.set(key, { side, words: [] });
+        segmentsMap.get(key).words.push(w);
+      });
+
+      const segments = [];
+      segmentsMap.forEach((seg, key) => {
+        const lineKey = Number(key.split("|")[0]);
+        const lineIdx = lineIdxMap.get(lineKey) || 0;
+        seg.words.sort((a, b) => a.centerX - b.centerX);
+        const anchorX =
+          seg.side === "L"
+            ? seg.words[seg.words.length - 1].centerX
+            : seg.words[0].centerX;
+        segments.push({ ...seg, lineIdx, anchorX });
+      });
+
+      const offX = window.innerWidth * 0.6;
+      const SPREAD = 0.1;
+
+      segments.forEach((seg) => {
+        const baseOff = seg.side === "L" ? -offX : offX;
+        seg.words.forEach((w) => {
+          const extraSpace = (w.centerX - seg.anchorX) * SPREAD;
+          gsap.set(w.el, {
+            x: baseOff + extraSpace,
+            opacity: 0,
+            force3D: true,
+          });
+        });
       });
       gsap.set(quoteTextRef.current, { filter: "blur(5px)" });
       gsap.set(metaCharEls, {
@@ -204,34 +250,38 @@ export default function Highlights3Mobile() {
       });
       gsap.set(bottomMetaRef.current, { filter: "blur(2px)" });
 
-      const charDuration = 1.0;
-      const charStagger = 0.012;
-      const totalQuoteWave =
-        charDuration + Math.max(0, quoteCharEls.length - 1) * charStagger;
+      const segDuration = 0.6;
+      const lineCascade = 0.06;
 
       const quoteRevealTl = gsap.timeline({ paused: true });
-      quoteRevealTl
-        .to(
-          quoteCharEls,
-          {
-            yPercent: 0,
-            scaleY: 1,
-            duration: charDuration,
-            ease: "expo.out",
-            stagger: charStagger,
-            force3D: true,
-          },
-          0
-        )
-        .to(
-          quoteTextRef.current,
-          {
-            filter: "blur(0px)",
-            duration: totalQuoteWave,
-            ease: "power2.out",
-          },
-          0
-        );
+
+      segments.forEach((seg) => {
+        const startTime = seg.lineIdx * lineCascade;
+        seg.words.forEach((w) => {
+          quoteRevealTl.to(
+            w.el,
+            {
+              x: 0,
+              opacity: 1,
+              duration: segDuration,
+              ease: "expo.out",
+              force3D: true,
+            },
+            startTime
+          );
+        });
+      });
+
+      const totalQuoteWave = quoteRevealTl.duration();
+      quoteRevealTl.to(
+        quoteTextRef.current,
+        {
+          filter: "blur(0px)",
+          duration: totalQuoteWave,
+          ease: "power2.out",
+        },
+        0
+      );
 
       const metaDuration = 0.65;
       const metaStagger = 0.024;
@@ -263,13 +313,6 @@ export default function Highlights3Mobile() {
         );
 
       // ── Phase budget (mobile) ──────────────────────────────────────
-      //  1. slides     — un viewport por slide                    (scrub)
-      //  2. split      — paneles ±100vh, crossbar colapsa         (scrub)
-      //  3. videoGrow  — vídeo expande desde el centro            (scrub)
-      //  4. videoRecede — vídeo retrocede + reglas + quote + firma (scrub)
-      //
-      // Rangos un punto más cortos que desktop. Mobile scroll es más
-      // costoso para el usuario → menos vh para misma narrativa.
       const total = SLIDES.length;
       const vh = window.innerHeight;
       const slidesRange = vh * total;
@@ -302,12 +345,8 @@ export default function Highlights3Mobile() {
           );
           const rp = clamp01((p - growPhaseEnd) / (1 - growPhaseEnd));
 
-          // Crossbar horizontal — fill scaleX desde la izquierda.
           gsap.set(progressRef.current, { scaleX: sp, force3D: true });
 
-          // ── Fase split ──────────────────────────────────────────
-          // Paneles ±100vh (Y), crossbar horizontal colapsa por
-          // extremos (inset X), índice fade.
           const barCollapse = clamp01(splitp / 0.7);
           const colP = easeInOutCubic(splitp);
           const counterOp = clamp01((0.55 - splitp) / 0.55);
@@ -331,16 +370,9 @@ export default function Highlights3Mobile() {
             );
           }
 
-          // ── Fase videoGrow (gp) — scrubbed ──────────────────────
-          // Vídeo expande desde el centro: scale 0 → 1.
           const grow = easeInOutCubic(gp);
           const growOpacity = clamp01(gp / 0.12);
 
-          // ── Fase videoRecede (rp) — scrubbed con cascade ────────
-          // Vídeo NO desaparece — queda al fondo como capa atmosférica
-          // (scale 0.5, opacity 0.6). Reglas, quote y firma entran en
-          // cascade dentro del mismo scrub. "Golpe" se siente por el
-          // rango corto + easings agresivos. Lenis aporta inercia.
           const VIDEO_REST_SCALE = 0.5;
           const VIDEO_REST_OPACITY = 0.6;
           const recedeP = easeInOutCubic(clamp01(rp / 0.55));
@@ -364,16 +396,12 @@ export default function Highlights3Mobile() {
             bottomRuleRef.current.style.transform = `scaleX(${ruleP})`;
           }
 
-          // Quote y firma → progress() de sus TL paused (revela
-          // char-level con blur líquido global). textP / metaP linear
-          // a propósito: la curva expo.out vive dentro de cada TL.
           const textP = clamp01((rp - 0.4) / 0.55);
           quoteRevealTl.progress(textP);
 
           const metaP = clamp01((rp - 0.7) / 0.3);
           metaRevealTl.progress(metaP);
 
-          // ── Activación slide ────────────────────────────────────
           let activeIndex = Math.floor(sp * total);
           if (activeIndex < 0) activeIndex = 0;
           if (activeIndex >= total) activeIndex = total - 1;
@@ -463,7 +491,6 @@ export default function Highlights3Mobile() {
         ref={stickyRef}
         className="hl-sticky relative w-screen h-[100lvh] bg-white overflow-hidden"
       >
-        {/* Contenedor único — todo centrado, layout stacked mobile */}
         <div
           ref={contentFrameRef}
           className="absolute inset-0 flex flex-col items-center justify-center px-6 z-[1]"
@@ -473,7 +500,6 @@ export default function Highlights3Mobile() {
             gap: "var(--hl-mobile-gap, 18px)",
           }}
         >
-          {/* Grupo superior — titles + counter. Sube en split. */}
           <div
             ref={listPanelRef}
             className="hl-panel flex flex-col items-center"
@@ -504,7 +530,6 @@ export default function Highlights3Mobile() {
             </div>
           </div>
 
-          {/* Crossbar horizontal — colapsa por extremos en split */}
           <div
             ref={progressBarRef}
             className="hl-progress-bar-h relative w-full max-w-[420px] h-px bg-[#e0e0e0] z-[2] pointer-events-none"
@@ -513,7 +538,6 @@ export default function Highlights3Mobile() {
             <div ref={progressRef} className="hl-progress-h" />
           </div>
 
-          {/* Grupo inferior — imagen + copy. Baja en split. */}
           <div
             ref={imagePanelRef}
             className="hl-panel flex flex-col items-center"
@@ -579,29 +603,22 @@ export default function Highlights3Mobile() {
           </div>
         </div>
 
-        {/* ── Editorial overlay (mobile) ────────────────────────────
-            En grow el vídeo es solo; en recede el vídeo retrocede
-            mientras reglas + quote (word-containers / char-masks) +
-            firma (char-masks) entran con liquid blur global. */}
         <div
           ref={quoteRef}
           className="absolute inset-0 z-[3] pointer-events-none text-black"
         >
-          {/* Top horizontal rule */}
           <div
             ref={topRuleRef}
             className="absolute left-0 right-0 top-[6.5rem] h-px bg-black origin-left will-change-transform"
             style={{ transform: "scaleX(0)" }}
           />
 
-          {/* Bottom horizontal rule */}
           <div
             ref={bottomRuleRef}
             className="absolute left-0 right-0 bottom-[3.75rem] h-px bg-black origin-left will-change-transform"
             style={{ transform: "scaleX(0)" }}
           />
 
-          {/* Firma — chars-as-masks (reveal char-level con blur) */}
           <div
             ref={bottomMetaRef}
             className="absolute left-1/2 -translate-x-1/2 bottom-6 text-[10px] tracking-[0.22em] uppercase font-medium whitespace-nowrap"
@@ -610,15 +627,16 @@ export default function Highlights3Mobile() {
             {META_CHARS.map((c, i) => (
               <span key={i} style={MASK_STYLE}>
                 <span className="hl-m-char inline-block">
-                  {c === " " ? " " : c}
+                  {c === " " ? " " : c}
                 </span>
               </span>
             ))}
           </div>
 
-          {/* Quote — word-containers + char-masks dentro. lineHeight
-              0.96 (algo más relajado que desktop por menor cuerpo de
-              letra), padding del mask absorbe descendentes. */}
+          {/* Quote — word-level inline-block. Cada palabra es target
+              indivisible; el reveal mide su posición tras layout y la
+              asigna a un trozo línea×lado (seam zigzag) para entrar
+              como bloque ya armado, con spread interno tightening. */}
           <div
             className="absolute inset-0 flex items-center justify-center px-4"
             style={{ paddingTop: "6.5rem", paddingBottom: "3.75rem" }}
@@ -638,14 +656,8 @@ export default function Highlights3Mobile() {
               >
                 {QUOTE_WORDS.map((w, i) => (
                   <Fragment key={i}>
-                    <span className="inline-block">
-                      {Array.from(w).map((c, ci) => (
-                        <span key={ci} style={MASK_STYLE}>
-                          <span className="hl-q-char inline-block will-change-transform">
-                            {c}
-                          </span>
-                        </span>
-                      ))}
+                    <span className="hl-q-word inline-block will-change-transform">
+                      {w}
                     </span>
                     {i < QUOTE_WORDS.length - 1 ? " " : ""}
                   </Fragment>
@@ -655,8 +667,6 @@ export default function Highlights3Mobile() {
           </div>
         </div>
 
-        {/* Vídeo — z[2] (detrás del overlay z[3] pero sobre el slider
-            z[1]). Tamaño mobile: clamp(220px, 75vw, 360px), 16:9. */}
         <div
           ref={videoWrapRef}
           aria-hidden
