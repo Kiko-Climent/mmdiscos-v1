@@ -48,6 +48,36 @@ export default function AboutFinal2() {
   const recruitedRef = useRef(false);
   const editorialRevealedRef = useRef(false);
 
+  // Dynamic measurement: anchor content right below the global Menu2 nav
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const updateNavOffset = () => {
+      const menu = document.getElementById("mm-global-menu-pills");
+      if (!menu) return;
+      const rect = menu.getBoundingClientRect();
+      const bottom = Math.max(60, rect.bottom);
+      section.style.setProperty("--mm-nav-bottom", `${bottom}px`);
+    };
+
+    updateNavOffset();
+    window.addEventListener("resize", updateNavOffset);
+
+    let ro;
+    const menu = document.getElementById("mm-global-menu-pills");
+    if (menu && typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(updateNavOffset);
+      ro.observe(menu);
+    }
+
+    return () => {
+      window.removeEventListener("resize", updateNavOffset);
+      if (ro) ro.disconnect();
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     gsap.registerPlugin(ScrollTrigger);
@@ -558,8 +588,11 @@ export default function AboutFinal2() {
           ref={editorialRef}
           className="absolute inset-0 z-20 pointer-events-none text-black"
         >
-          {/* Top meta — sits BELOW the global navbar safe zone */}
-          <div className="absolute left-0 right-0 top-32 px-6 lg:px-10 flex items-center justify-between text-[11px] tracking-[0.22em] uppercase">
+          {/* Top meta — anchored just below the global Menu2 nav (measured at runtime) */}
+          <div
+            className="absolute left-0 right-0 px-6 lg:px-10 flex items-center justify-between text-[11px] tracking-[0.22em] uppercase"
+            style={{ top: "calc(var(--mm-nav-bottom, 7rem) + 0.75rem)" }}
+          >
             <div
               ref={topMetaLeftRef}
               className="flex items-center gap-2 will-change-transform"
@@ -578,22 +611,26 @@ export default function AboutFinal2() {
 
           <div
             ref={topRuleRef}
-            className="absolute left-0 right-0 top-[10rem] h-px bg-black will-change-transform"
+            className="absolute left-0 right-0 h-px bg-black will-change-transform"
+            style={{ top: "calc(var(--mm-nav-bottom, 7rem) + 2.25rem)" }}
           />
           <div
             ref={bottomRuleRef}
-            className="absolute left-0 right-0 bottom-3 lg:bottom-16 h-px bg-black will-change-transform"
+            className="absolute left-0 right-0 bottom-12 lg:bottom-16 h-px bg-black will-change-transform"
           />
 
           {/* Main brutalist grid */}
-          <div className="absolute left-0 right-0 top-[11rem] bottom-6 lg:bottom-24 px-6 lg:px-10 grid grid-cols-12 gap-2 lg:gap-6 items-start content-center lg:items-stretch lg:content-normal">
+          <div
+            className="absolute left-0 right-0 bottom-14 lg:bottom-24 px-6 lg:px-10 grid grid-cols-12 gap-2 lg:gap-6 items-start content-center lg:items-stretch lg:content-normal"
+            style={{ top: "calc(var(--mm-nav-bottom, 7rem) + 3.25rem)" }}
+          >
             {/* Headline — left, stacked */}
             <div className="col-span-12 lg:col-span-7 flex flex-col justify-center">
               <h1
                 className="uppercase font-semibold leading-[0.78] tracking-[-0.05em] m-0"
                 style={{
                   fontFamily: HEADLINE_FONT,
-                  fontSize: "clamp(2.5rem, 13vw, 13rem)",
+                  fontSize: "clamp(2rem, 11vw, 13rem)",
                 }}
               >
                 <span
@@ -635,7 +672,7 @@ export default function AboutFinal2() {
             <div className="col-span-12 lg:col-span-5 flex flex-col gap-2 lg:gap-6 lg:min-h-0">
               <div
                 ref={photoRef}
-                className="relative w-full overflow-hidden will-change-[clip-path] h-[clamp(150px,28vh,260px)] lg:h-auto lg:flex-1 lg:min-h-0"
+                className="relative w-full overflow-hidden will-change-[clip-path] h-[clamp(140px,26vh,240px)] lg:h-auto lg:flex-1 lg:min-h-0"
               >
                 <Image
                   src="/amnesia.png"
@@ -655,7 +692,7 @@ export default function AboutFinal2() {
                     className="group relative flex items-center gap-4 border-t border-black py-1 lg:py-2 last:border-b will-change-[transform,opacity]"
                   >
                     <span
-                      className="w-7 h-7 rounded-full border border-black flex items-center justify-center text-[9px] tabular-nums shrink-0 opacity-70"
+                      className="w-6 h-6 lg:w-7 lg:h-7 rounded-full border border-black flex items-center justify-center text-[8px] lg:text-[9px] tabular-nums shrink-0 opacity-70"
                       style={{ fontFamily: HEADLINE_FONT, letterSpacing: "0.04em" }}
                     >
                       {link.num}
