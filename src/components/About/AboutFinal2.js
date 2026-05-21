@@ -582,18 +582,18 @@ export default function AboutFinal2() {
           />
           <div
             ref={bottomRuleRef}
-            className="absolute left-0 right-0 bottom-16 h-px bg-black will-change-transform"
+            className="absolute left-0 right-0 bottom-3 lg:bottom-16 h-px bg-black will-change-transform"
           />
 
           {/* Main brutalist grid */}
-          <div className="absolute left-0 right-0 top-[11rem] bottom-24 px-6 lg:px-10 grid grid-cols-12 gap-6 items-stretch">
+          <div className="absolute left-0 right-0 top-[11rem] bottom-6 lg:bottom-24 px-6 lg:px-10 grid grid-cols-12 gap-2 lg:gap-6 items-start content-center lg:items-stretch lg:content-normal">
             {/* Headline — left, stacked */}
             <div className="col-span-12 lg:col-span-7 flex flex-col justify-center">
               <h1
                 className="uppercase font-semibold leading-[0.78] tracking-[-0.05em] m-0"
                 style={{
                   fontFamily: HEADLINE_FONT,
-                  fontSize: "clamp(4rem, 13vw, 13rem)",
+                  fontSize: "clamp(2.5rem, 13vw, 13rem)",
                 }}
               >
                 <span
@@ -632,11 +632,10 @@ export default function AboutFinal2() {
             </div>
 
             {/* Right column: photo on top, links below — pointer events on photo + list */}
-            <div className="col-span-12 lg:col-span-5 flex flex-col gap-6 min-h-0">
+            <div className="col-span-12 lg:col-span-5 flex flex-col gap-2 lg:gap-6 lg:min-h-0">
               <div
                 ref={photoRef}
-                className="relative w-full overflow-hidden will-change-[clip-path] flex-1 min-h-0"
-                style={{ aspectRatio: "4 / 5" }}
+                className="relative w-full overflow-hidden will-change-[clip-path] h-[clamp(150px,28vh,260px)] lg:h-auto lg:flex-1 lg:min-h-0"
               >
                 <Image
                   src="/amnesia.png"
@@ -653,7 +652,7 @@ export default function AboutFinal2() {
                   <li
                     key={link.word}
                     ref={(el) => (linkRowsRef.current[idx] = el)}
-                    className="group relative flex items-center gap-4 border-t border-black py-2 last:border-b will-change-[transform,opacity]"
+                    className="group relative flex items-center gap-4 border-t border-black py-1 lg:py-2 last:border-b will-change-[transform,opacity]"
                   >
                     <span
                       className="w-7 h-7 rounded-full border border-black flex items-center justify-center text-[9px] tabular-nums shrink-0 opacity-70"
@@ -666,7 +665,7 @@ export default function AboutFinal2() {
                       className="lowercase leading-none"
                       style={{
                         fontFamily: HEADLINE_FONT,
-                        fontSize: "clamp(1.5rem, 2.4vw, 2.25rem)",
+                        fontSize: "clamp(1rem, 4vw, 2.25rem)",
                         fontWeight: 500,
                         letterSpacing: "0",
                         position: "relative",
