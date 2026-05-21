@@ -590,7 +590,7 @@ export default function AboutFinal2() {
         >
           {/* Top meta — anchored just below the global Menu2 nav (measured at runtime) */}
           <div
-            className="absolute left-0 right-0 px-6 lg:px-10 flex items-center justify-between text-[11px] tracking-[0.22em] uppercase"
+            className="absolute left-0 right-0 px-6 lg:px-10 flex items-center justify-between text-[11px] tracking-[0.02em] uppercase"
             style={{ top: "calc(var(--mm-nav-bottom, 7rem) + 0.75rem)" }}
           >
             <div
@@ -642,8 +642,8 @@ export default function AboutFinal2() {
                     <span
                       className="font-normal normal-case opacity-80 flex flex-col leading-[1.1] whitespace-nowrap"
                       style={{
-                        fontSize: "14px",
-                        letterSpacing: "0.18em",
+                        fontSize: "clamp(10px, 1.2vw, 14px)",
+                        letterSpacing: "0.02em",
                         textTransform: "uppercase",
                         transform: "translateY(-0.18em)",
                       }}
