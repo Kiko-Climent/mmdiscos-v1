@@ -1,10 +1,50 @@
 import { DataReleases } from "../data";
 
-// Source of truth: slider and index must render the same releases.
-// Keep DataReleases order and remove duplicated image paths if any.
+function parseRefParts(ref = "") {
+  const normalized = String(ref || "").trim().toLowerCase();
+  const m = normalized.match(/^([a-z]+)(\d+)(?:\.(\d+))?$/);
+  if (!m) return null;
+  return {
+    prefix: m[1],
+    major: Number(m[2]),
+    minor: Number(m[3] || 0),
+  };
+}
+
+function compareReleasesByRef(a, b) {
+  const aRef = parseRefParts(a.ref);
+  const bRef = parseRefParts(b.ref);
+  const aYear = Number(a.year);
+  const bYear = Number(b.year);
+  const aIsMms = aRef?.prefix === "mms";
+  const bIsMms = bRef?.prefix === "mms";
+
+  // Exception: MMS catalog is independent from MMD.
+  // Place MMS releases inside their year block (e.g. mms007 in 2024 area).
+  if (aIsMms || bIsMms) {
+    if (Number.isFinite(aYear) && Number.isFinite(bYear) && aYear !== bYear) {
+      return aYear - bYear;
+    }
+  }
+
+  if (aRef && bRef) {
+    if (aRef.major !== bRef.major) return aRef.major - bRef.major;
+    if (aRef.minor !== bRef.minor) return aRef.minor - bRef.minor;
+    return aRef.prefix.localeCompare(bRef.prefix);
+  }
+
+  if (aRef && !bRef) return -1;
+  if (!aRef && bRef) return 1;
+  return String(a.ref || "").localeCompare(String(b.ref || ""));
+}
+
+// Source of truth for release order (slider + index).
+export const SORTED_RELEASES = [...DataReleases].sort(compareReleasesByRef);
+
+// Build slide sources from sorted releases and dedupe repeated image paths.
 export const IMAGES = Array.from(
   new Set(
-    DataReleases.map((release) => release.image).filter(Boolean),
+    SORTED_RELEASES.map((release) => release.image).filter(Boolean),
   ),
 );
 
@@ -75,7 +115,7 @@ export const TITLES = IMAGES.map(
 );
 
 export const RELEASE_MAP = {};
-DataReleases.forEach((r) => {
+SORTED_RELEASES.forEach((r) => {
   if (r.image) RELEASE_MAP[r.image] = r;
 });
 

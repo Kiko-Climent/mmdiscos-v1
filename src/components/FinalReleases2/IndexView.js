@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { DataReleases } from "../data/index";
+import { SORTED_RELEASES } from "./releaseMap";
 
 const COLS_DESKTOP = [
   { key: "ref" },
@@ -31,7 +31,7 @@ const buildSrcSet = (base, ext) =>
 export default function IndexView() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
-  const hoveredRelease = hoveredIndex !== null ? DataReleases[hoveredIndex] : null;
+  const hoveredRelease = hoveredIndex !== null ? SORTED_RELEASES[hoveredIndex] : null;
   const hoveredBase = hoveredRelease ? imageBase(hoveredRelease.image) : null;
 
   useEffect(() => {
@@ -71,7 +71,7 @@ export default function IndexView() {
 
     const preloadCovers = () => {
       const bases = new Set();
-      DataReleases.forEach((r) => {
+      SORTED_RELEASES.forEach((r) => {
         const b = imageBase(r.image);
         if (b) bases.add(b);
       });
@@ -146,7 +146,7 @@ export default function IndexView() {
       {/* Release list */}
       <div style={{ position: "relative", zIndex: 2, width: "100%", padding: isMobile ? "0 8px" : "0 40px", boxSizing: "border-box" }}>
 
-        {DataReleases.map((release, i) => {
+        {SORTED_RELEASES.map((release, i) => {
           const dimmed = hoveredIndex !== null && hoveredIndex !== i;
 
           if (isMobile) {
