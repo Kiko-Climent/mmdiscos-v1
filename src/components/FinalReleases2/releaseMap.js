@@ -1,27 +1,18 @@
 import { DataReleases } from "../data";
 
-export const IMAGES = [
-  "/img1.jpg",
-  "/img2.jpg",
-  "/img3.jpg",
-  "/img4.jpg",
-  "/img5.jpg",
-  "/MMD040_Cover-1.jpg",
-  "/MMD039.png",
-  "/img8.jpg",
-  "/img9.jpg",
-  "/img10.jpg",
-  "/MMD038.png",
-  "/MMD040-2.png",
-  "/morira - cover.png",
-  "/Celex - cover.jpg",
-  "/corben_peachland_cover.jpg",
-  "/Factory Edits - cover.jpg",
-];
+// Source of truth: slider and index must render the same releases.
+// Keep DataReleases order and remove duplicated image paths if any.
+export const IMAGES = Array.from(
+  new Set(
+    DataReleases.map((release) => release.image).filter(Boolean),
+  ),
+);
 
 const IMAGE_VARIANT_WIDTHS = [720, 960, 1280];
 
 const IMAGE_PROFILE_MAP = {
+  "/statues.jpeg": "text",
+  "/Daichi - cover.jpg": "text",
   "/img1.jpg": "text",
   "/img2.jpg": "text",
   "/img3.jpg": "text",
@@ -38,6 +29,8 @@ const IMAGE_PROFILE_MAP = {
   "/Celex - cover.jpg": "text",
   "/corben_peachland_cover.jpg": "text",
   "/Factory Edits - cover.jpg": "text",
+  "/MMD041_Cover.jpg": "text",
+  "/MMD042_Cover.jpg": "text",
 };
 
 function getVariantWidth(targetWidth, lowPerfMobile) {
