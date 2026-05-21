@@ -7,6 +7,29 @@ import IndexView from "./IndexView";
 import { PADDING_PX, INFO_W_FRAC } from "./constants";
 import { CENTER_IDX, SLIDE_COUNT, TITLES } from "./releaseMap";
 
+const DATA_PILL_STYLE = {
+  width: "clamp(56px, 16vw, 103px)",
+  padding: "clamp(0.28rem, 1vw, 0.423rem) clamp(0.14rem, 0.5vw, 0.188rem)",
+  display: "inline-flex",
+  alignItems: "flex-end",
+  borderRadius: 2,
+  backgroundColor: "#000",
+  color: "#fff",
+  fontSize: "clamp(9px, 2.6vw, 11px)",
+  letterSpacing: "0.012em",
+  lineHeight: 0,
+  whiteSpace: "nowrap",
+  border: "1px solid #000",
+  margin: 0,
+  textAlign: "left",
+  overflow: "hidden",
+};
+
+const FORMAT_PILL_STYLE = {
+  ...DATA_PILL_STYLE,
+  width: "clamp(132px, 30vw, 172px)",
+};
+
 export default function FinalReleases2() {
   const canvasRef     = useRef(null);
   const titleRef      = useRef(null);
@@ -18,7 +41,7 @@ export default function FinalReleases2() {
   const [isIndex, setIsIndex] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
 
-  const { focusedData, panelLayout, viewportSize } = useSliderScene({
+  const { focusedData, activeData, panelLayout, viewportSize } = useSliderScene({
     canvasRef,
     sceneApiRef,
     titleRef,
@@ -61,6 +84,23 @@ export default function FinalReleases2() {
   }, []);
 
   const isMobile  = viewportSize.w > 0 && viewportSize.w < 768;
+  const refValue = (activeData?.ref || "—").toUpperCase();
+  const yearValue = activeData?.year || "—";
+  const formatValue = activeData
+    ? (activeData.vinyl ? activeData.vinyl : activeData.format || "")
+    : "";
+  const dataPillStyle = isMobile
+    ? {
+        ...DATA_PILL_STYLE,
+        width: "98px",
+      }
+    : DATA_PILL_STYLE;
+  const formatPillStyle = isMobile
+    ? {
+        ...FORMAT_PILL_STYLE,
+        width: "148px",
+      }
+    : FORMAT_PILL_STYLE;
 
   // Mobile: InfoPanel ocupa todo el ancho disponible bajo el hero; TrackPanel oculto
   // Desktop: InfoPanel izquierda, TrackPanel derecha
@@ -158,6 +198,33 @@ export default function FinalReleases2() {
       >
         <span ref={titleRef} style={{ display: "none" }} />
         <span ref={counterRef} style={{ display: "none" }} />
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: isMobile ? 1 : 4,
+            width: "100%",
+            justifyContent: "center",
+            opacity: focusedData ? 0 : 1,
+            transition: "opacity 0.2s ease",
+            pointerEvents: focusedData ? "none" : "auto",
+          }}
+        >
+          <p style={formatPillStyle}>{formatValue}</p>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 3,
+              flexWrap: "nowrap",
+            }}
+          >
+            <p style={dataPillStyle}>{refValue}</p>
+            <p style={dataPillStyle}>{yearValue}</p>
+          </div>
+        </div>
       </div>
     </div>
   );

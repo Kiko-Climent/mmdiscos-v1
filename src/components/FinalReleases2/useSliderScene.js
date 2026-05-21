@@ -40,6 +40,7 @@ export function useSliderScene({
   trackPanelRef,
 }) {
   const [focusedData, setFocusedData] = useState(null);
+  const [activeData, setActiveData] = useState(null);
   const [panelLayout, setPanelLayout] = useState({
     left: 0, top: 0, height: 0, availableW: 0, gap: 0,
   });
@@ -643,6 +644,8 @@ export function useSliderScene({
     function updateUI(index) {
       if (index === activeIndex) return;
       activeIndex = index;
+      const imgKey = IMAGES[((index % SLIDE_COUNT) + SLIDE_COUNT) % SLIDE_COUNT];
+      setActiveData(RELEASE_MAP[imgKey] || null);
 
       if (titleRef.current) {
         gsap.to(titleRef.current, {
@@ -1018,5 +1021,5 @@ export function useSliderScene({
     };
   }, []);
 
-  return { focusedData, panelLayout, viewportSize };
+  return { focusedData, activeData, panelLayout, viewportSize };
 }

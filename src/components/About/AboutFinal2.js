@@ -210,15 +210,26 @@ export default function AboutFinal2() {
       });
     };
 
-    const measureCharWidth = () => {
-      const probe = document.createElement("span");
-      probe.className = "about-final-char";
-      probe.textContent = "m";
-      probe.style.visibility = "hidden";
-      stage.appendChild(probe);
-      const w = probe.getBoundingClientRect().width;
-      stage.removeChild(probe);
-      return w || 7;
+    const buildCharWidthMap = () => {
+      const alphabet = "abcdefghijklmnopqrstuvwxyz";
+      const map = {};
+      const fragment = document.createDocumentFragment();
+      const probes = [];
+      for (const ch of alphabet) {
+        const probe = document.createElement("span");
+        probe.className = "about-final-char";
+        probe.textContent = ch;
+        probe.style.visibility = "hidden";
+        probe.style.position = "absolute";
+        fragment.appendChild(probe);
+        probes.push({ ch, probe });
+      }
+      stage.appendChild(fragment);
+      for (const { ch, probe } of probes) {
+        map[ch] = probe.getBoundingClientRect().width || 8;
+        stage.removeChild(probe);
+      }
+      return map;
     };
 
     const recruitForLinks = () => {
@@ -226,7 +237,7 @@ export default function AboutFinal2() {
       recruitedRef.current = true;
 
       const stickyRect = sticky.getBoundingClientRect();
-      const charW = measureCharWidth();
+      const charWidthMap = buildCharWidthMap();
       const claimed = new Set();
 
       LINKS.forEach((link, idx) => {
@@ -239,9 +250,12 @@ export default function AboutFinal2() {
         const slotY = slotRect.top - stickyRect.top;
 
         const wordChars = [];
+        let cumX = slotX;
 
         for (let i = 0; i < link.word.length; i++) {
           const letter = link.word[i];
+          const thisCharW = charWidthMap[letter] ?? 8;
+
           let chosenIdx = -1;
           for (let j = 0; j < charsRef.current.length; j++) {
             const c = charsRef.current[j];
@@ -251,43 +265,44 @@ export default function AboutFinal2() {
               break;
             }
           }
-          if (chosenIdx === -1) continue;
-          claimed.add(chosenIdx);
 
-          const c = charsRef.current[chosenIdx];
-          c.restingSnapshot = { x: c.x, y: c.y, rot: c.rot };
-          c.recruited = true;
-          c.resting = true;
+          if (chosenIdx !== -1) {
+            claimed.add(chosenIdx);
+            const c = charsRef.current[chosenIdx];
+            c.restingSnapshot = { x: c.x, y: c.y, rot: c.rot };
+            c.recruited = true;
+            c.resting = true;
 
-          const targetX = slotX + i * charW;
-          const targetY = slotY;
-          const dx = targetX - c.initialLeft;
-          const dy = targetY - c.initialTop;
+            const targetX = cumX;
+            const targetY = slotY;
+            const dx = targetX - c.initialLeft;
+            const dy = targetY - c.initialTop;
 
-          const proxy = { x: c.x, y: c.y, rot: c.rot };
-          const tween = gsap.to(proxy, {
-            x: dx,
-            y: dy,
-            rot: 0,
-            duration: 1.1,
-            ease: "power3.inOut",
-            delay: idx * 0.04,
-            onUpdate: () => {
-              c.x = proxy.x;
-              c.y = proxy.y;
-              c.rot = proxy.rot;
-              setTransform(c.el, c.x, c.y, c.rot);
-            },
-          });
-          recruitTweensRef.current.push(tween);
+            const proxy = { x: c.x, y: c.y, rot: c.rot };
+            const tween = gsap.to(proxy, {
+              x: dx,
+              y: dy,
+              rot: 0,
+              duration: 1.1,
+              ease: "power3.inOut",
+              delay: idx * 0.04,
+              onUpdate: () => {
+                c.x = proxy.x;
+                c.y = proxy.y;
+                c.rot = proxy.rot;
+                setTransform(c.el, c.x, c.y, c.rot);
+              },
+            });
+            recruitTweensRef.current.push(tween);
+            wordChars.push({ targetX, targetY });
+          }
 
-          wordChars.push({ targetX, targetY });
+          cumX += thisCharW;
         }
 
         if (wordChars.length) {
-          const minX = Math.min(...wordChars.map((w) => w.targetX));
-          const maxX =
-            Math.max(...wordChars.map((w) => w.targetX)) + charW;
+          const minX = wordChars[0].targetX;
+          const maxX = cumX;
           const a = document.createElement("a");
           a.className = "about-final-link";
           a.href = link.href;
@@ -638,21 +653,24 @@ export default function AboutFinal2() {
                   <li
                     key={link.word}
                     ref={(el) => (linkRowsRef.current[idx] = el)}
-                    className="group relative flex items-baseline gap-4 border-t border-black py-2 last:border-b will-change-[transform,opacity]"
+                    className="group relative flex items-center gap-4 border-t border-black py-2 last:border-b will-change-[transform,opacity]"
                   >
                     <span
-                      className="text-[10px] tracking-[0.25em] uppercase tabular-nums opacity-60"
-                      style={{ fontFamily: HEADLINE_FONT }}
+                      className="w-7 h-7 rounded-full border border-black flex items-center justify-center text-[9px] tabular-nums shrink-0 opacity-70"
+                      style={{ fontFamily: HEADLINE_FONT, letterSpacing: "0.04em" }}
                     >
                       {link.num}
                     </span>
                     <span
                       ref={(el) => (linkSlotsRef.current[idx] = el)}
-                      className="lowercase tracking-tight leading-none"
+                      className="lowercase leading-none"
                       style={{
                         fontFamily: HEADLINE_FONT,
                         fontSize: "clamp(1.5rem, 2.4vw, 2.25rem)",
                         fontWeight: 500,
+                        letterSpacing: "0",
+                        position: "relative",
+                        top: "0.07em",
                       }}
                     >
                       {/* placeholder reserves space; physics chars fly into this slot */}
