@@ -8,14 +8,14 @@ import { PADDING_PX, INFO_W_FRAC } from "./constants";
 import { CENTER_IDX, SLIDE_COUNT, TITLES } from "./releaseMap";
 
 const DATA_PILL_STYLE = {
-  width: "clamp(56px, 16vw, 103px)",
-  padding: "clamp(0.28rem, 1vw, 0.423rem) clamp(0.14rem, 0.5vw, 0.188rem)",
+  width: "clamp(68px, 16vw, 103px)",
+  padding: "clamp(0.36rem, 1vw, 0.423rem) clamp(0.18rem, 0.5vw, 0.22rem)",
   display: "inline-flex",
   alignItems: "flex-end",
   borderRadius: 2,
   backgroundColor: "#000",
   color: "#fff",
-  fontSize: "clamp(9px, 2.6vw, 11px)",
+  fontSize: "clamp(10.5px, 2.6vw, 11px)",
   letterSpacing: "0.012em",
   lineHeight: 0,
   whiteSpace: "nowrap",
@@ -90,17 +90,9 @@ export default function FinalReleases2() {
     ? (activeData.vinyl ? activeData.vinyl : activeData.format || "")
     : "";
   const dataPillStyle = isMobile
-    ? {
-        ...DATA_PILL_STYLE,
-        width: "98px",
-      }
+    ? { ...DATA_PILL_STYLE, width: "80px" }
     : DATA_PILL_STYLE;
-  const formatPillStyle = isMobile
-    ? {
-        ...FORMAT_PILL_STYLE,
-        width: "148px",
-      }
-    : FORMAT_PILL_STYLE;
+  const formatPillStyle = FORMAT_PILL_STYLE;
 
   // Mobile: InfoPanel ocupa todo el ancho disponible bajo el hero; TrackPanel oculto
   // Desktop: InfoPanel izquierda, TrackPanel derecha
@@ -203,7 +195,7 @@ export default function FinalReleases2() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: isMobile ? 1 : 4,
+            gap: 3,
             width: "100%",
             justifyContent: "center",
             opacity: focusedData ? 0 : 1,

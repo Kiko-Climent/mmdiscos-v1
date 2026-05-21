@@ -27,14 +27,14 @@ const FG_HOVER = "#fff";
 const BORDER = "#fff";
 
 const pillStyle = (bg, fg, borderColor) => ({
-  width:           "clamp(56px, 16vw, 103px)",
-  padding:         "clamp(0.28rem, 1vw, 0.423rem) clamp(0.14rem, 0.5vw, 0.188rem)",
+  width:           "clamp(68px, 16vw, 103px)",
+  padding:         "clamp(0.36rem, 1vw, 0.423rem) clamp(0.18rem, 0.5vw, 0.22rem)",
   display:         "inline-flex",
   alignItems:      "flex-end",
   borderRadius:    2,
   backgroundColor: bg,
   color:           fg,
-  fontSize:        "clamp(9px, 2.6vw, 11px)",
+  fontSize:        "clamp(10.5px, 2.6vw, 11px)",
   letterSpacing:   "0.012em",
   lineHeight:      0,
   whiteSpace:      "nowrap",
