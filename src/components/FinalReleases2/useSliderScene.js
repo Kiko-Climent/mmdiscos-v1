@@ -544,6 +544,124 @@ export function useSliderScene({
       }
     }
 
+    // Swap the focused image without leaving focus mode.
+    // Reuses getLeftColumnAndHero for the new layout; keeps scroll/currentIndex
+    // in sync with the new focused index so exitFocus returns the pyramid
+    // centered on the right image.
+    function swapFocus(newIdx) {
+      if (!focusMode || focusTransitioning || viewLocked) return;
+      if (newIdx === focusedIndex) return;
+      if (newIdx < 0 || newIdx >= SLIDE_COUNT) return;
+
+      focusTransitioning = true;
+      focusedIndex = newIdx;
+
+      currentIndex  = newIdx;
+      scrollCurrent = newIdx * SP;
+      scrollTarget  = newIdx * SP;
+
+      if (isMobile) updateNavBottom();
+      const L = getLeftColumnAndHero(focusedIndex);
+      const layout = computePanelLayout(L.hero);
+      const imgKey = IMAGES[((focusedIndex % SLIDE_COUNT) + SLIDE_COUNT) % SLIDE_COUNT];
+      const data = RELEASE_MAP[imgKey] || null;
+
+      meshes.forEach((m, i) => {
+        m.renderOrder = i === focusedIndex ? 10 : 0;
+      });
+
+      meshes.forEach((m) => {
+        gsap.killTweensOf(m.position);
+        gsap.killTweensOf(m.scale);
+      });
+
+      // Reset hover state — old hero may have uHover=1; we don't want it stuck.
+      if (hoveredIndex >= 0) {
+        gsap.to(meshes[hoveredIndex].material.uniforms.uHover, { value: 0, duration: 0.3 });
+        hoveredIndex = -1;
+      }
+
+      const PANEL_OUT = 0.18;
+      if (infoPanelRef.current) {
+        gsap.to(infoPanelRef.current, { opacity: 0, duration: PANEL_OUT, ease: "power2.in" });
+      }
+      if (!isMobile && trackPanelRef.current) {
+        gsap.to(trackPanelRef.current, { opacity: 0, duration: PANEL_OUT, ease: "power2.in" });
+      }
+
+      if (panelTimerId) clearTimeout(panelTimerId);
+      panelTimerId = setTimeout(() => {
+        if (unmounted) return;
+        setFocusedData(data);
+        setPanelLayout(layout);
+        panelTimerId = setTimeout(() => {
+          if (unmounted) return;
+          panelTimerId = null;
+          if (infoPanelRef.current) {
+            gsap.fromTo(
+              infoPanelRef.current,
+              isMobile ? { opacity: 0, y: 6 } : { opacity: 0, x: 8 },
+              isMobile
+                ? { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }
+                : { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" },
+            );
+          }
+          if (!isMobile && trackPanelRef.current) {
+            gsap.fromTo(
+              trackPanelRef.current,
+              { opacity: 0, x: 8 },
+              { opacity: 1, x: 0, duration: 0.35, ease: "power2.out", delay: 0.06 },
+            );
+          }
+        }, 20);
+      }, PANEL_OUT * 1000);
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          focusTransitioning = false;
+        },
+      });
+
+      const thumbOrder = [];
+      for (let i = 0; i < SLIDE_COUNT; i++) {
+        if (i !== focusedIndex) thumbOrder.push(i);
+      }
+
+      const SWAP_HERO_DURATION  = 0.6;
+      const SWAP_THUMB_DURATION = 0.45;
+      const SWAP_STAGGER        = 0.025;
+
+      meshes.forEach((mesh, i) => {
+        if (i === focusedIndex) {
+          tl.to(
+            mesh.position,
+            { x: L.hero.x, y: L.hero.y, z: L.hero.z, duration: SWAP_HERO_DURATION, ease: "power3.inOut" },
+            0,
+          );
+          tl.to(
+            mesh.scale,
+            { x: L.hero.scale, y: L.hero.scale, duration: SWAP_HERO_DURATION, ease: "power3.inOut" },
+            0,
+          );
+        } else {
+          const p = L.thumbPositions[i];
+          if (!p) return;
+          const k = thumbOrder.indexOf(i);
+          const tStart = k * SWAP_STAGGER;
+          tl.to(
+            mesh.position,
+            { x: p.x, y: p.y, z: p.z, duration: SWAP_THUMB_DURATION, ease: "power2.inOut" },
+            tStart,
+          );
+          tl.to(
+            mesh.scale,
+            { x: THUMB_SCALE, y: THUMB_SCALE, duration: SWAP_THUMB_DURATION, ease: "power2.inOut" },
+            tStart,
+          );
+        }
+      });
+    }
+
     function exitFocus() {
       if (!focusMode || focusTransitioning || viewLocked) return;
       focusTransitioning = true;
@@ -794,15 +912,17 @@ export function useSliderScene({
           // Swipe → salir del detalle
           exitFocus();
         } else {
-          // Tap en focus mode → salir si se toca la imagen hero
+          // Tap en focus mode → hero sale; thumbnail swap
           const touch = e.changedTouches[0];
           const rect = canvas.getBoundingClientRect();
           const tapX = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
           const tapY = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
           raycaster.setFromCamera(new THREE.Vector2(tapX, tapY), camera);
           const hits = raycaster.intersectObjects(meshes);
-          if (hits.length > 0 && hits[0].object.userData.index === focusedIndex) {
-            exitFocus();
+          if (hits.length > 0) {
+            const tappedIdx = hits[0].object.userData.index;
+            if (tappedIdx === focusedIndex) exitFocus();
+            else swapFocus(tappedIdx);
           }
         }
         touchAccum = 0;
@@ -846,6 +966,7 @@ export function useSliderScene({
 
       if (focusMode) {
         if (idx === focusedIndex) exitFocus();
+        else swapFocus(idx);
         return;
       }
 

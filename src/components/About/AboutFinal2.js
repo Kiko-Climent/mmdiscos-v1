@@ -637,7 +637,7 @@ export default function AboutFinal2() {
                   ref={(el) => (h1LinesRef.current[0] = el)}
                   className="block will-change-[transform,opacity,filter]"
                 >
-                  <span className="inline-flex items-end gap-4">
+                  <span className="inline-flex items-end gap-1.5 lg:gap-4">
                     <span>MM</span>
                     <span
                       className="font-normal normal-case opacity-80 flex flex-col leading-[1.1] whitespace-nowrap"

@@ -1,16 +1,4 @@
-import Highlights2Desktop from "./Highlights2Desktop";
-import Highlights2_1Desktop from "./Highlights2_1Desktop";
-import Highlights2_3Desktop from "./Highlights2_3Desktop";
-import Highlights2Mobile from "./Highlights2Mobile";
-import Highlights2_1Mobile from "./Highlights2_1Mobile";
-import Highlights2_2Mobile from "./Highlights2_2Mobile";
-import Highlights2_3Mobile from "./Highlights2_3Mobile";
-import Highlights2_3_1Desktop from "./Highlights2_3_1Desktop";
-import Highlights3Desktop from "./Highlights3Desktop";
-import Highlights3_1Desktop from "./Highlights3_1Desktop";
-import Highlights3_2Desktop from "./Highlights3_2Desktop";
 import Highlights3_3Desktop from "./Highlights3_3Desktop";
-import Highlights3Mobile from "./Highlights3Mobile";
 import Highlights3_3Mobile from "./Highlights3_3Mobile";
 
 // Ambas variantes se renderizan en SSR (cero hydration mismatch). Cada
