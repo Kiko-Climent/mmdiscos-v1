@@ -341,6 +341,10 @@ export default function Highlights3_3Mobile() {
         start: "top top",
         end: `+=${totalRange}`,
         pin: true,
+        // Mobile fast-scroll pin lag: navegador pinta el scroll en thread
+        // separado y el pin engancha 1-2 frames tarde con scrolls rápidos
+        // → ScrollTrigger compensa pre-renderizando el estado pinneado.
+        anticipatePin: 1,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
           const p = self.progress;
