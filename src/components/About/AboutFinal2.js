@@ -8,10 +8,10 @@ const STATEMENT =
   "MM DISCOS IS A RECORD LABEL BASED BETWEEN BERLIN AND BARCELONA, FOUNDED AND POWERED BY MOON & MANN. FREE FROM STYLISTIC BOUNDARIES AND GENRE LIMITATIONS, THE LABEL HAS CONSISTENTLY CHAMPIONED A DISTINCTIVE SOUND WHERE MUSIC SPEAKS FOR ITSELF — DEEPLY INSPIRED BY THE SUEÑO IBICENCO AND THE SPIRIT OF THE MEDITERRANEAN.";
 
 const LINKS = [
-  { num: "01", word: "soundcloud", href: "#" },
-  { num: "02", word: "instagram", href: "#" },
-  { num: "03", word: "bandcamp", href: "#" },
-  { num: "04", word: "contact", href: "#" },
+  { num: "01", word: "soundcloud", href: "https://soundcloud.com/mmdiscos" },
+  { num: "02", word: "instagram", href: "https://www.instagram.com/mm.discos/" },
+  { num: "03", word: "bandcamp", href: "https://mmdiscos.bandcamp.com/" },
+  { num: "04", word: "contact", href: "mailto:moonandmann@gmail.com" },
 ];
 
 const PILE_BOTTOM_OFFSET = 16;

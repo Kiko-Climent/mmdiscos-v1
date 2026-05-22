@@ -187,6 +187,36 @@ export default function MMNewestHero2Mobile() {
     window.addEventListener("wheel",     fireSnap, { passive: true });
     window.addEventListener("touchmove", fireSnap, { passive: true });
 
+    // Deep-link skip: cuando alguien navega a /?focus=manifesto o
+    // /?focus=about desde otra página, `mm-scroll-to` se dispara con
+    // un targetY muy por debajo del hero. El scroll programático
+    // (Lenis o smooth scroll nativo) no emite wheel/touchmove → fireSnap
+    // nunca corre → el logo se queda centrado, gigante, tapando el
+    // contenido destino. Aquí saltamos la animación de snap y dejamos
+    // todo en estado final al instante, emitiendo el `mm-hero-logo-settled`
+    // que el menú global necesita para hacerse visible.
+    const forceSettleHero = () => {
+      if (snapFired) return;
+      snapFired = true;
+      window.removeEventListener("wheel",     fireSnap);
+      window.removeEventListener("touchmove", fireSnap);
+
+      gsap.set(box, { scaleX: 1, scaleY: 1, backgroundColor: "rgba(255,255,255,1)" });
+      gsap.set(logo, { y: 0, scale: 1 });
+      revealArtists();
+    };
+
+    const onScrollToDeep = (event) => {
+      const targetY = Number(event?.detail?.y);
+      if (!Number.isFinite(targetY)) return;
+      // Threshold: medio viewport. Por debajo de eso es un scroll
+      // "shallow" (manifesto cerca del top del propio hero, etc.) y
+      // dejamos que fireSnap normal lo gestione si toca.
+      if (targetY < vh * 0.5) return;
+      forceSettleHero();
+    };
+    window.addEventListener("mm-scroll-to", onScrollToDeep);
+
     // ── Reset si el usuario vuelve arriba del todo (scroll = 0) ─────────
     const resetTrigger = ScrollTrigger.create({
       trigger: spacer,
@@ -262,6 +292,7 @@ export default function MMNewestHero2Mobile() {
     return () => {
       window.removeEventListener("wheel",     fireSnap);
       window.removeEventListener("touchmove", fireSnap);
+      window.removeEventListener("mm-scroll-to", onScrollToDeep);
       resetTrigger.kill();
       artistsExitTrigger.kill();
       box.style.willChange  = "auto";
