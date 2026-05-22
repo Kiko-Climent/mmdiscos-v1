@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 const BASE_LINKS = [
   { label: "manifesto", href: "/?focus=manifesto", disableActive: true },
   { label: "releases", href: "/releases" },
-  { label: "about", href: "/about" },
+  { label: "about", href: "/?focus=about", disableActive: true },
 ];
 
 const SUB_LINKS = [

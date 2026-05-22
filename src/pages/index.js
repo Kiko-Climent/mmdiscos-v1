@@ -104,14 +104,42 @@ export default function Home() {
     const focus = Array.isArray(router.query.focus)
       ? router.query.focus[0]
       : router.query.focus;
-    if (focus !== "manifesto") return;
+    if (focus !== "manifesto" && focus !== "about") return;
 
-    const rafId = requestAnimationFrame(() => {
-      window.dispatchEvent(new CustomEvent("mm-nav-manifesto"));
-      router.replace("/", undefined, { shallow: true, scroll: false });
-    });
+    const eventName = focus === "manifesto" ? "mm-nav-manifesto" : "mm-nav-about";
 
-    return () => cancelAnimationFrame(rafId);
+    // Cross-page desktop: la home se monta fresca y los hijos crean sus
+    // pin-spacers en el mismo commit. Un único RAF no es suficiente —
+    // Lenis tiene un `limit` calculado sobre el DOM aún sin pin-spacers
+    // y clampa el scrollTo del target a un Y demasiado pequeño (te lleva
+    // al "inicio de home"). Solución:
+    //   1. Doble RAF → da un frame a los pin-spacers para integrarse.
+    //   2. ScrollTrigger.refresh() → recalcula start/end con la geometría
+    //      ya completa, incluyendo todos los pin-spacers.
+    //   3. lenis.resize() → fuerza a Lenis a re-medir su límite del DOM.
+    //   4. Dispatch del evento de navegación.
+    // En mobile (sin Lenis) los pasos 2-3 son inofensivos; el fallback
+    // window.scrollTo nativo siempre conoce el DOM correcto.
+    let cancelled = false;
+    const rafIds = [];
+
+    rafIds.push(requestAnimationFrame(() => {
+      if (cancelled) return;
+      rafIds.push(requestAnimationFrame(() => {
+        if (cancelled) return;
+        ScrollTrigger.refresh();
+        if (lenisRef.current && typeof lenisRef.current.resize === "function") {
+          lenisRef.current.resize();
+        }
+        window.dispatchEvent(new CustomEvent(eventName));
+        router.replace("/", undefined, { shallow: true, scroll: false });
+      }));
+    }));
+
+    return () => {
+      cancelled = true;
+      rafIds.forEach((id) => cancelAnimationFrame(id));
+    };
   }, [router, canRenderSections]);
 
   return (

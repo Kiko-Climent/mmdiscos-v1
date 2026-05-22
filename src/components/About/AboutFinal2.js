@@ -19,6 +19,10 @@ const EXPLODE_THRESHOLD = 0.45;
 const EXPLODE_RELEASE = 0.4;
 const RECRUIT_THRESHOLD = 0.7;
 const RECRUIT_RELEASE = 0.66;
+// Target progress para el deep-link "about" del menú: justo antes de que
+// dispare la explosión (EXPLODE_THRESHOLD = 0.45) → texto totalmente
+// revelado en negro, centrado, intacto.
+const ABOUT_NAV_PROGRESS = 0.43;
 
 const HEADLINE_FONT = "'Favorit', sans-serif";
 
@@ -505,6 +509,8 @@ export default function AboutFinal2() {
       });
     };
 
+    let removeNavAboutListener = null;
+
     const ctx = gsap.context(() => {
       wordEls.forEach((w) => gsap.set(w, { color: "#c8c8c8" }));
       gsap.set([topMetaLeft, topMetaRight], { opacity: 0, y: -8 });
@@ -557,9 +563,28 @@ export default function AboutFinal2() {
         );
       });
       tl.to({}, { duration: 2.5 });
+
+      // Deep-link "about" desde Menu2 — mismo patrón que el manifesto:
+      // listener dentro del context, usa el trigger por closure directa,
+      // refresh al final para asegurar start/end calculados.
+      const aboutTrigger = tl.scrollTrigger;
+      const onNavAbout = () => {
+        if (!aboutTrigger) return;
+        const start = Number(aboutTrigger.start);
+        const end = Number(aboutTrigger.end);
+        if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return;
+        const targetY = start + (end - start) * ABOUT_NAV_PROGRESS;
+        window.dispatchEvent(new CustomEvent("mm-scroll-to", { detail: { y: targetY } }));
+      };
+      window.addEventListener("mm-nav-about", onNavAbout);
+      removeNavAboutListener = () =>
+        window.removeEventListener("mm-nav-about", onNavAbout);
+
+      ScrollTrigger.refresh();
     }, sectionRef);
 
     return () => {
+      if (removeNavAboutListener) removeNavAboutListener();
       stopRaf();
       killRecruitTweens();
       cleanupStage();
@@ -637,7 +662,7 @@ export default function AboutFinal2() {
                   ref={(el) => (h1LinesRef.current[0] = el)}
                   className="block will-change-[transform,opacity,filter]"
                 >
-                  <span className="inline-flex items-end gap-1.5 lg:gap-4">
+                  <span className="inline-flex items-end gap-4">
                     <span>MM</span>
                     <span
                       className="font-normal normal-case opacity-80 flex flex-col leading-[1.1] whitespace-nowrap"
