@@ -130,6 +130,15 @@ export default function Highlights3_3Mobile() {
     const items = itemsRef.current.filter(Boolean);
     if (!sticky || items.length === 0) return;
 
+    // Freeze viewport height in px to immunize against Android URL-bar
+    // toggle re-resolving 100lvh mid-scroll (causes a step-down jump as
+    // the flex centering recomputes). Mirrors MMNewestHero2Mobile pattern.
+    const frozenH = sticky.getBoundingClientRect().height || window.innerHeight;
+    sticky.style.height = `${frozenH}px`;
+    if (contentFrameRef.current) {
+      contentFrameRef.current.style.height = `${frozenH}px`;
+    }
+
     let currentIndex = 0;
     let removeManifestoListener = null;
 
