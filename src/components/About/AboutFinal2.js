@@ -244,7 +244,7 @@ export default function AboutFinal2() {
       });
     };
 
-    const buildCharWidthMap = () => {
+    const buildCharMetrics = () => {
       const alphabet = "abcdefghijklmnopqrstuvwxyz";
       const map = {};
       const fragment = document.createDocumentFragment();
@@ -259,11 +259,14 @@ export default function AboutFinal2() {
         probes.push({ ch, probe });
       }
       stage.appendChild(fragment);
+      let charHeight = 0;
       for (const { ch, probe } of probes) {
-        map[ch] = probe.getBoundingClientRect().width || 8;
+        const rect = probe.getBoundingClientRect();
+        map[ch] = rect.width || 8;
+        charHeight = Math.max(charHeight, rect.height || 0);
         stage.removeChild(probe);
       }
-      return map;
+      return { map, charHeight: charHeight || 16 };
     };
 
     const recruitForLinks = () => {
@@ -271,7 +274,7 @@ export default function AboutFinal2() {
       recruitedRef.current = true;
 
       const stickyRect = sticky.getBoundingClientRect();
-      const charWidthMap = buildCharWidthMap();
+      const { map: charWidthMap, charHeight } = buildCharMetrics();
       const claimed = new Set();
 
       LINKS.forEach((link, idx) => {
@@ -279,9 +282,11 @@ export default function AboutFinal2() {
         const row = linkRows[idx];
         if (!slot || !row) return;
 
+        const rowRect = row.getBoundingClientRect();
         const slotRect = slot.getBoundingClientRect();
         const slotX = slotRect.left - stickyRect.left;
-        const slotY = slotRect.top - stickyRect.top;
+        const slotY =
+          rowRect.top - stickyRect.top + (rowRect.height - charHeight) / 2;
 
         const wordChars = [];
         let cumX = slotX;
@@ -348,7 +353,7 @@ export default function AboutFinal2() {
           a.style.left = `${minX - 6}px`;
           a.style.top = `${slotY - 6}px`;
           a.style.width = `${maxX - minX + 12}px`;
-          a.style.height = `${slotRect.height + 12}px`;
+          a.style.height = `${charHeight + 12}px`;
           a.style.opacity = "0";
           stage.appendChild(a);
           linkElsRef.current.push(a);
