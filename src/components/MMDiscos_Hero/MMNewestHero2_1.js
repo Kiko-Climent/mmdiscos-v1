@@ -60,6 +60,11 @@ export default function MMNewestHero2_1() {
   const videoRef            = useRef(null);
   const boxRef              = useRef(null);
   const logoRef             = useRef(null);
+  // Ref a la capa interna (el SVG visible). Necesaria para centrar el
+  // logo respecto al contenido VISIBLE, no respecto al contenedor —
+  // que tiene padding asimétrico (1rem top / 2.5rem bottom) intencional
+  // para el estado final pineado como nav.
+  const logoInnerRef        = useRef(null);
   const artistsContainerRef = useRef(null);
   const artistsSpansRef     = useRef([]);
   const hoverImageRef       = useRef(null);
@@ -157,9 +162,29 @@ export default function MMNewestHero2_1() {
       const L = logo.getBoundingClientRect();
       if (B.width <= 0 || B.height <= 0 || L.width <= 0 || L.height <= 0) return;
 
-      startScale    = Math.min(B.width / L.width, B.height / L.height) * LOGO_FIT_FACTOR;
-      const scaledH = L.height * startScale;
-      startY        = B.top + (B.height - scaledH) / 2;
+      startScale = Math.min(B.width / L.width, B.height / L.height) * LOGO_FIT_FACTOR;
+
+      // Centrar respecto a la capa VISIBLE, no al contenedor. El
+      // contenedor tiene padding asimétrico (1rem top / 2.5rem bottom)
+      // intencional para el estado pineado como nav. Si centráramos el
+      // contenedor, el SVG visible quedaría desplazado hacia arriba
+      // dentro de la caja blur en (padBottom − padTop) / 2 * startScale.
+      //
+      // Estrategia: medir el centro vertical del inner ref (el div
+      // .absolute con el SVG) relativo al top del contenedor, en escala
+      // 1 (que es como tenemos el logo ahora mismo). Como transformOrigin
+      // es "top center", el offset se escala linealmente con startScale.
+      // Fallback a centrar el contenedor si la ref aún no está montada.
+      const inner = logoInnerRef.current;
+      let innerCenterFromLogoTop = L.height / 2;
+      if (inner) {
+        const I = inner.getBoundingClientRect();
+        if (I.height > 0) {
+          innerCenterFromLogoTop = (I.top + I.height / 2) - L.top;
+        }
+      }
+      startY = B.top + B.height / 2 - innerCenterFromLogoTop * startScale;
+
       gsap.set(logo, { y: startY, scale: startScale });
     };
 
@@ -401,8 +426,12 @@ export default function MMNewestHero2_1() {
         />
 
         {/* Single inverted layer — el blend difference del contenedor
-            decide el color final per-pixel contra el backdrop. */}
+            decide el color final per-pixel contra el backdrop. La ref
+            la usa syncLogo para centrar el SVG visible (no el contenedor)
+            dentro de la caja blur — clave porque el inset del contenedor
+            es asimétrico. */}
         <div
+          ref={logoInnerRef}
           className="absolute pointer-events-none"
           style={{ inset: LOGO_LAYER_INSET }}
         >
