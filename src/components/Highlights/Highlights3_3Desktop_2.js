@@ -677,7 +677,7 @@ export default function Highlights3_3Desktop_2() {
           <div className="w-[clamp(220px,26vw,360px)]">
             <p
               ref={copyRef}
-              className="hl-copy text-[18px] leading-tight text-black"
+              className="hl-copy text-[14px] leading-tight text-black text-center"
             >
               {SLIDES[0].copy}
             </p>

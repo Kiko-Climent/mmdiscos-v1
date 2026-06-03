@@ -299,9 +299,14 @@ export default function MMNewestHero2_1() {
         hoverImageRef.current.style.display = "none";
       },
       onEnterBack: () => {
+        // No tocar y aquí. onEnterBack se dispara al cruzar el FIN del
+        // rango desde arriba (progress ≈ 1), no el inicio — así que el
+        // estado correcto es y ≈ -vh (fuera de pantalla, arriba), que
+        // es justo el último valor que quedó antes del display:none al
+        // hacer onLeave. Si forzáramos y=0 aquí, el clearProps haría
+        // visibles los elementos al centro durante un frame antes de
+        // que el onUpdate los reposicionara → flash.
         gsap.set([box, artistsContainerRef.current], { clearProps: "display" });
-        setTextY(0);
-        setBoxY(0);
         if (hasHoverRef.current) {
           artistsContainerRef.current.style.pointerEvents = "auto";
         }
