@@ -1,4 +1,5 @@
 import Highlights3_3Desktop from "./Highlights3_3Desktop";
+import Highlights3_3Desktop_2 from "./Highlights3_3Desktop_2";
 import Highlights3_3Mobile from "./Highlights3_3Mobile";
 
 // Ambas variantes se renderizan en SSR (cero hydration mismatch). Cada
@@ -16,7 +17,7 @@ export default function Highlights2Wrapper() {
   return (
     <>
       <div className="hidden min-[901px]:block">
-        <Highlights3_3Desktop />
+        <Highlights3_3Desktop_2 />
       </div>
       <div className="block min-[901px]:hidden">
         <Highlights3_3Mobile />

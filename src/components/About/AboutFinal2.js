@@ -655,7 +655,7 @@ export default function AboutFinal2() {
                 className="uppercase font-semibold leading-[0.78] tracking-[-0.05em] m-0"
                 style={{
                   fontFamily: HEADLINE_FONT,
-                  fontSize: "clamp(2rem, 11vw, 13rem)",
+                  fontSize: "clamp(2rem, 16vw, 13rem)",
                 }}
               >
                 <span

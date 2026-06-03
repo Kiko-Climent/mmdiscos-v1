@@ -318,8 +318,15 @@ export default function MMNewestHero2_1() {
 
   return (
     <>
-      {/* ── Scroll spacer ───────────────────────────────────────────────────── */}
-      <div ref={spacerRef} className="h-[200svh] pointer-events-none" />
+      {/* ── Scroll spacer ─────────────────────────────────────────────────────
+           185svh (no 200svh) para que el final del spacer coincida con el
+           fin del artistsExitTrigger (top+=vh*1.85). Así el siguiente
+           componente (Highlights3_3Desktop_2) se pinea inmediatamente
+           después de que el listado de artistas haya salido — sin pausa en
+           blanco y, sobre todo, sin que los artistas tapen el intro de los
+           paneles que llega justo después.
+      ──────────────────────────────────────────────────────────────────────── */}
+      <div ref={spacerRef} className="h-[185svh] pointer-events-none" />
 
       {/* ── Video background ─────────────────────────────────────────────────
            Height overridden to frozenVH px in useEffect (Android resize jank).

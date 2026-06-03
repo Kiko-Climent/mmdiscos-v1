@@ -9,7 +9,7 @@ const SLIDES = [
     title: "Pelagos EP",
     base: "MMD042_Cover",
     ref: "mmd042",
-    copy: "James Falco's Pelagos EP lands somewhere between Amnesia Ibiza and The Ha\u00e7ienda \u2014 four sun-faded cuts of dub, dream house and Mediterranean afterhours heat.",
+    copy: "James Falco's Pelagos EP lands somewhere between Amnesia Ibiza and The Haçienda — four sun-faded cuts of dub, dream house and Mediterranean afterhours heat.",
   },
   {
     title: "Brahmaputra EP",
@@ -61,6 +61,12 @@ const META_CHARS = Array.from(META_TEXT);
 
 const HEADLINE_FONT = "'Favorit', sans-serif";
 
+// Etiqueta inicial del index (rectángulo negro al pie del crossbar)
+// durante el intro. Se intercambia por SLIDES[0].ref justo cuando el
+// crossbar termina de dibujarse (ip → 1), usando el mismo fade que el
+// scroll dispara al cambiar de slide.
+const INTRO_INDEX_LABEL = "HIGHLIGHTS";
+
 // Wrapper "mask" para el reveal Locomotive: overflow:hidden contiene el
 // char en yPercent 130 (debajo de la línea); el hijo translada a 0.
 // padding-bottom + margin-bottom negativo da espacio para descendentes
@@ -79,7 +85,7 @@ const easeInOutCubic = (t) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const easeOutExpo = (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
 
-export default function Highlights3_3Desktop() {
+export default function Highlights3_3Desktop_2() {
   const rootRef = useRef(null);
   const stickyRef = useRef(null);
   const indicatorRef = useRef(null);
@@ -113,6 +119,11 @@ export default function Highlights3_3Desktop() {
     let currentIndex = 0;
     let copyTween = null;
     let removeManifestoListener = null;
+    // Flag de transición del label del index al cruzar ip=1 (fin del
+    // intro). True = ya se hizo el swap "HIGHLIGHTS" → SLIDES[0].ref.
+    // Permite también el camino inverso al volver al intro con scroll
+    // back, restituyendo "HIGHLIGHTS".
+    let introCounterSettled = false;
 
     const ctx = gsap.context(() => {
       const sample = items[0].querySelector("p");
@@ -319,27 +330,67 @@ export default function Highlights3_3Desktop() {
         );
 
       // ── Phase budget ───────────────────────────────────────────────
-      //  1. slides     — un viewport por slide                    (scrub)
-      //  2. split      — paneles se separan, crossbar colapsa     (scrub)
-      //  3. videoGrow  — el vídeo se expande desde el centro      (scrub)
-      //  4. videoRecede — vídeo retrocede + reglas + quote + firma (scrub)
+      //  1. intro      — paneles entran (espejo del split)        (scrub)
+      //  2. slides     — un viewport por slide                    (scrub)
+      //  3. split      — paneles se separan, crossbar colapsa     (scrub)
+      //  4. videoGrow  — el vídeo se expande desde el centro      (scrub)
+      //  5. videoRecede — vídeo retrocede + reglas + quote + firma (scrub)
+      //
+      // Intro DENTRO del pin (no en `top bottom → top top`). Razones:
+      //  · El sticky no se mueve durante el pin, así que el transform
+      //    de los paneles no se compone con el scroll del sticky →
+      //    no hay rebote del contenido (cuando intro corría con el
+      //    sticky entrando, el ease del transform "adelantaba" al
+      //    scroll y el contenido oscilaba ±8vh antes de centrar).
+      //  · El hero anterior termina su salida ANTES de que el sticky
+      //    se pinee (con el spacer del hero a 185svh), evitando la
+      //    cortina del listado de artistas sobre la animación.
       //
       // recedeRange deliberadamente corto (0.6 vh) → mismo recorrido
       // animado en menos scroll = sensación de "golpe" sin perder la
       // consistencia del scrub. Lenis añade la inercia que lo asienta.
       const total = SLIDES.length;
       const vh = window.innerHeight;
+      const introRange = vh * 1;
       const slidesRange = vh * total;
       const splitRange = vh * 1;
       const growRange = vh * 0.9;
       const recedeRange = vh * 0.6;
-      const totalRange = slidesRange + splitRange + growRange + recedeRange;
+      const totalRange =
+        introRange + slidesRange + splitRange + growRange + recedeRange;
 
-      const slidePhaseEnd = slidesRange / totalRange;
-      const splitPhaseEnd = (slidesRange + splitRange) / totalRange;
+      const introPhaseEnd = introRange / totalRange;
+      const slidePhaseEnd = (introRange + slidesRange) / totalRange;
+      const splitPhaseEnd =
+        (introRange + slidesRange + splitRange) / totalRange;
       const growPhaseEnd =
-        (slidesRange + splitRange + growRange) / totalRange;
+        (introRange + slidesRange + splitRange + growRange) / totalRange;
       const manifestoProgress = 0.995;
+
+      // Helper: fade-swap del label del index. Mismas duraciones/eases
+      // que la animación de cambio de slide existente — única fuente de
+      // verdad para que el intro→mmd042, mmd042→HIGHLIGHTS y los
+      // cambios de slide compartan exactamente la misma cinemática.
+      const fadeCounterTo = (newText) => {
+        if (!counterRef.current) return;
+        gsap.killTweensOf(counterRef.current);
+        gsap.to(counterRef.current, {
+          opacity: 0,
+          duration: 0.12,
+          ease: "power2.in",
+          overwrite: true,
+          onComplete: () => {
+            if (!counterRef.current) return;
+            counterRef.current.textContent = newText;
+            gsap.to(counterRef.current, {
+              opacity: 1,
+              duration: 0.22,
+              ease: "power2.out",
+              overwrite: true,
+            });
+          },
+        });
+      };
 
       const mainTrigger = ScrollTrigger.create({
         trigger: sticky,
@@ -350,7 +401,10 @@ export default function Highlights3_3Desktop() {
         onUpdate: (self) => {
           const p = self.progress;
 
-          const sp = clamp01(p / slidePhaseEnd);
+          const ip = clamp01(p / introPhaseEnd);
+          const sp = clamp01(
+            (p - introPhaseEnd) / (slidePhaseEnd - introPhaseEnd)
+          );
           const splitp = clamp01(
             (p - slidePhaseEnd) / (splitPhaseEnd - slidePhaseEnd)
           );
@@ -361,21 +415,44 @@ export default function Highlights3_3Desktop() {
 
           gsap.set(progressRef.current, { scaleY: sp, force3D: true });
 
-          // ── Fase split ──────────────────────────────────────────
-          // Paneles se desplazan en Y opuesta, crossbar colapsa de los
-          // extremos hacia el centro (inset clip-path), índice fade.
-          const barCollapse = clamp01(splitp / 0.7);
-          const colP = easeInOutCubic(splitp);
-          const counterOp = clamp01((0.55 - splitp) / 0.55);
+          // ── Paneles: intro + split como un único gesto ──────────
+          // panelFactor recorre 1 → 0 → -1 continuo a lo largo del scroll:
+          //   intro:  introEased 0→1, splitEased 0      → factor 1→0
+          //   slides: introEased 1,   splitEased 0      → factor 0
+          //   split:  introEased 1,   splitEased 0→1    → factor 0→-1
+          // listPanel = +factor → sube todo el recorrido.
+          // imagePanel = -factor → baja todo el recorrido.
+          const introEased = easeInOutCubic(ip);
+          const splitEased = easeInOutCubic(splitp);
+          const panelFactor = 1 - introEased - splitEased;
 
           if (listPanelRef.current) {
-            listPanelRef.current.style.transform = `translate3d(0, ${-100 * colP}%, 0)`;
+            listPanelRef.current.style.transform = `translate3d(0, ${100 * panelFactor}%, 0)`;
           }
           if (imagePanelRef.current) {
-            imagePanelRef.current.style.transform = `translate3d(0, ${100 * colP}%, 0)`;
+            imagePanelRef.current.style.transform = `translate3d(0, ${-100 * panelFactor}%, 0)`;
           }
+
+          // ── Crossbar: intro dibuja + split colapsa ───────────────
+          // Espejo proporcional del outro. El outro colapsa la barra en
+          // el primer 70% de splitp (snappy → "señal" de salida); el
+          // intro la dibuja en el último 70% de ip (los paneles entran
+          // primero, la barra los "encierra" justo cuando aterrizan en
+          // el centro). Mismo factor 0.7, misma cinemática lineal, sólo
+          // invertida en el eje temporal.
+          //
+          // introBarInset y splitBarInset son mutuamente excluyentes:
+          // durante el intro splitp=0 → splitBarInset=0; durante el
+          // split ip=1 → introBarInset=0. La suma es siempre el inset
+          // efectivo sin ramificaciones.
+          const introBarDraw = clamp01((ip - 0.3) / 0.7);  // 0 → 1 en ip [0.3, 1]
+          const barCollapse = clamp01(splitp / 0.7);
+          const counterOp = clamp01((0.55 - splitp) / 0.55);
+
           if (progressBarRef.current) {
-            const inset = 50 * barCollapse;
+            const introBarInset = 50 * (1 - introBarDraw);  // 50 → 0
+            const splitBarInset = 50 * barCollapse;          // 0 → 50
+            const inset = introBarInset + splitBarInset;
             progressBarRef.current.style.clipPath = `inset(${inset}% 0% ${inset}% 0%)`;
           }
           if (indexRef.current) {
@@ -385,6 +462,20 @@ export default function Highlights3_3Desktop() {
             grainRef.current.style.opacity = String(
               Math.sin(splitp * Math.PI) * 0.18
             );
+          }
+
+          // ── Index label: HIGHLIGHTS ↔ SLIDES[0].ref ──────────────
+          // Cruce ip=1: el crossbar terminó de dibujarse y los paneles
+          // aterrizaron en el centro → swap a la primera referencia.
+          // Cruce ip<1 (scroll back): restituye "HIGHLIGHTS". Mismo fade
+          // que el cambio de slide vía fadeCounterTo, para que la
+          // cinemática sea idéntica en ambos sentidos.
+          if (ip >= 1 && !introCounterSettled) {
+            introCounterSettled = true;
+            fadeCounterTo(SLIDES[0].ref);
+          } else if (ip < 1 && introCounterSettled) {
+            introCounterSettled = false;
+            fadeCounterTo(INTRO_INDEX_LABEL);
           }
 
           // ── Fase videoGrow (gp) — scrubbed ──────────────────────
@@ -467,25 +558,7 @@ export default function Highlights3_3Desktop() {
             force3D: true,
           });
 
-          if (counterRef.current) {
-            gsap.killTweensOf(counterRef.current);
-            gsap.to(counterRef.current, {
-              opacity: 0,
-              duration: 0.12,
-              ease: "power2.in",
-              overwrite: true,
-              onComplete: () => {
-                if (!counterRef.current) return;
-                counterRef.current.textContent = SLIDES[activeIndex].ref;
-                gsap.to(counterRef.current, {
-                  opacity: 1,
-                  duration: 0.22,
-                  ease: "power2.out",
-                  overwrite: true,
-                });
-              },
-            });
-          }
+          fadeCounterTo(SLIDES[activeIndex].ref);
 
           if (copyTween) copyTween.kill();
           copyTween = gsap.to(copyRef.current, {
@@ -538,10 +611,11 @@ export default function Highlights3_3Desktop() {
         ref={stickyRef}
         className="hl-sticky relative w-screen h-screen bg-white overflow-hidden"
       >
-        {/* Panel lista — slides hacia arriba en split */}
+        {/* Panel lista — entra desde abajo en intro, sale hacia arriba en split */}
         <div
           ref={listPanelRef}
           className="hl-panel absolute top-0 left-0 w-1/2 h-full flex items-center justify-center z-[1]"
+          style={{ transform: "translate3d(0, 100%, 0)" }}
         >
           <div className="hl-services flex flex-col items-center">
             <div ref={indicatorRef} className="hl-indicator" />
@@ -561,10 +635,11 @@ export default function Highlights3_3Desktop() {
           </div>
         </div>
 
-        {/* Panel imagen + copy — slides hacia abajo en split */}
+        {/* Panel imagen + copy — entra desde arriba en intro, sale hacia abajo en split */}
         <div
           ref={imagePanelRef}
           className="hl-panel absolute top-0 right-0 w-1/2 h-full flex flex-col items-center justify-center gap-10 px-6 z-[1]"
+          style={{ transform: "translate3d(0, -100%, 0)" }}
         >
           <div className="hl-img-wrapper relative aspect-square w-[clamp(220px,26vw,360px)] overflow-hidden">
             <div ref={stripRef} className="hl-service-img w-full">
@@ -602,21 +677,30 @@ export default function Highlights3_3Desktop() {
           <div className="w-[clamp(220px,26vw,360px)]">
             <p
               ref={copyRef}
-              className="hl-copy text-[14px] leading-tight text-black text-center"
+              className="hl-copy text-[18px] leading-tight text-black"
             >
               {SLIDES[0].copy}
             </p>
           </div>
         </div>
 
-        {/* Crossbar vertical — colapsa en split */}
-        <div ref={progressBarRef} className="hl-progress-bar">
+        {/* Crossbar vertical — se dibuja desde el centro en intro,
+            colapsa hacia el centro en split. Estado inicial colapsado
+            (inset 50%) para evitar flash de barra completa antes de
+            que el trigger evalúe en el primer frame. */}
+        <div
+          ref={progressBarRef}
+          className="hl-progress-bar"
+          style={{ clipPath: "inset(50% 0% 50% 0%)" }}
+        >
           <div ref={progressRef} className="hl-progress" />
         </div>
 
-        {/* Código catálogo (ref) — cambia con el slide */}
+        {/* Código catálogo (ref) — arranca como "HIGHLIGHTS" durante el
+            intro, se intercambia por SLIDES[0].ref justo al terminar de
+            dibujarse el crossbar (ip=1), y luego cambia por slide. */}
         <div ref={indexRef} className="hl-index hl-index--ref">
-          <span ref={counterRef}>{SLIDES[0].ref}</span>
+          <span ref={counterRef}>{INTRO_INDEX_LABEL}</span>
         </div>
 
         {/* ── Editorial overlay ─────────────────────────────────────
@@ -652,7 +736,7 @@ export default function Highlights3_3Desktop() {
             {META_CHARS.map((c, i) => (
               <span key={i} style={MASK_STYLE}>
                 <span className="hl-m-char inline-block">
-                  {c === " " ? " " : c}
+                  {c === " " ? " " : c}
                 </span>
               </span>
             ))}
