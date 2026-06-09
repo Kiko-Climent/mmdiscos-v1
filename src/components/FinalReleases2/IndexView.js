@@ -165,14 +165,14 @@ export default function IndexView() {
                   gridTemplateColumns: "56px 116px 1fr auto",
                   alignItems: "baseline",
                   columnGap: 10,
-                  padding: "7px 0",
+                  padding: "5px 0",
                   cursor: "default",
                   opacity: dimmed ? 0.2 : 1,
                   transition: "opacity 0.2s ease",
                   color: "#111",
                   fontSize: 11,
                   letterSpacing: "0.02em",
-                  lineHeight: 1.1,
+                  lineHeight: 1.05,
                   whiteSpace: "nowrap",
                 }}
               >
@@ -212,7 +212,7 @@ export default function IndexView() {
               style={{
                 display: "grid",
                 gridTemplateColumns: GRID,
-                padding: "5px 0",
+                padding: "4px 0",
                 cursor: "default",
                 opacity: dimmed ? 0.2 : 1,
                 transition: "opacity 0.2s ease",
