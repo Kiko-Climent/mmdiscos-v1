@@ -12,6 +12,7 @@ const DATA_PILL_STYLE = {
   padding: "clamp(0.36rem, 1vw, 0.423rem) clamp(0.18rem, 0.5vw, 0.22rem)",
   display: "inline-flex",
   alignItems: "flex-end",
+  justifyContent: "center",
   borderRadius: 2,
   backgroundColor: "#000",
   color: "#fff",
@@ -21,7 +22,6 @@ const DATA_PILL_STYLE = {
   whiteSpace: "nowrap",
   border: "1px solid #000",
   margin: 0,
-  textAlign: "left",
   overflow: "hidden",
 };
 

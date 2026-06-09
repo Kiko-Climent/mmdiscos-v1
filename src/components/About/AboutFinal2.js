@@ -719,7 +719,7 @@ export default function AboutFinal2() {
                   <li
                     key={link.word}
                     ref={(el) => (linkRowsRef.current[idx] = el)}
-                    className="group relative flex items-center gap-4 border-t border-black py-1 lg:py-2 last:border-b will-change-[transform,opacity]"
+                    className="group relative flex items-center gap-4 border-t border-black py-1 lg:py-2 first:border-t-0 will-change-[transform,opacity]"
                   >
                     <span
                       className="w-6 h-6 lg:w-7 lg:h-7 rounded-full border border-black flex items-center justify-center text-[8px] lg:text-[9px] tabular-nums shrink-0 opacity-70"
@@ -755,7 +755,7 @@ export default function AboutFinal2() {
           className="relative w-full max-w-[600px] px-4 md:px-0 text-justify lowercase font-normal"
           style={{
             fontSize: "0.875rem",
-            letterSpacing: "0.12em",
+            letterSpacing: "0.03em",
             lineHeight: 1.4,
             textIndent: "6rem",
           }}

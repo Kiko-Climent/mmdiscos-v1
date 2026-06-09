@@ -77,7 +77,6 @@ const MASK_STYLE = {
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const easeInOutCubic = (t) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-const easeOutExpo = (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
 export default function Highlights3_3Mobile_2() {
@@ -98,8 +97,6 @@ export default function Highlights3_3Mobile_2() {
   const itemsRef = useRef([]);
 
   const quoteRef = useRef(null);
-  const topRuleRef = useRef(null);
-  const bottomRuleRef = useRef(null);
   const quoteTextRef = useRef(null);
   const bottomMetaRef = useRef(null);
   const videoWrapRef = useRef(null);
@@ -496,15 +493,11 @@ export default function Highlights3_3Mobile_2() {
             videoWrapRef.current.style.opacity = String(videoOpacity);
           }
 
-          const ruleP = easeOutExpo(clamp01((rp - 0.25) / 0.45));
-          if (topRuleRef.current) {
-            topRuleRef.current.style.transform = `scaleX(${ruleP})`;
-          }
-          if (bottomRuleRef.current) {
-            bottomRuleRef.current.style.transform = `scaleX(${ruleP})`;
-          }
-
-          const textP = clamp01((rp - 0.4) / 0.55);
+          // Quote arranca en rp 0.25 (donde antes lo hacían las reglas
+          // horizontales, ahora eliminadas) para que el reveal del
+          // texto sea la señal de "arranque editorial" sin la deuda
+          // visual de las líneas. Mismo cambio que en desktop_2.
+          const textP = clamp01((rp - 0.25) / 0.55);
           quoteRevealTl.progress(textP);
 
           const metaP = clamp01((rp - 0.7) / 0.3);
@@ -715,18 +708,6 @@ export default function Highlights3_3Mobile_2() {
           ref={quoteRef}
           className="absolute inset-0 z-[3] pointer-events-none text-black"
         >
-          <div
-            ref={topRuleRef}
-            className="absolute left-0 right-0 top-[6.5rem] h-px bg-black origin-left will-change-transform"
-            style={{ transform: "scaleX(0)" }}
-          />
-
-          <div
-            ref={bottomRuleRef}
-            className="absolute left-0 right-0 bottom-[3.75rem] h-px bg-black origin-left will-change-transform"
-            style={{ transform: "scaleX(0)" }}
-          />
-
           <div
             ref={bottomMetaRef}
             className="absolute left-1/2 -translate-x-1/2 bottom-6 text-[10px] tracking-[0.22em] uppercase font-medium whitespace-nowrap"

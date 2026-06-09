@@ -83,7 +83,6 @@ const MASK_STYLE = {
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const easeInOutCubic = (t) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-const easeOutExpo = (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
 
 export default function Highlights3_3Desktop_2() {
   const rootRef = useRef(null);
@@ -102,8 +101,6 @@ export default function Highlights3_3Desktop_2() {
 
   // Editorial overlay refs
   const quoteRef = useRef(null);
-  const topRuleRef = useRef(null);
-  const bottomRuleRef = useRef(null);
   const quoteTextRef = useRef(null);
   const bottomMetaRef = useRef(null);
   const videoWrapRef = useRef(null);
@@ -490,9 +487,13 @@ export default function Highlights3_3Desktop_2() {
           //
           // Cascade (sub-rangos dentro de rp, todos en [0..1]):
           //   vídeo:   rp 0.00 → 0.55  scale 1→0.50, opacity 1→0.60
-          //   reglas:  rp 0.25 → 0.70  scaleX 0→1   (expo.out)
-          //   quote:   rp 0.40 → 0.95  opacity+y     (power4-equiv)
-          //   firma:   rp 0.70 → 1.00  opacity+y     (expo.out)
+          //   quote:   rp 0.25 → 0.80  opacity+y    (power4-equiv)
+          //   firma:   rp 0.70 → 1.00  opacity+y    (expo.out)
+          //
+          // Quote arranca en 0.25 (donde antes lo hacían las reglas
+          // horizontales, ahora eliminadas) para que el reveal del
+          // texto sea la señal de "arranque editorial" sin la deuda
+          // visual de las líneas.
           //
           // El vídeo NO desaparece — queda al fondo a opacity 0.6 +
           // scale 0.5, dándole profundidad atmosférica al quote.
@@ -511,19 +512,11 @@ export default function Highlights3_3Desktop_2() {
             videoWrapRef.current.style.opacity = String(videoOpacity);
           }
 
-          const ruleP = easeOutExpo(clamp01((rp - 0.25) / 0.45));
-          if (topRuleRef.current) {
-            topRuleRef.current.style.transform = `scaleX(${ruleP})`;
-          }
-          if (bottomRuleRef.current) {
-            bottomRuleRef.current.style.transform = `scaleX(${ruleP})`;
-          }
-
           // Quote word reveal — cascade Locomotive scrubbed por rp.
           // textP es lineal a propósito: la curva expo.out vive dentro
           // de la TL (per-word). Componer easings aquí amortiguaría el
           // snap inicial del wave.
-          const textP = clamp01((rp - 0.4) / 0.55);
+          const textP = clamp01((rp - 0.25) / 0.55);
           quoteRevealTl.progress(textP);
 
           // Signature char reveal — mismo patrón, char-level.
@@ -677,7 +670,7 @@ export default function Highlights3_3Desktop_2() {
           <div className="w-[clamp(220px,26vw,360px)]">
             <p
               ref={copyRef}
-              className="hl-copy text-[14px] leading-tight text-black text-center"
+              className="hl-copy text-[18px] leading-tight text-black"
             >
               {SLIDES[0].copy}
             </p>
@@ -706,27 +699,13 @@ export default function Highlights3_3Desktop_2() {
         {/* ── Editorial overlay ─────────────────────────────────────
             Orden de profundidad:
               · z[2] vídeo (centrado, scale GPU)
-              · z[3] reglas + quote + firma (delante del vídeo)
+              · z[3] quote + firma (delante del vídeo)
             En grow el vídeo es solo; en recede el vídeo retrocede
-            mientras reglas y texto pintan encima. */}
+            mientras texto y firma pintan encima. */}
         <div
           ref={quoteRef}
           className="absolute inset-0 z-[3] pointer-events-none text-black"
         >
-          {/* Top horizontal rule */}
-          <div
-            ref={topRuleRef}
-            className="absolute left-0 right-0 top-[10rem] h-px bg-black origin-left will-change-transform"
-            style={{ transform: "scaleX(0)" }}
-          />
-
-          {/* Bottom horizontal rule */}
-          <div
-            ref={bottomRuleRef}
-            className="absolute left-0 right-0 bottom-[5.5rem] h-px bg-black origin-left will-change-transform"
-            style={{ transform: "scaleX(0)" }}
-          />
-
           {/* Firma — chars-as-masks (reveal char-level estilo Locomotive) */}
           <div
             ref={bottomMetaRef}

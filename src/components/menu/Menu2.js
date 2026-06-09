@@ -31,6 +31,7 @@ const pillStyle = (bg, fg, borderColor) => ({
   padding:         "clamp(0.36rem, 1vw, 0.423rem) clamp(0.18rem, 0.5vw, 0.22rem)",
   display:         "inline-flex",
   alignItems:      "flex-end",
+  justifyContent:  "center",
   borderRadius:    2,
   backgroundColor: bg,
   color:           fg,
@@ -44,7 +45,6 @@ const pillStyle = (bg, fg, borderColor) => ({
   border:          `1px solid ${borderColor}`,
   margin:          0,
   appearance:      "none",
-  textAlign:       "left",
 });
 
 const Pill = ({ active = false, href, onClick, children }) => {
