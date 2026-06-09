@@ -1,6 +1,7 @@
 import Highlights3_3Desktop from "./Highlights3_3Desktop";
 import Highlights3_3Desktop_2 from "./Highlights3_3Desktop_2";
 import Highlights3_3Mobile_2 from "./Highlights3_3Mobile_2";
+import Highlights3_3Mobile3 from "./Highlights3_3Mobile3";
 
 // Ambas variantes se renderizan en SSR (cero hydration mismatch). Cada
 // envoltorio se muestra/oculta vía media query Tailwind (breakpoint 900px).
@@ -20,7 +21,7 @@ export default function Highlights2Wrapper() {
         <Highlights3_3Desktop_2 />
       </div>
       <div className="block min-[901px]:hidden">
-        <Highlights3_3Mobile_2 />
+        <Highlights3_3Mobile3 />
       </div>
     </>
   );
