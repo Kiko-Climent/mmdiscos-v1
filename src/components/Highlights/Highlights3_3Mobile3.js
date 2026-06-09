@@ -698,13 +698,20 @@ export default function Highlights3_3Mobile_2() {
               + translate(-50%, -50%) → su píxel central cae en el 50% del
               viewport. Inmutable frente a paddings, menu height, breath,
               tamaño de phone. El transform inline es seguro: el mainTrigger
-              sólo toca el clipPath del crossbar, nunca su transform. */}
+              sólo toca el clipPath del crossbar, nunca su transform.
+
+              Width: calc(100% - 3rem) replica el px-6 del parent que el
+              crossbar heredaba en el layout flex original. Sin ese cálculo,
+              al ser absolute, el `w-full` se referencia a la padding box
+              del contentFrame (= viewport completo) y el bar llegaba de
+              lado a lado. */}
           <div
             ref={progressBarRef}
-            className="hl-progress-bar-h absolute w-full max-w-[420px] h-px bg-[#e0e0e0] z-[2] pointer-events-none"
+            className="hl-progress-bar-h absolute h-px bg-[#e0e0e0] z-[2] pointer-events-none"
             style={{
               top: "50%",
               left: "50%",
+              width: "calc(100% - 3rem)",
               maxWidth: "var(--hl-mobile-progress-max, 420px)",
               // Estado inicial colapsado al centro (inset horizontal).
               // El primer onUpdate del mainTrigger lo expande según ip.
