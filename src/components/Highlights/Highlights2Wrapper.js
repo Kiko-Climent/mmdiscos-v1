@@ -21,7 +21,7 @@ export default function Highlights2Wrapper() {
         <Highlights3_3Desktop_2 />
       </div>
       <div className="block min-[901px]:hidden">
-        <Highlights3_3Mobile3 />
+        <Highlights3_3Mobile_2 />
       </div>
     </>
   );
