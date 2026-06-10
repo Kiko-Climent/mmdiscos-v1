@@ -692,22 +692,45 @@ export default function AboutFinal3() {
                 className="uppercase font-semibold leading-[0.78] tracking-[-0.05em] m-0"
                 style={{
                   fontFamily: HEADLINE_FONT,
-                  // 16vw → 17vw: bump +6% para que la "S" final de DISCOS
-                  // se alinee con la "a" de BARCELONA en mobile. En desktop
-                  // anchos (≥1300px) ya estamos en el cap 13rem → no cambia.
-                  fontSize: "clamp(2rem, 17vw, 13rem)",
+                  // 17vw → 19vw: bump adicional en mobile para que el
+                  // extremo derecho de DISCOS alcance a la "A" final de
+                  // BARCELONA. La estrategia es DESACOPLAR las dos
+                  // escalas: H1 crece con vw, EST queda casi fijo en
+                  // mobile (clamp con piso 11px) → DISCOS le "alcanza"
+                  // a BARCELONA en lugar de crecer ambos a la vez. En
+                  // desktop seguimos topando a 13rem (intacto).
+                  fontSize: "clamp(2rem, 19vw, 13rem)",
                 }}
               >
                 <span
                   ref={(el) => (h1LinesRef.current[0] = el)}
                   className="block will-change-[transform,opacity,filter]"
                 >
-                  <span className="inline-flex items-end gap-4">
+                  {/* gap: 0.08em — relativo al H1 (el inline-flex hereda
+                      su font-size por cascada). Mobile H1 ≈ 64px → gap
+                      ≈ 5px (apretado, como el tracking interno del H1).
+                      Desktop H1 cap 208px → gap ≈ 16.6px (≈ valor original
+                      gap-4 = 16px, intacto a efectos prácticos). */}
+                  <span className="inline-flex items-end" style={{ gap: "0.08em" }}>
                     <span>MM</span>
+                    {/* fontSize: clamp(11px, 2.5vw, 14px) — VW base (no em).
+                        Razón del cambio respecto a 0.18em: con `em` el
+                        EST crecía a la par del H1 → BARCELONA crecía
+                        tanto como DISCOS y la "A" se pasaba siempre por
+                        el mismo margen. Con vw, en todo el rango mobile
+                        (375-440px) el 2.5vw cae bajo 11 → EST se queda
+                        en su piso de 11px = ancho de BARCELONA constante
+                        en mobile. Como H1 sí escala (19vw), DISCOS crece
+                        y termina alcanzando a BARCELONA en el extremo
+                        derecho. En desktop (≥560px viewport) 2.5vw
+                        empieza a subir hasta el cap de 14px = mismo techo
+                        del clamp original. Si en algún dispositivo
+                        BARCELONA quedara corta de DISCOS, subir el 2.5
+                        a 2.8 o 3. Si se pasa, bajar el 19vw a 18. */}
                     <span
                       className="font-normal normal-case opacity-80 flex flex-col leading-[1.1] whitespace-nowrap"
                       style={{
-                        fontSize: "clamp(10px, 1.2vw, 14px)",
+                        fontSize: "clamp(11px, 2.5vw, 14px)",
                         letterSpacing: "0.02em",
                         textTransform: "uppercase",
                         transform: "translateY(-0.18em)",
