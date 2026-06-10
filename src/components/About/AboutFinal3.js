@@ -683,7 +683,7 @@ export default function AboutFinal3() {
 
           {/* Main brutalist grid */}
           <div
-            className="absolute left-0 right-0 bottom-14 lg:bottom-24 px-6 lg:px-10 grid grid-cols-12 gap-2 lg:gap-6 items-start content-center lg:items-stretch lg:content-normal"
+            className="absolute left-0 right-0 bottom-12 lg:bottom-24 px-6 lg:px-10 grid grid-cols-12 gap-2 lg:gap-6 items-start content-center lg:items-stretch lg:content-normal"
             style={{ top: "calc(var(--mm-nav-bottom, 7rem) + clamp(2rem, 4.5vh, 3.25rem))" }}
           >
             {/* Headline — left, stacked */}
@@ -730,7 +730,7 @@ export default function AboutFinal3() {
                     <span
                       className="font-normal normal-case opacity-80 flex flex-col leading-[1.1] whitespace-nowrap"
                       style={{
-                        fontSize: "clamp(11px, 2.5vw, 14px)",
+                        fontSize: "clamp(10px, 2.5vw, 14px)",
                         letterSpacing: "0.02em",
                         textTransform: "uppercase",
                         transform: "translateY(-0.18em)",
