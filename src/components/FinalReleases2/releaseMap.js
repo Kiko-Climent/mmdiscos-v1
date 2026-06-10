@@ -53,6 +53,7 @@ const IMAGE_VARIANT_WIDTHS = [720, 960, 1280];
 const IMAGE_PROFILE_MAP = {
   "/statues.jpeg": "text",
   "/Daichi - cover.jpg": "text",
+  "/Daichi_Bside.jpg": "text",
   "/img1.jpg": "text",
   "/img2.jpg": "text",
   "/img3.jpg": "text",

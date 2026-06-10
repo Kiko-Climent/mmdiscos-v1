@@ -111,7 +111,7 @@ export const DataReleases = [
   { 
     artist: "Daichi",
     title: "Edits Vol.01-02-03",
-    image: "/Daichi - cover.jpg",
+    image: "/Daichi_Bside.jpg",
     year: "2024",
     format: "AIFF, FLAC, MP3, WAV",
     type: "EP",

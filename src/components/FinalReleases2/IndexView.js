@@ -31,8 +31,11 @@ const buildSrcSet = (base, ext) =>
 export default function IndexView() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [fallbackByBase, setFallbackByBase] = useState({});
   const hoveredRelease = hoveredIndex !== null ? SORTED_RELEASES[hoveredIndex] : null;
   const hoveredBase = hoveredRelease ? imageBase(hoveredRelease.image) : null;
+  const shouldUseOriginal =
+    hoveredBase && Object.prototype.hasOwnProperty.call(fallbackByBase, hoveredBase);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -120,7 +123,7 @@ export default function IndexView() {
         className="pointer-events-none absolute inset-0 flex items-center justify-center"
         style={{ zIndex: 1 }}
       >
-        {hoveredBase && (
+        {hoveredBase && !shouldUseOriginal && (
           <picture>
             <source
               type="image/avif"
@@ -137,9 +140,21 @@ export default function IndexView() {
               alt={hoveredRelease.title}
               decoding="async"
               fetchPriority="high"
+              onError={() => {
+                setFallbackByBase((prev) => ({ ...prev, [hoveredBase]: true }));
+              }}
               style={{ width: isMobile ? 220 : 480, height: isMobile ? 220 : 480, objectFit: "cover" }}
             />
           </picture>
+        )}
+        {hoveredRelease && shouldUseOriginal && (
+          <img
+            src={hoveredRelease.image}
+            alt={hoveredRelease.title}
+            decoding="async"
+            fetchPriority="high"
+            style={{ width: isMobile ? 220 : 480, height: isMobile ? 220 : 480, objectFit: "cover" }}
+          />
         )}
       </div>
 
