@@ -114,6 +114,7 @@ export const DataReleases = [
     image: "/Daichi_Bside.jpg",
     year: "2024",
     format: "AIFF, FLAC, MP3, WAV",
+    vinyl: "12\" 33 ⅓ RPM",
     type: "EP",
     ref: "mmd033",
     tracklist: [

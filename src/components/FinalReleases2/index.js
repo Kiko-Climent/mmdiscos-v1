@@ -185,7 +185,7 @@ export default function FinalReleases2() {
           zIndex: 10,
           opacity: isIndex ? 0 : 1,
           transition: "opacity 0.3s ease",
-          pointerEvents: isIndex ? "none" : "auto",
+          pointerEvents: isIndex || focusedData ? "none" : "auto",
         }}
       >
         <span ref={titleRef} style={{ display: "none" }} />
