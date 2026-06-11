@@ -81,6 +81,36 @@ export default function Home() {
 
   const canRenderSections = lenisReady;
 
+  // Reset de scroll DESPUÉS de montar las secciones. El scrollTo(0,0) del
+  // useLayoutEffect de arriba corre cuando el documento aún está vacío
+  // (lenisReady=false → sin secciones → altura ≈ 0), así que no tiene efecto
+  // real. En móvil el navegador restaura su Y guardada justo cuando el
+  // documento crece a su altura real → la home quedaba a media altura tras
+  // refrescar. Aquí, ya con las secciones montadas (altura real), forzamos
+  // el top. Desktop lo gestiona Lenis (lenis.scrollTo(0)), y respetamos el
+  // deep-link ?focus= que tiene su propio scroll programático.
+  useLayoutEffect(() => {
+    if (!canRenderSections || !router.isReady) return;
+    if (window.innerWidth >= 720) return;
+
+    const focus = Array.isArray(router.query.focus)
+      ? router.query.focus[0]
+      : router.query.focus;
+    if (focus === "manifesto" || focus === "about") return;
+
+    let raf2 = 0;
+    window.scrollTo(0, 0);
+    const raf1 = requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+      raf2 = requestAnimationFrame(() => window.scrollTo(0, 0));
+    });
+
+    return () => {
+      cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
+    };
+  }, [canRenderSections, router.isReady, router.query.focus]);
+
   useEffect(() => {
     const onScrollToY = (event) => {
       const targetY = Number(event?.detail?.y);
