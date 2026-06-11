@@ -81,42 +81,6 @@ export default function Home() {
 
   const canRenderSections = lenisReady;
 
-  // Reset de scroll SOLO en el primer montaje (refresh / landing directo).
-  // El scrollTo(0,0) del useLayoutEffect de arriba corre cuando el documento
-  // aún está vacío (lenisReady=false → sin secciones → altura ≈ 0), así que
-  // no surte efecto. En móvil el navegador restaura su Y guardada cuando el
-  // documento crece a su altura real → la home quedaba a media altura tras
-  // refrescar. Aquí, ya con las secciones montadas, forzamos el top UNA vez.
-  //
-  // Clave: el ref guardián impide que se vuelva a ejecutar. Si dependiéramos
-  // de router.query.focus, el `router.replace("/")` del deep-link (que limpia
-  // ?focus= a undefined) re-dispararía este reset y pisaría la navegación de
-  // Manifesto/About. Desktop lo gestiona Lenis; el deep-link inicial se omite.
-  const didResetScrollRef = useRef(false);
-  useLayoutEffect(() => {
-    if (didResetScrollRef.current) return;
-    if (!canRenderSections || !router.isReady) return;
-    if (window.innerWidth >= 720) return;
-    didResetScrollRef.current = true;
-
-    const focus = Array.isArray(router.query.focus)
-      ? router.query.focus[0]
-      : router.query.focus;
-    if (focus === "manifesto" || focus === "about") return;
-
-    let raf2 = 0;
-    window.scrollTo(0, 0);
-    const raf1 = requestAnimationFrame(() => {
-      window.scrollTo(0, 0);
-      raf2 = requestAnimationFrame(() => window.scrollTo(0, 0));
-    });
-
-    return () => {
-      cancelAnimationFrame(raf1);
-      if (raf2) cancelAnimationFrame(raf2);
-    };
-  }, [canRenderSections, router.isReady]);
-
   useEffect(() => {
     const onScrollToY = (event) => {
       const targetY = Number(event?.detail?.y);
