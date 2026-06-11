@@ -671,14 +671,22 @@ export default function AboutFinal3() {
                   con text-[11px] line-height normal ~1.2, cuadrado 6px
               Como gap se evalúa una vez por viewport, * 2 mantiene la
               simetría perfecta a cualquier altura de pantalla. */}
+          {/* Reglas superior/inferior alineadas con el contenido:
+              · Mobile: inset px-6 → misma longitud que las líneas separadoras
+                de los links (border-t de cada <li>, que viven dentro del
+                padding px-6 del grid).
+              · Desktop: inset lg:px-10 → se extienden del cuadrado de
+                "■ INDEPENDENT RECORD LABEL" al cuadrado de
+                "LIVING THE MEDITERRANEAN DREAM ■" (ambos en los extremos
+                del padding lg:px-10 de la fila meta). */}
           <div
             ref={topRuleRef}
-            className="absolute left-0 right-0 h-px bg-black will-change-transform"
+            className="absolute left-6 right-6 lg:left-10 lg:right-10 h-px bg-black will-change-transform"
             style={{ top: "calc(var(--mm-nav-bottom, 7rem) + clamp(0.4rem, 1vh, 0.75rem) * 2 + 0.875rem)" }}
           />
           <div
             ref={bottomRuleRef}
-            className="absolute left-0 right-0 bottom-12 lg:bottom-16 h-px bg-black will-change-transform"
+            className="absolute left-6 right-6 lg:left-10 lg:right-10 bottom-12 lg:bottom-16 h-px bg-black will-change-transform"
           />
 
           {/* Main brutalist grid */}
