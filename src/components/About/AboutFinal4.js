@@ -691,7 +691,6 @@ export default function AboutFinal4() {
             className="absolute left-6 right-6 lg:left-10 lg:right-10 bottom-12 lg:bottom-16 h-px bg-black will-change-transform hidden lg:block"
           />
 
-          {/* Main brutalist grid */}
           <div
             className="lg:absolute left-0 right-0 bottom-12 lg:bottom-24 mt-2 lg:mt-0 px-6 lg:px-10 grid grid-cols-12 gap-2 lg:gap-6 items-start content-start lg:items-stretch lg:content-normal"
             style={{ top: "var(--af-grid-top)" }}
