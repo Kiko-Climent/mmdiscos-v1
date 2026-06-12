@@ -28,4 +28,17 @@
     background: transparent;
     z-index: 30;
   }
+
+  /* ── AboutFinal4 — posiciones DESKTOP (≥lg) ──────────────────────────────
+     Los <div> de IRL meta, regla superior y grid son `lg:absolute` y leen
+     estas variables en su `top` inline → valores idénticos a AboutFinal3,
+     desktop intacto. En móvil esos elementos son `static` (flujo normal) y
+     se centran como bloque vía `editorialRef` (flex-col justify-center), así
+     que estas variables se ignoran ahí. Scope `.about-final-v4` para no
+     afectar a AboutFinal3. */
+  .about-final-v4 {
+    --af-irl-top: calc(var(--mm-nav-bottom, 7rem) + clamp(0.4rem, 1vh, 0.75rem));
+    --af-rule-top: calc(var(--mm-nav-bottom, 7rem) + clamp(0.4rem, 1vh, 0.75rem) * 2 + 0.875rem);
+    --af-grid-top: calc(var(--mm-nav-bottom, 7rem) + clamp(2rem, 4.5vh, 3.25rem));
+  }
   

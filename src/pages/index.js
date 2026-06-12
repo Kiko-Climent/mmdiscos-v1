@@ -7,6 +7,7 @@ import Lenis from "lenis";
 import AboutFinal3 from "@/components/About/AboutFinal3";
 import Highlights2Wrapper from "@/components/Highlights/Highlights2Wrapper";
 import MMNewestHero2Wrapper from "@/components/MMDiscos_Hero/MMNewestHero2Wrapper";
+import AboutFinal4 from "@/components/About/AboutFinal4";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -154,7 +155,7 @@ export default function Home() {
         <>
           <MMNewestHero2Wrapper />
           <Highlights2Wrapper />
-          <AboutFinal3 />
+          <AboutFinal4 />
         </>
       ) : null}
     </div>
