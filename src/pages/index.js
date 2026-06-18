@@ -4,7 +4,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Lenis from "lenis";
-import AboutFinal3 from "@/components/About/AboutFinal3";
 import Highlights2Wrapper from "@/components/Highlights/Highlights2Wrapper";
 import MMNewestHero2Wrapper from "@/components/MMDiscos_Hero/MMNewestHero2Wrapper";
 import AboutFinal4 from "@/components/About/AboutFinal4";

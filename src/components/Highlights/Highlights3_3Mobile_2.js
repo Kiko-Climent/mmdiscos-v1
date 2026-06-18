@@ -28,7 +28,7 @@ const SLIDES = [
     title: "Deamwalker EP",
     base: "img4",
     ref: "mmd036",
-    copy: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum deserunt soluta, consequatur sit et tenetur facilis ex ab voluptatibus possimus voluptatem doloribus delectus.",
+    copy: "Four tracks where downtempo electronics take the lead, drawing from house and balearic beat to sketch an island-Mediterranean landscape of color and fantasy.",
   },
   {
     title: "Socarrat vol.2",

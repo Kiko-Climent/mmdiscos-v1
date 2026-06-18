@@ -32,6 +32,7 @@ export default function IndexView() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [fallbackByBase, setFallbackByBase] = useState({});
+  const [navBottom, setNavBottom] = useState(140);
   const hoveredRelease = hoveredIndex !== null ? SORTED_RELEASES[hoveredIndex] : null;
   const hoveredBase = hoveredRelease ? imageBase(hoveredRelease.image) : null;
   const shouldUseOriginal =
@@ -42,6 +43,20 @@ export default function IndexView() {
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
+  }, []);
+
+  // Measure actual bottom of the fixed navbar so the list never collides with it.
+  // Reads mm-global-menu-pills (rendered by _app.js) and adds a small breathing gap.
+  useEffect(() => {
+    const measure = () => {
+      const pills = document.getElementById("mm-global-menu-pills");
+      if (pills) {
+        setNavBottom(pills.getBoundingClientRect().bottom + 16);
+      }
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
   }, []);
 
   // ── Deferred preload + decode de todos los covers ───────────────────────
@@ -104,7 +119,10 @@ export default function IndexView() {
   const GRID = `repeat(${COLS_DESKTOP.length}, 1fr)`;
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center">
+    <div
+      className="relative w-full h-full"
+      style={{ display: "flex", flexDirection: "column", overflowY: "auto" }}
+    >
 
       {/* Soft radial vignette */}
       <div
@@ -157,6 +175,10 @@ export default function IndexView() {
           />
         )}
       </div>
+
+      {/* Safe-zone top spacer: flex:1 centers when space allows, minHeight guarantees
+          the list never slides under the fixed navbar regardless of viewport height. */}
+      <div style={{ flex: 1, minHeight: navBottom, pointerEvents: "none" }} />
 
       {/* Release list */}
       <div style={{ position: "relative", zIndex: 2, width: "100%", padding: isMobile ? "0 8px" : "0 40px", boxSizing: "border-box" }}>
@@ -255,6 +277,9 @@ export default function IndexView() {
           );
         })}
       </div>
+
+      {/* Bottom spacer — mirrors top so the list stays centered */}
+      <div style={{ flex: 1, minHeight: 24, pointerEvents: "none" }} />
     </div>
   );
 }

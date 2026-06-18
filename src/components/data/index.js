@@ -1,6 +1,6 @@
 export const DataReleases = [
   { 
-    artist: "mogwaa",
+    artist: "Mogwaa",
     title: "Hazzy Dreams LP",
     image: "/img3.jpg",
     year: "2023",
@@ -22,6 +22,15 @@ export const DataReleases = [
       "It Always Comes And Goes",
       "Swingin'",
     ],
+    credits: [
+      "Written By Mogwaa",
+      "Produced & Mixed By Seungyoung Lee",
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by Basora",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+      "Powered By MM Discos",
+    ],
     bandcamp: "https://mogwaa.bandcamp.com/album/hazy-dreams",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/mogwaa-hazy-dreams-lp-1"
   },
@@ -42,6 +51,13 @@ export const DataReleases = [
       "Trepanado - Abrir Fogo",
       "Clap Kent - El Jaguar",
     ],
+    credits: [
+      "Mastering by Baldo Gallego",
+      "Design by Jabibobo",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+      "Powered By MM Discos",
+    ],
     bandcamp: "https://mmdiscos.bandcamp.com/album/mm-discos-factory-edits",
     soundcloud: "hhttps://soundcloud.com/mmdiscos/sets/v-a-mm-discos-factory"
   },
@@ -60,6 +76,15 @@ export const DataReleases = [
       "Hawk",
       "Night Runner",
       "Lake Drum"
+    ],
+    credits: [
+      "Written and produced by Mark Crooks, Bradley Lucke and Steve Carr",
+      "Saxophone by Greg Meehan on Lake Drum",
+      "Vocals by Mochudi",
+      "Mastering by soundmint.io",
+      "Graphics & Design by Da Silva",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
     ],
     bandcamp: "https://mmdiscos.bandcamp.com/album/night-runner",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/statues-night-runner"
@@ -84,6 +109,14 @@ export const DataReleases = [
       "Precious",
       "Falling Backwards "
     ],
+    credits: [
+      "Produced, arranged and mixed by CORBEN",
+      "Recorded in NY City and The East Kootenay's",
+      "Mastered by Joshua Stevenson at Otic Mastering",
+      "Artwork by Takaaki Okada",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+    ],
     bandcamp: "https://mmdiscos.bandcamp.com/album/peachland",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/corbeb-peachland-lp-mm-saturns"
   },
@@ -103,6 +136,13 @@ export const DataReleases = [
       "Tanzen",
       "Maniac Of Palma ",
       "Patrick's Cha Cha "
+    ],
+    credits: [
+      "Written and produced by CELEX",
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by J.Diaz | allthatjazz",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
     ],
     bandcamp: "https://mmdiscos.bandcamp.com/album/capa-disco-works",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/celex-capa-disco-works-mm"
@@ -125,13 +165,20 @@ export const DataReleases = [
       "The Heart part 5",
       "Groove Wave (Bonus Slow Disco Edit)"
     ],
+    credits: [
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by J.Diaz | allthatjazz",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+      "Powered By MM Discos",
+    ],
     bandcamp: "https://daichivy.bandcamp.com/album/edits-vol-01-02-03",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/daichi-edits-vol-01-02-03"
   },
 
   // UNGARO & PHIL ANKER - 12 hour EP
   { 
-    artist: "ungaro & phil anker",
+    artist: "Ungaro & Phil Anker",
     title: "12 hour EP",
     image: "/img1.jpg",
     year: "2025",
@@ -143,6 +190,15 @@ export const DataReleases = [
       "Dance",
       "Thunderstorm",
       "Focus"
+    ],
+    credits: [
+      "All Tracks Written, Produced by Ungaro & Phil Anker",
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by J.Diaz | allthatjazz",
+      "Curated By Da Silva & Dj Katah",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+      "Powered By MM Discos",
     ],
     bandcamp: "https://iamungaro.bandcamp.com/album/12-hours-ep",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/ungaro-phil-anker-12hours-ep"
@@ -161,6 +217,15 @@ export const DataReleases = [
       "Dreamwalker",
       "Don't Go",
       "Eternal Sunshine"
+    ],
+    credits: [
+      "All Tracks Written, Produced by NairLess",
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by J.Diaz | allthatjazz",
+      "Curated By Da Silva & Dj Katah",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+      "Powered By MM Discos",
     ],
     bandcamp: "https://nairless.bandcamp.com/album/dreamwalker-ep",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/nairless-dreamwalker-ep-mm"
@@ -182,12 +247,20 @@ export const DataReleases = [
       "Freedom Spirit",
       "Archipelagos",
       "Cloud Waves (Ambient Meditation Mix)"
-
+    ],
+    credits: [
+      "All Tracks Written, Produced by Pleasure Voyage",
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by J.Diaz | allthatjazz",
+      "Curated By Da Silva & Dj Katah",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+      "Powered By MM Discos",
     ],
     bandcamp: "https://pleasurevoyage.bandcamp.com/album/freedom-spirit",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/pleasure-voyage-freedom-spirit"
   },
-  // GUILLEMUSIC - The Ten9Eight EP
+  // GUILLAUME- The Ten9Eight EP
   { 
     artist: "guillaume",
     title: "The Ten9Eight EP",
@@ -200,6 +273,14 @@ export const DataReleases = [
       "Ten9Eight",
       "Despertar",
       "G&G feat. Gurrex",
+    ],
+    credits: [
+      "Written and Produced by Guillaume",
+      "G&G produced by Guillaume & Gurrex",
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by J.Diaz | allthatjazz",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
     ],
     bandcamp: "https://guillaumemusic.bandcamp.com/album/the-ten9eight-ep",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/guillaume-the-ten9eight-ep-mm"
@@ -218,6 +299,13 @@ export const DataReleases = [
       "Dejame En Paz",
       "You Know Those Girls",
       "When I Say Go",
+    ],
+    credits: [
+      "Written and Produced by Claire Gaide",
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by J.Diaz | allthatjazz",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
     ],
     bandcamp: "https://mmdiscos.bandcamp.com/album/club-solsticio",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/pontcho-club-solsticio"
@@ -240,6 +328,15 @@ export const DataReleases = [
       "La Noche",
       "Eternal Dance",
       "X-Break"
+    ],
+    credits: [
+      "Written and Produced by Nic Jalusi",
+      "Recorded between 2023 and 2024 at Lake Ammer",
+      "Additional mixing on Sunset '92 by Martin Brugger",
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by J.Diaz | allthatjazz",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
     ],
     bandcamp: "https://nicjalusi.bandcamp.com/album/eternal-sunset-ep",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/nic-jalusi-eternal-sunset-ep"
@@ -265,6 +362,13 @@ export const DataReleases = [
       "Distance - Sunrise",
       "Nic Jalusi - Summer of Love",
       "Pontcho - Aqui Nao Cola"
+    ],
+    credits: [
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by J.Diaz | allthatjazz",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+      "Powered By MM Discos",
     ],
     bandcamp: "https://mmdiscos.bandcamp.com/album/socarrat-vol-1-10-years-of-mm-discos",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/socarrat-volume-1-10-years-of-mm-discos"
@@ -295,6 +399,13 @@ export const DataReleases = [
       "Pacific Coliseum - Reading Stars",
       "Keikee - Spacebirds"
     ],
+    credits: [
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by J.Diaz | allthatjazz",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+      "Powered By MM Discos",
+    ],
     bandcamp: "https://mmdiscos.bandcamp.com/album/socarrat-vol-2-10-years-of-mm-discos",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/socarrat-vol-2"
   },
@@ -317,6 +428,15 @@ export const DataReleases = [
       "Crackle",
       "Tabarca"
     ],
+    credits: [
+      "Written By Mogwaa",
+      "Produced & Mixed By Seungyoung Lee",
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by Patricia Llorens",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+      "Powered By MM Discos",
+    ],
     bandcamp: "https://mogwaa.bandcamp.com/album/del-mar",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/mogwaa-del-mar-mini-album"
   },
@@ -336,6 +456,13 @@ export const DataReleases = [
       "Goreate",
       "Gaia Disco",
       "Penguins Repair"
+    ],
+    credits: [
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by Pablo Embudo",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+      "Powered By MM Discos",
     ],
     bandcamp: "https://mmdiscos.bandcamp.com/album/gaia-edits",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/mori-ra-gaia-edits"
@@ -357,6 +484,13 @@ export const DataReleases = [
       "Natural Kogili",
       "Der Hangecrukenlator"
     ],
+    credits: [
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by Javibobo",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+      "Powered By MM Discos",
+    ],
     bandcamp: "https://mmdiscos.bandcamp.com/album/mm-discos-13",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/mori-ra-mm-discos-13"
   },
@@ -376,10 +510,19 @@ export const DataReleases = [
       "Brahmaputra",
       "Silk"
     ],
+    credits: [
+      "All Tracks Written, Produced by Ned Dickinson",
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by J.Diaz | allthatjazz",
+      "Curated By Da Silva & Dj Katah",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+      "Powered By MM Discos",
+    ],
     bandcamp: "https://asatate-techsupport.bandcamp.com/album/brahmaputra-ep",
     soundcloud: "https://soundcloud.com/asatatemusic/sets/asa-tate-brahmaputra-ep"
   },
-  // ASA TATE BRAHMAPUTRA EP
+  // JAMES FALCO - Pelagos EP
   { 
     artist: "James Falco",
     artist_name: "James Falco",
@@ -394,6 +537,16 @@ export const DataReleases = [
       "Pelagos",
       "Acqua Jam",
       "Ooohhh"
+    ],
+    credits: [
+      "All Tracks Written, Produced by James Falco",
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by J.Diaz | allthatjazz",
+      "Pic by Johnny Carretes",
+      "Curated By Da Silva & Dj Katah",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+      "Powered By MM Discos",
     ],
     bandcamp: "https://mmdiscos.bandcamp.com/album/brahmaputra-ep",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/asa-tate-brahmaputra-ep"

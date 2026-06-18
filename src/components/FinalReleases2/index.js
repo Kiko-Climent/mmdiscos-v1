@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { useSliderScene } from "./useSliderScene";
-import { InfoPanel, TrackPanel, MobilePanel } from "./panels2";
+import { InfoPanel, TrackPanel, MobilePanel, BottomBar } from "./panels2";
 import IndexView from "./IndexView";
 import { PADDING_PX, INFO_W_FRAC } from "./constants";
 import { CENTER_IDX, SLIDE_COUNT, TITLES } from "./releaseMap";
@@ -31,12 +31,13 @@ const FORMAT_PILL_STYLE = {
 };
 
 export default function FinalReleases2() {
-  const canvasRef     = useRef(null);
-  const titleRef      = useRef(null);
-  const counterRef    = useRef(null);
-  const infoPanelRef  = useRef(null);
-  const trackPanelRef = useRef(null);
-  const sceneApiRef   = useRef(null);
+  const canvasRef      = useRef(null);
+  const titleRef       = useRef(null);
+  const counterRef     = useRef(null);
+  const infoPanelRef   = useRef(null);
+  const trackPanelRef  = useRef(null);
+  const bottomBarRef   = useRef(null);
+  const sceneApiRef    = useRef(null);
 
   const [isIndex, setIsIndex] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
@@ -48,6 +49,7 @@ export default function FinalReleases2() {
     counterRef,
     infoPanelRef,
     trackPanelRef,
+    bottomBarRef,
   });
 
   const goToIndex = () => {
@@ -142,6 +144,14 @@ export default function FinalReleases2() {
           <TrackPanel
             forwardRef={trackPanelRef}
             panelLayout={panelLayout}
+            trackLeft={trackLeft}
+            trackW={trackW}
+            focusedData={focusedData}
+          />
+          <BottomBar
+            forwardRef={bottomBarRef}
+            panelLayout={panelLayout}
+            infoW={infoW}
             trackLeft={trackLeft}
             trackW={trackW}
             focusedData={focusedData}

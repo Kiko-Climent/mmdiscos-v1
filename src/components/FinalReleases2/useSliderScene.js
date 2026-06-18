@@ -38,6 +38,7 @@ export function useSliderScene({
   counterRef,
   infoPanelRef,
   trackPanelRef,
+  bottomBarRef,
 }) {
   const [focusedData, setFocusedData] = useState(null);
   const [activeData, setActiveData] = useState(null);
@@ -540,6 +541,13 @@ export function useSliderScene({
               { opacity: 1, x: 0, duration: 0.5, ease: "power2.out", delay: 0.1 },
             );
           }
+          if (!isMobile && bottomBarRef.current) {
+            gsap.fromTo(
+              bottomBarRef.current,
+              { opacity: 0, x: 14 },
+              { opacity: 1, x: 0, duration: 0.5, ease: "power2.out", delay: 0.1 },
+            );
+          }
         }, panelDelay);
       }
     }
@@ -588,6 +596,9 @@ export function useSliderScene({
       if (!isMobile && trackPanelRef.current) {
         gsap.to(trackPanelRef.current, { opacity: 0, duration: PANEL_OUT, ease: "power2.in" });
       }
+      if (!isMobile && bottomBarRef.current) {
+        gsap.to(bottomBarRef.current, { opacity: 0, duration: PANEL_OUT, ease: "power2.in" });
+      }
 
       if (panelTimerId) clearTimeout(panelTimerId);
       panelTimerId = setTimeout(() => {
@@ -609,6 +620,13 @@ export function useSliderScene({
           if (!isMobile && trackPanelRef.current) {
             gsap.fromTo(
               trackPanelRef.current,
+              { opacity: 0, x: 8 },
+              { opacity: 1, x: 0, duration: 0.35, ease: "power2.out", delay: 0.06 },
+            );
+          }
+          if (!isMobile && bottomBarRef.current) {
+            gsap.fromTo(
+              bottomBarRef.current,
               { opacity: 0, x: 8 },
               { opacity: 1, x: 0, duration: 0.35, ease: "power2.out", delay: 0.06 },
             );
@@ -674,6 +692,9 @@ export function useSliderScene({
       }
       if (!isMobile && trackPanelRef.current) {
         gsap.to(trackPanelRef.current, { opacity: 0, x: 14, duration: 0.22, ease: "power2.in" });
+      }
+      if (!isMobile && bottomBarRef.current) {
+        gsap.to(bottomBarRef.current, { opacity: 0, x: 14, duration: 0.22, ease: "power2.in" });
       }
 
       const scroll = scrollCurrent;
@@ -799,6 +820,7 @@ export function useSliderScene({
           setFocusedData(null);
           if (infoPanelRef.current) infoPanelRef.current.style.opacity = "0";
           if (trackPanelRef.current) trackPanelRef.current.style.opacity = "0";
+          if (bottomBarRef.current) bottomBarRef.current.style.opacity = "0";
         }
 
         viewLocked = true;

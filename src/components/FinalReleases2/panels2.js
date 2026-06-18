@@ -326,15 +326,8 @@ export function InfoPanel({ forwardRef, panelLayout, infoW, focusedData }) {
             {focusedData.format && <MetaRow k="FILES" v={focusedData.format} />}
           </div>
 
-          {/* Spacer pushes links to bottom */}
+          {/* Spacer pushes content — bottom bar lives in BottomBar component */}
           <div style={{ flex: 1, minHeight: 18 }} />
-
-          {/* Links — listen out */}
-          <div style={{ display: "flex", flexDirection: "column", pointerEvents: "auto" }}>
-            <div style={{ borderTop: RULE }} />
-            <ExternalLink href={focusedData.bandcamp}   label="BANDCAMP" />
-            <ExternalLink href={focusedData.soundcloud} label="SOUNDCLOUD" />
-          </div>
         </>
       )}
     </div>
@@ -384,35 +377,70 @@ export function TrackPanel({ forwardRef, panelLayout, trackLeft, trackW, focused
         )}
       </div>
 
-      {focusedData && <CreditsStrip />}
     </div>
   );
 }
 
-// ─── Credits strip ────────────────────────────────────────────────────────────
-// 2-column compact grid. Same content for every release for now, but rendered
-// as colophon-style metadata: small caps key on the left, value on the right,
-// no decoration. Frees ~80px of vertical space vs. the previous stacked list.
+// ─── BottomBar — shared row: Bandcamp links (left) + Credits (right) ─────────
+// Rendered as a sibling to InfoPanel/TrackPanel so both borders are in the
+// same flex row and always align regardless of credits line count.
 
-function CreditsStrip() {
+export function BottomBar({ forwardRef, panelLayout, infoW, trackLeft, trackW, focusedData }) {
+  const lines = focusedData?.credits ?? DEFAULT_CREDITS_LINES;
+  const totalW = trackLeft + trackW - panelLayout.left;
+  const gap    = trackLeft - panelLayout.left - infoW;
+
   return (
     <div
+      ref={forwardRef}
       style={{
-        flexShrink: 0,
-        marginTop: 14,
-        paddingTop: 10,
-        borderTop: RULE,
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        columnGap: 24,
-        rowGap: 3,
+        position: "absolute",
+        left: panelLayout.left,
+        top: panelLayout.top,
+        width: totalW,
+        height: panelLayout.height,
+        opacity: 0,
+        pointerEvents: "none",
+        zIndex: 4,
+        display: "flex",
+        flexDirection: "column",
       }}
     >
-      {DEFAULT_CREDITS_LINES.map((line, i) => (
-        <p key={i} style={{ ...credit, fontSize: 9, lineHeight: 1.35 }}>
-          {line}
-        </p>
-      ))}
+      {focusedData && (
+        <>
+          <div style={{ flex: 1 }} />
+          <div style={{ display: "flex" }}>
+            {/* Left cell — Bandcamp links */}
+            <div style={{ width: infoW, pointerEvents: "auto" }}>
+              <div style={{ borderTop: RULE }} />
+              <ExternalLink href={focusedData.bandcamp}   label="BANDCAMP" />
+              <ExternalLink href={focusedData.soundcloud} label="SOUNDCLOUD" />
+            </div>
+
+            {/* Gap between columns */}
+            <div style={{ width: gap }} />
+
+            {/* Right cell — Credits */}
+            <div
+              style={{
+                width: trackW,
+                borderTop: RULE,
+                paddingTop: 10,
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                columnGap: 24,
+                rowGap: 3,
+              }}
+            >
+              {lines.map((line, i) => (
+                <p key={i} style={{ ...credit, fontSize: 9, lineHeight: 1.35 }}>
+                  {line}
+                </p>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
