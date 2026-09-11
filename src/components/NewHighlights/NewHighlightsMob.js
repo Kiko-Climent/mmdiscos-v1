@@ -93,8 +93,14 @@ export default function NewHighlightsMob() {
         const wrap = refWrapRefs.current[i];
         if (!wrap) return;
         const top = s.getBoundingClientRect().top - frameTop;
+        // El wrap no llega al fondo común: termina en el punto en el que
+        // toda la pila cabe justo bajo el top. Así cada ref sigue pegándose
+        // a su imagen, pero al salir del frame se desplazan juntas (mismo
+        // delta) y no se comprimen una encima de otra.
+        const wrapEnd =
+          totalH - STACK_HEIGHT + NAV_PAD_TOP + (i + 1) * NAV_ROW;
         wrap.style.top = `${top}px`;
-        wrap.style.height = `${Math.max(0, totalH - top)}px`;
+        wrap.style.height = `${Math.max(0, wrapEnd - top)}px`;
       });
     };
 
