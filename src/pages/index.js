@@ -5,8 +5,11 @@ import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Lenis from "lenis";
 import Highlights2Wrapper from "@/components/Highlights/Highlights2Wrapper";
-import MMNewestHero2Wrapper from "@/components/MMDiscos_Hero/MMNewestHero2Wrapper";
+// import MMNewestHero2Wrapper from "@/components/MMDiscos_Hero/MMNewestHero2Wrapper";
+import ManifestoNew from "@/components/Manifesto/ManifestoNew";
 import AboutFinal4 from "@/components/About/AboutFinal4";
+import HeroLogo from "@/components/hero/HeroLogo";
+import AboutFooter from "@/components/AboutFooter/AboutFooter";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -81,6 +84,29 @@ export default function Home() {
 
   const canRenderSections = lenisReady;
 
+  // Tras montar las secciones, los hijos ya han creado sus pin-spacers en
+  // este mismo commit (useLayoutEffect de hijo → padre). Recalculamos ST y
+  // el límite de Lenis con la altura real; si no, el manifesto “come” scroll
+  // de About y al terminar el vídeo salta a esa sección.
+  useLayoutEffect(() => {
+    if (!canRenderSections) return;
+    ScrollTrigger.refresh();
+    if (lenisRef.current && typeof lenisRef.current.resize === "function") {
+      lenisRef.current.resize();
+    }
+  }, [canRenderSections]);
+
+  // AboutFinal4 registra su pin en useEffect (post-paint). Un segundo
+  // recálculo coge ese spacer; si no, Lenis se queda corto y el final
+  // del manifesto desemboca en un salto a About.
+  useEffect(() => {
+    if (!canRenderSections) return;
+    ScrollTrigger.refresh();
+    if (lenisRef.current && typeof lenisRef.current.resize === "function") {
+      lenisRef.current.resize();
+    }
+  }, [canRenderSections]);
+
   useEffect(() => {
     const onScrollToY = (event) => {
       const targetY = Number(event?.detail?.y);
@@ -152,9 +178,11 @@ export default function Home() {
       </Head>
       {canRenderSections ? (
         <>
-          <MMNewestHero2Wrapper />
+          {/* <MMNewestHero2Wrapper /> */}
+          <HeroLogo />
           <Highlights2Wrapper />
-          <AboutFinal4 />
+          <ManifestoNew />
+          <AboutFooter />
         </>
       ) : null}
     </div>

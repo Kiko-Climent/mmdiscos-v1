@@ -37,7 +37,13 @@ import Alfredo from "@/components/Final_Components/Alfredo";
 import Highlights from "@/components/Highlights/Highlights";
 import AboutFinal from "@/components/About/AboutFinal";
 import Highlights2Wrapper from "@/components/Highlights/Highlights2Wrapper";
-
+import HighlightsHoverLayout5 from "../../../.claude/worktrees/highlights-hover-layout/HighlightsHoverLayout5";
+import HighlightsHoverLayout6 from "../../../.claude/worktrees/highlights-hover-layout/HighlightsHoverLayout6";
+import HighlightsHoverLayout6_1 from "../../../.claude/worktrees/highlights-hover-layout/HighlightsHoverLayout6_1";
+import HighlightsMobLayout from "../../../.claude/worktrees/highlights-hover-layout/HighlightsMobLayout";
+import HeroLogo from "@/components/hero/HeroLogo";
+import ManifestoNew from "@/components/Manifesto/ManifestoNew"
+import AboutFooter from "@/components/AboutFooter/AboutFooter";
 gsap.registerPlugin(ScrollTrigger);
 
 
@@ -91,26 +97,11 @@ export default function Tests() {
 
   return (
     <>
-      {/* <MMHeroIntro />
-      <AnimationReleases12 /> */}
-      {/* <MMHeroReleasesNew3 /> */}
-      {/* <MMHeroWithReleases4 /> */}
-      {/* <MMHeroWithReleases6 lenisRef={lenisRef} /> */}
-      {/* <MMDiscosHero3 /> */}
-      {/* <MMHeroMobileFinal/> */}
-      {/* <ParallaxGallery /> */}
-      {/* <ParallaxGallery2 /> */}
-      {/* <ParallaxGallery2 /> */}
-      <AboutSection5 />
-      {/* <MMNewestHero /> */}
-      {/* <MMNewestAproach3 /> */}
-      {/* <AnimatedQuote /> */}
-      {/* <MMNewestAproach /> */}
-      {/* <Alfredo /> */}
-      {/* <Highlights /> */}
-      {/* <AboutFinal /> */}
-      {/* <Highlights2Wrapper /> */}
-      {/* <Footer /> */}
+      {/* <HeroLogo /> */}
+      {/* <HighlightsHoverLayout6_1 /> */}
+      {/* <HighlightsMobLayout /> */}
+      {/* <ManifestoNew /> */}
+      <AboutFooter />
     </>
   );
 }

@@ -3,9 +3,12 @@ import "@/styles/about.css";
 import "@/styles/highlights.css";
 import "@/styles/aboutfinal.css";
 import { useRouter } from "next/router";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+// TEMP navbar: desactivado mientras se prueba el nuevo navbar
+// import { useLayoutEffect, useState } from "react";
 import gsap from "gsap";
-import Menu2 from "@/components/menu/Menu2";
+import NewNav from "@/components/navigation/NewNav";
+// import Menu2 from "@/components/menu/Menu2";
 
 /** Cortina About: borde superior de `.about-section` frente al logo animado. */
 function syncHeroLogoAboutCurtain() {
@@ -57,12 +60,15 @@ function dispatchReleasesReveal() {
 export default function App({ Component, pageProps }) {
   const router  = useRouter();
   const isHome  = router.pathname === "/";
+  const [homeNavUnlocked, setHomeNavUnlocked] = useState(false);
+  const navVisible = !isHome || homeNavUnlocked;
 
-  const logoRef     = useRef(null);
-  const logoImgRef  = useRef(null);
-  const [menuVisible, setMenuVisible] = useState(!isHome);
-  /** Top del bloque de pills (px) debajo del <img> del logo; inline para alinear con el layout flex anterior. */
-  const [menuPillsTop, setMenuPillsTop] = useState(72);
+  // TEMP navbar: logo global + nav pills desactivados
+  // const logoRef     = useRef(null);
+  // const logoImgRef  = useRef(null);
+  // const [menuVisible, setMenuVisible] = useState(!isHome);
+  // /** Top del bloque de pills (px) debajo del <img> del logo; inline para alinear con el layout flex anterior. */
+  // const [menuPillsTop, setMenuPillsTop] = useState(72);
 
   // ── Page transition curtain ───────────────────────────────────────────────
   const curtainRef      = useRef(null);
@@ -164,23 +170,22 @@ export default function App({ Component, pageProps }) {
     };
   }, [router.events]);
 
-  // Sincroniza visibilidad al cambiar de ruta
+  // Home: navbar oculto hasta la sección de artistas de HeroLogo.
+  // Resto de rutas (/releases, etc.): siempre visible.
   useEffect(() => {
-    setMenuVisible(!isHome);
-  }, [isHome]);
+    if (!isHome) {
+      setHomeNavUnlocked(false);
+      return;
+    }
 
-  // En home: escucha eventos del hero para mostrar/ocultar el menu
-  useEffect(() => {
-    if (!isHome) return;
-
-    const onSettled = () => setMenuVisible(true);
-    const onReset   = () => setMenuVisible(false);
+    const onSettled = () => setHomeNavUnlocked(true);
+    const onReset = () => setHomeNavUnlocked(false);
 
     window.addEventListener("mm-hero-logo-settled", onSettled);
-    window.addEventListener("mm-hero-logo-reset",   onReset);
+    window.addEventListener("mm-hero-logo-reset", onReset);
     return () => {
       window.removeEventListener("mm-hero-logo-settled", onSettled);
-      window.removeEventListener("mm-hero-logo-reset",   onReset);
+      window.removeEventListener("mm-hero-logo-reset", onReset);
     };
   }, [isHome]);
 
@@ -206,42 +211,41 @@ export default function App({ Component, pageProps }) {
     };
   }, [isHome]);
 
-  const PILL_ROW_GAP_PX = 3; /* equiv. gap-[3px] / mt-1 del Menu2 bajo el logo */
-
-  useLayoutEffect(() => {
-    const img = logoImgRef.current;
-    if (!img) return;
-
-    const updateTop = () => {
-      const r = img.getBoundingClientRect();
-      if (r.height > 0) setMenuPillsTop(r.bottom + PILL_ROW_GAP_PX);
-    };
-
-    updateTop();
-    const ro = new ResizeObserver(updateTop);
-    ro.observe(img);
-    img.addEventListener("load", updateTop);
-    window.addEventListener("resize", updateTop);
-    return () => {
-      ro.disconnect();
-      img.removeEventListener("load", updateTop);
-      window.removeEventListener("resize", updateTop);
-    };
-  }, []);
-
-  const handleLogoClick = () => {
-    if (isHome) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      router.push("/");
-    }
-  };
+  // TEMP navbar: posicionamiento de pills + click del logo desactivados
+  // const PILL_ROW_GAP_PX = 3; /* equiv. gap-[3px] / mt-1 del Menu2 bajo el logo */
+  //
+  // useLayoutEffect(() => {
+  //   const img = logoImgRef.current;
+  //   if (!img) return;
+  //
+  //   const updateTop = () => {
+  //     const r = img.getBoundingClientRect();
+  //     if (r.height > 0) setMenuPillsTop(r.bottom + PILL_ROW_GAP_PX);
+  //   };
+  //
+  //   updateTop();
+  //   const ro = new ResizeObserver(updateTop);
+  //   ro.observe(img);
+  //   img.addEventListener("load", updateTop);
+  //   window.addEventListener("resize", updateTop);
+  //   return () => {
+  //     ro.disconnect();
+  //     img.removeEventListener("load", updateTop);
+  //     window.removeEventListener("resize", updateTop);
+  //   };
+  // }, []);
+  //
+  // const handleLogoClick = () => {
+  //   if (isHome) {
+  //     window.scrollTo({ top: 0, behavior: "smooth" });
+  //   } else {
+  //     router.push("/");
+  //   }
+  // };
 
   return (
     <>
-      {/* Logo global persistente — el div siempre visible para que Menu pueda aparecer dentro.
-          En home el hero animado (#mm-hero-animated-logo) cubre visualmente este logo,
-          por eso solo el <img> lleva opacity:0 en home (no el contenedor). */}
+      {/* TEMP navbar: logo global + nav pills desactivados mientras se desarrolla el nuevo navbar
       <div
         ref={logoRef}
         id="mm-global-logo"
@@ -274,6 +278,9 @@ export default function App({ Component, pageProps }) {
       >
         <Menu2 visible={menuVisible} />
       </div>
+      */}
+
+      <NewNav visible={navVisible} />
 
       <Component {...pageProps} />
 

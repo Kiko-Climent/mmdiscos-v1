@@ -20,7 +20,7 @@ const HERO_VIDEO = getResponsiveVideoSources("/video/MM Hero BG_1.mp4");
 // Render máximo del hover image: clamp(220px, 36vmin, 420px). DPR 3 ⇒ 1260px
 // reales, por eso usamos la variante 1280. Originales en /public pesaban ~14 MB
 // sumados; con AVIF-1280 bajamos a ~2 MB y con WebP-1280 a ~3 MB.
-const ARTIST_COVER_BASES = {
+export const ARTIST_COVER_BASES = {
   "mogwaa":          "img3",
   "daichi":          "Daichi - cover",
   "nic jalusi":      "MMD039",
@@ -41,12 +41,12 @@ const ARTIST_COVER_BASES = {
 };
 
 const COVER_OPT_SIZE = 1280;
-const coverUrl = (base, ext) =>
+export const coverUrl = (base, ext) =>
   `/img-opt/v2/${base}__balanced-${COVER_OPT_SIZE}.${ext}`;
 
-const ARTISTS = [
-  "Asa Tate", "Daichi", "Nic Jalusi", "James Falco", "Pleasure Voyage", "Mogwaa", "Statues",
-  "Mori Ra", "Longhair", "Kross Section", "Komodo", "Marvin & Guy", "Distance",
+export const ARTISTS = [
+  "Asa Tate", "Daichi", "Nic Jalusi", "James Falco", "Pleasure Voyage", "Mogwaa", "Desert Island Disco",
+  "Cabin Luv Affair","Statues", "Mori Ra", "Longhair", "Kross Section", "Komodo", "Marvin & Guy", "Distance",
   "Guillaume", "Pontcho", "Saturn", "Corben", "Bonnie & Klein", "Celex",
   "Florin Büchel", "NairLess", "Hal Incandenza", "Volta Cab", "Coyote",
   "Marcello Giordani", "Albion", "Serasso", "Atlantic Brain", "Jaisiel",
