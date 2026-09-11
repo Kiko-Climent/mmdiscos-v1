@@ -1,7 +1,7 @@
 // src/components/MMDiscos_Hero/HeroLogoReveal.js
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
@@ -51,13 +51,16 @@ function hideSpans(container, spans) {
   });
 }
 
-// Medido sobre el canal alfa del propio SVG: el centro exacto de su bounding
-// box (50%, 50%) cae en el hueco entre las dos "M". Este punto, en cambio,
-// se apoya en la base de la pierna derecha de la primera M — tinta sólida,
-// así que el zoom siempre tiene dónde crecer. Se usa desde el primer frame
-// (sin animar la posición) para que el logo nunca se desplace, solo crezca.
-const ANCHOR_X = "46.9%";
-const ANCHOR_Y = "51.7%";
+// Punto de tinta sólida (pierna derecha de la 1ª M). 50%/50% cae en el hueco
+// entre las dos M y el zoom dejaría un agujero. El centro visual del arte
+// (bounding box) no coincide con ese punto: en reposo centramos el bbox y el
+// zoom crece alrededor de la tinta, que queda unos px a la izquierda del
+// centro — sin interpolar mask-position, así el logo no se desplaza.
+const ANCHOR_X = 0.469;
+const ANCHOR_Y = 0.517;
+const VISUAL_X = 0.497;
+const VISUAL_Y = 0.502;
+const LOGO_ASPECT = 88 / 197;
 
 // Reposo compartido: el inicial baja de 72vw/600px; el de artistas sube
 // de 28vw/180px. El zoom sigue interpolando hasta el mismo endW (~45×).
@@ -71,6 +74,7 @@ const SWIPE_IDLE_MS = 70;
 
 export default function HeroLogoReveal() {
   const spacerRef = useRef(null);
+  const stageRef = useRef(null);
   const videoRef = useRef(null);
   const scrollCueRef = useRef(null);
   const copyRef = useRef(null);
@@ -107,16 +111,38 @@ export default function HeroLogoReveal() {
     hoverImageRef.current.style.display = "none";
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const video = videoRef.current;
     const spacer = spacerRef.current;
-    if (!video || !spacer) return;
+    const stage = stageRef.current;
+    if (!video || !spacer || !stage) return;
 
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    // En móvil 100vh incluye zona bajo la barra del navegador y el logo
+    // queda bajo el centro visible. Congelamos la altura al viewport actual.
+    const onMobile = window.innerWidth < 720;
+    const frozenH = window.innerHeight;
+    if (onMobile) {
+      stage.style.height = `${frozenH}px`;
+      if (holdRef.current) holdRef.current.style.height = `${frozenH}px`;
+    }
+
+    const vw = stage.clientWidth;
+    const vh = onMobile ? frozenH : stage.clientHeight;
+
+    const applyMask = (widthPx, inkX, inkY) => {
+      const maskH = widthPx * LOGO_ASPECT;
+      video.style.setProperty("--mask-w", `${widthPx}px`);
+      const pos = `${inkX - ANCHOR_X * widthPx}px ${inkY - ANCHOR_Y * maskH}px`;
+      video.style.webkitMaskPosition = pos;
+      video.style.maskPosition = pos;
+    };
 
     // Tamaño de reposo compartido con la marca de agua
     const baseW = Math.min(vw * LOGO_REST_VW, LOGO_REST_MAX);
+    const baseH = baseW * LOGO_ASPECT;
+    // Tinta fija en pantalla: en reposo el bbox del logo queda centrado.
+    const inkX = vw / 2 - (VISUAL_X - ANCHOR_X) * baseW;
+    const inkY = vh / 2 - (VISUAL_Y - ANCHOR_Y) * baseH;
     // Medido directamente sobre el arte: agrandar la máscara hasta ~45x la
     // mayor dimensión del viewport es el punto en que el recorte de pantalla
     // centrado en el ancla de arriba queda totalmente opaco — es decir, el
@@ -124,7 +150,7 @@ export default function HeroLogoReveal() {
     const endW = Math.max(vw, vh) * 45;
     const easeIn = gsap.parseEase("power1.in");
 
-    video.style.setProperty("--mask-w", `${baseW}px`);
+    applyMask(baseW, inkX, inkY);
     if (logoMarkRef.current) {
       logoMarkRef.current.style.width = `${baseW}px`;
     }
@@ -146,7 +172,7 @@ export default function HeroLogoReveal() {
       scrub: 0.4,
       onUpdate: (self) => {
         const w = gsap.utils.interpolate(baseW, endW, easeIn(self.progress));
-        video.style.setProperty("--mask-w", `${w}px`);
+        applyMask(w, inkX, inkY);
         if (scrollCueRef.current) {
           scrollCueRef.current.style.opacity = self.progress > 0.02 ? "0" : "1";
         }
@@ -403,8 +429,11 @@ export default function HeroLogoReveal() {
 
   return (
     <>
-      <div ref={spacerRef} className="relative h-[450vh]">
-        <div className="sticky top-0 h-screen w-full overflow-hidden bg-white">
+      <div ref={spacerRef} className="relative h-[450svh]">
+        <div
+          ref={stageRef}
+          className="sticky top-0 h-[100svh] w-full overflow-hidden bg-white"
+        >
           <video
             ref={videoRef}
             className="absolute inset-0 h-full w-full object-cover"
@@ -417,8 +446,8 @@ export default function HeroLogoReveal() {
               maskImage: `url("${LOGO_SRC}")`,
               WebkitMaskRepeat: "no-repeat",
               maskRepeat: "no-repeat",
-              WebkitMaskPosition: `${ANCHOR_X} ${ANCHOR_Y}`,
-              maskPosition: `${ANCHOR_X} ${ANCHOR_Y}`,
+              WebkitMaskPosition: "50% 50%",
+              maskPosition: "50% 50%",
               WebkitMaskSize: "var(--mask-w) auto",
               maskSize: "var(--mask-w) auto",
             }}
@@ -460,7 +489,7 @@ export default function HeroLogoReveal() {
 
       <section
         ref={holdRef}
-        className="relative flex h-screen w-full items-center justify-center bg-white"
+        className="relative flex h-[100svh] w-full items-center justify-center bg-white"
       >
         <img
           ref={logoMarkRef}
