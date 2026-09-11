@@ -117,17 +117,27 @@ export default function HeroLogoReveal() {
     const stage = stageRef.current;
     if (!video || !spacer || !stage) return;
 
-    // En móvil 100vh incluye zona bajo la barra del navegador y el logo
-    // queda bajo el centro visible. Congelamos la altura al viewport actual.
+    // En Android la barra del browser se oculta al scrollear y el viewport
+    // crece: si el stage es 100svh / innerHeight de montaje, aparece una
+    // franja blanca. Cubierto con 100lvh (CSS) y, si el motor miente,
+    // subimos la altura al hueco visible — nunca la bajamos.
     const onMobile = window.innerWidth < 720;
-    const frozenH = window.innerHeight;
-    if (onMobile) {
-      stage.style.height = `${frozenH}px`;
-      if (holdRef.current) holdRef.current.style.height = `${frozenH}px`;
-    }
+    const visualH = () =>
+      window.visualViewport?.height ?? window.innerHeight;
+
+    const coverStage = () => {
+      if (!onMobile) return;
+      const needed = Math.max(window.innerHeight, visualH());
+      if (stage.clientHeight < needed - 1) {
+        stage.style.height = `${needed}px`;
+      }
+    };
+    coverStage();
+    window.visualViewport?.addEventListener("resize", coverStage);
+    window.addEventListener("resize", coverStage);
 
     const vw = stage.clientWidth;
-    const vh = onMobile ? frozenH : stage.clientHeight;
+    const vh = onMobile ? visualH() : stage.clientHeight;
 
     const applyMask = (widthPx, inkX, inkY) => {
       const maskH = widthPx * LOGO_ASPECT;
@@ -188,6 +198,8 @@ export default function HeroLogoReveal() {
     });
 
     return () => {
+      window.visualViewport?.removeEventListener("resize", coverStage);
+      window.removeEventListener("resize", coverStage);
       gsap.killTweensOf([copy, copySpans]);
       trigger.kill();
     };
@@ -432,7 +444,7 @@ export default function HeroLogoReveal() {
       <div ref={spacerRef} className="relative h-[450svh]">
         <div
           ref={stageRef}
-          className="sticky top-0 h-[100svh] w-full overflow-hidden bg-white"
+          className="sticky top-0 h-[100lvh] w-full overflow-hidden bg-white"
         >
           <video
             ref={videoRef}
