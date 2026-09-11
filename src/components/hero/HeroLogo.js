@@ -117,27 +117,31 @@ export default function HeroLogoReveal() {
     const stage = stageRef.current;
     if (!video || !spacer || !stage) return;
 
-    // En Android la barra del browser se oculta al scrollear y el viewport
-    // crece: si el stage es 100svh / innerHeight de montaje, aparece una
-    // franja blanca. Cubierto con 100lvh (CSS) y, si el motor miente,
-    // subimos la altura al hueco visible — nunca la bajamos.
+    // Un solo alto de frame para vídeo y artistas. 100lvh cubre el hueco
+    // cuando Android oculta la barra; si el stage crece solo, el swipe
+    // deja recortes (vídeo arriba / highlights abajo).
     const onMobile = window.innerWidth < 720;
-    const visualH = () =>
-      window.visualViewport?.height ?? window.innerHeight;
+    const visualH = window.visualViewport?.height ?? window.innerHeight;
+    const hold = holdRef.current;
 
-    const coverStage = () => {
-      if (!onMobile) return;
-      const needed = Math.max(window.innerHeight, visualH());
-      if (stage.clientHeight < needed - 1) {
-        stage.style.height = `${needed}px`;
-      }
-    };
-    coverStage();
-    window.visualViewport?.addEventListener("resize", coverStage);
-    window.addEventListener("resize", coverStage);
+    if (onMobile) {
+      const probe = document.createElement("div");
+      probe.style.cssText =
+        "position:fixed;top:0;left:0;width:0;height:100lvh;pointer-events:none;visibility:hidden";
+      document.body.appendChild(probe);
+      const frameH = Math.max(
+        probe.getBoundingClientRect().height,
+        stage.getBoundingClientRect().height,
+        window.innerHeight,
+        visualH,
+      );
+      probe.remove();
+      stage.style.height = `${frameH}px`;
+      if (hold) hold.style.height = `${frameH}px`;
+    }
 
     const vw = stage.clientWidth;
-    const vh = onMobile ? visualH() : stage.clientHeight;
+    const vh = onMobile ? visualH : stage.clientHeight;
 
     const applyMask = (widthPx, inkX, inkY) => {
       const maskH = widthPx * LOGO_ASPECT;
@@ -198,8 +202,6 @@ export default function HeroLogoReveal() {
     });
 
     return () => {
-      window.visualViewport?.removeEventListener("resize", coverStage);
-      window.removeEventListener("resize", coverStage);
       gsap.killTweensOf([copy, copySpans]);
       trigger.kill();
     };
@@ -210,6 +212,8 @@ export default function HeroLogoReveal() {
     const container = artistsContainerRef.current;
     const hoverImg = hoverImageRef.current;
     if (!hold || !container || !hoverImg) return;
+
+    ScrollTrigger.refresh();
 
     hasHoverRef.current = window.matchMedia(
       "(hover: hover) and (pointer: fine)",
@@ -501,7 +505,7 @@ export default function HeroLogoReveal() {
 
       <section
         ref={holdRef}
-        className="relative flex h-[100svh] w-full items-center justify-center bg-white"
+        className="relative flex h-[100lvh] w-full items-center justify-center bg-white"
       >
         <img
           ref={logoMarkRef}
