@@ -80,6 +80,7 @@ export default function HeroLogoReveal() {
   const copyRef = useRef(null);
   const copySpansRef = useRef([]);
   const holdRef = useRef(null);
+  const artistsFrameRef = useRef(null);
   const artistsContainerRef = useRef(null);
   const artistsSpansRef = useRef([]);
   const hoverImageRef = useRef(null);
@@ -155,7 +156,6 @@ export default function HeroLogoReveal() {
       : stage.clientHeight;
     const visibleTop = onMobile ? visualTop : 0;
     const vh = visibleH;
-    const visualCenterY = visibleTop + vh / 2;
 
     const applyMask = (widthPx, inkX, inkY) => {
       const maskH = widthPx * LOGO_ASPECT;
@@ -185,23 +185,12 @@ export default function HeroLogoReveal() {
       logoMarkRef.current.style.width = `${baseW}px`;
     }
 
-    // El hold mide lvh (swipe). Logo + listado se anclan al centro
-    // visible para que no queden bajos con la barra de Chrome.
-    if (onMobile && hold) {
-      hold.style.alignItems = "flex-start";
-      const pinCenter = (el, extraTransform) => {
-        if (!el) return;
-        el.style.position = "absolute";
-        el.style.top = `${visualCenterY}px`;
-        el.style.left = "50%";
-        el.style.transform = extraTransform ?? "translate(-50%, -50%)";
-      };
-      pinCenter(logoMarkRef.current);
-      pinCenter(artistsContainerRef.current);
-      if (hoverImageRef.current) {
-        hoverImageRef.current.style.top = `${visualCenterY}px`;
-        hoverImageRef.current.style.left = "50%";
-      }
+    // Hold = lvh (swipe). El marco interior = viewport visible, para que
+    // logo y listado se centren ahí sin absolute ni transforms sueltos.
+    const artistsFrame = artistsFrameRef.current;
+    if (onMobile && artistsFrame) {
+      artistsFrame.style.height = `${vh}px`;
+      artistsFrame.style.marginTop = `${visibleTop}px`;
     }
 
     const copy = copyRef.current;
@@ -540,58 +529,63 @@ export default function HeroLogoReveal() {
 
       <section
         ref={holdRef}
-        className="relative flex h-[100lvh] w-full items-center justify-center bg-white"
+        className="relative h-[100lvh] w-full bg-white"
       >
-        <img
-          ref={logoMarkRef}
-          src={LOGO_SRC}
-          alt=""
-          aria-hidden="true"
-          className="pointer-events-none absolute top-1/2 left-1/2 z-0 -translate-x-1/2 -translate-y-1/2 select-none opacity-[0.16]"
-          draggable={false}
-        />
-
-        <img
-          ref={hoverImageRef}
-          alt=""
-          aria-hidden
-          decoding="async"
-          className="pointer-events-none absolute top-1/2 left-1/2 z-[5] object-cover will-change-transform"
-          style={{
-            display: "none",
-            width: "clamp(220px, 36vmin, 420px)",
-            height: "clamp(220px, 36vmin, 420px)",
-          }}
-        />
-
         <div
-          ref={artistsContainerRef}
-          className="relative z-10 pointer-events-none"
-          style={{ width: "min(100%, 600px)", opacity: 0 }}
+          ref={artistsFrameRef}
+          className="relative flex h-full w-full items-center justify-center"
         >
-          <p
-            className="px-4 text-center text-[12px] font-normal leading-[1.6] tracking-[0.12em] uppercase text-[#111]"
-            style={{ fontFamily: "'MyFont', sans-serif" }}
+          <img
+            ref={logoMarkRef}
+            src={LOGO_SRC}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 left-1/2 z-0 -translate-x-1/2 -translate-y-1/2 select-none opacity-[0.16]"
+            draggable={false}
+          />
+
+          <img
+            ref={hoverImageRef}
+            alt=""
+            aria-hidden
+            decoding="async"
+            className="pointer-events-none absolute top-1/2 left-1/2 z-[5] object-cover will-change-transform"
+            style={{
+              display: "none",
+              width: "clamp(220px, 36vmin, 420px)",
+              height: "clamp(220px, 36vmin, 420px)",
+            }}
+          />
+
+          <div
+            ref={artistsContainerRef}
+            className="relative z-10 pointer-events-none w-full max-w-[600px]"
+            style={{ opacity: 0 }}
           >
-            {ARTISTS.map((name, i) => (
-              <span
-                key={name}
-                ref={(el) => {
-                  artistsSpansRef.current[i] = el;
-                }}
-                onMouseEnter={() => handleHoverEnter(name)}
-                onMouseLeave={handleHoverLeave}
-                className={
-                  ARTIST_COVER_BASES[name.toLowerCase()]
-                    ? "cursor-crosshair"
-                    : "cursor-default"
-                }
-              >
-                {name}
-                {i < ARTISTS.length - 1 ? ", " : ""}
-              </span>
-            ))}
-          </p>
+            <p
+              className="px-4 text-center text-[12px] font-normal leading-[1.6] tracking-[0.12em] uppercase text-[#111]"
+              style={{ fontFamily: "'MyFont', sans-serif" }}
+            >
+              {ARTISTS.map((name, i) => (
+                <span
+                  key={name}
+                  ref={(el) => {
+                    artistsSpansRef.current[i] = el;
+                  }}
+                  onMouseEnter={() => handleHoverEnter(name)}
+                  onMouseLeave={handleHoverLeave}
+                  className={
+                    ARTIST_COVER_BASES[name.toLowerCase()]
+                      ? "cursor-crosshair"
+                      : "cursor-default"
+                  }
+                >
+                  {name}
+                  {i < ARTISTS.length - 1 ? ", " : ""}
+                </span>
+              ))}
+            </p>
+          </div>
         </div>
       </section>
     </>
