@@ -9,6 +9,11 @@ const RESPONSIVE_VIDEO_MAP = {
     tablet: "/video-opt/v2/video-mm-header__tablet.mp4",
     desktop: "/video-opt/v2/video-mm-header__desktop.mp4",
   },
+  "/video/smokers.mp4": {
+    mobile: "/video-opt/v2/smokers__mobile.mp4",
+    tablet: "/video-opt/v2/smokers__tablet.mp4",
+    desktop: "/video-opt/v2/smokers__desktop.mp4",
+  },
 };
 
 export function getResponsiveVideoSources(originalSrc) {

@@ -1,6 +1,9 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { getResponsiveVideoSources } from "@/lib/videoSources";
+
+const FOOTER_VIDEO = getResponsiveVideoSources("/video/smokers.mp4");
 
 const STATEMENT =
   "MM DISCOS IS A RECORD LABEL BASED BETWEEN BERLIN AND BARCELONA, FOUNDED AND POWERED BY MOON & MANN. FREE FROM STYLISTIC BOUNDARIES AND GENRE LIMITATIONS, THE LABEL HAS CONSISTENTLY CHAMPIONED A DISTINCTIVE SOUND WHERE MUSIC SPEAKS FOR ITSELF — DEEPLY INSPIRED BY THE SUEÑO IBICENCO AND THE SPIRIT OF THE MEDITERRANEAN.";
@@ -565,13 +568,17 @@ export default function AboutFooter() {
             >
               <video
                 ref={videoRef}
-                src="/video/smokers.mp4"
                 muted
                 loop
                 playsInline
                 preload="auto"
                 className="absolute inset-0 w-full h-full object-cover object-[center_64%]"
-              />
+              >
+                <source media="(max-width: 719px)" src={FOOTER_VIDEO.mobile} type="video/mp4" />
+                <source media="(max-width: 1279px)" src={FOOTER_VIDEO.tablet} type="video/mp4" />
+                <source src={FOOTER_VIDEO.desktop} type="video/mp4" />
+                <source src={FOOTER_VIDEO.fallback} type="video/mp4" />
+              </video>
             </div>
 
             <div
