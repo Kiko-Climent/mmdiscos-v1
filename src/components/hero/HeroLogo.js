@@ -117,31 +117,44 @@ export default function HeroLogoReveal() {
     const stage = stageRef.current;
     if (!video || !spacer || !stage) return;
 
-    // Un solo alto de frame para vídeo y artistas. 100lvh cubre el hueco
-    // cuando Android oculta la barra; si el stage crece solo, el swipe
-    // deja recortes (vídeo arriba / highlights abajo).
+    // Frame de swipe: 100lvh (barra Android oculta) para que vídeo y
+    // artistas midan lo mismo y no queden recortes. El logo, en cambio,
+    // se centra en el viewport visible (svh) — si usamos lvh, en Samsung
+    // entra con la barra de Chrome y el símbolo queda demasiado abajo.
     const onMobile = window.innerWidth < 720;
-    const visualH = window.visualViewport?.height ?? window.innerHeight;
     const hold = holdRef.current;
 
-    if (onMobile) {
+    const measureUnitVh = (unit) => {
       const probe = document.createElement("div");
       probe.style.cssText =
-        "position:fixed;top:0;left:0;width:0;height:100lvh;pointer-events:none;visibility:hidden";
+        `position:fixed;top:0;left:0;width:0;height:100${unit};pointer-events:none;visibility:hidden`;
       document.body.appendChild(probe);
+      const h = probe.getBoundingClientRect().height;
+      probe.remove();
+      return h;
+    };
+
+    const largeH = measureUnitVh("lvh");
+    const smallH = measureUnitVh("svh");
+    const visualH = window.visualViewport?.height ?? window.innerHeight;
+    const visualTop = window.visualViewport?.offsetTop ?? 0;
+
+    if (onMobile) {
       const frameH = Math.max(
-        probe.getBoundingClientRect().height,
+        largeH,
         stage.getBoundingClientRect().height,
         window.innerHeight,
-        visualH,
       );
-      probe.remove();
       stage.style.height = `${frameH}px`;
       if (hold) hold.style.height = `${frameH}px`;
     }
 
     const vw = stage.clientWidth;
-    const vh = onMobile ? visualH : stage.clientHeight;
+    const visibleH = onMobile
+      ? Math.min(...[visualH, smallH, window.innerHeight].filter((h) => h > 0))
+      : stage.clientHeight;
+    const visibleTop = onMobile ? visualTop : 0;
+    const vh = visibleH;
 
     const applyMask = (widthPx, inkX, inkY) => {
       const maskH = widthPx * LOGO_ASPECT;
@@ -154,19 +167,24 @@ export default function HeroLogoReveal() {
     // Tamaño de reposo compartido con la marca de agua
     const baseW = Math.min(vw * LOGO_REST_VW, LOGO_REST_MAX);
     const baseH = baseW * LOGO_ASPECT;
-    // Tinta fija en pantalla: en reposo el bbox del logo queda centrado.
+    // Tinta fija en pantalla: en reposo el bbox del logo queda centrado
+    // en el área visible, no en el frame lvh del swipe.
     const inkX = vw / 2 - (VISUAL_X - ANCHOR_X) * baseW;
-    const inkY = vh / 2 - (VISUAL_Y - ANCHOR_Y) * baseH;
+    const inkY = visibleTop + vh / 2 - (VISUAL_Y - ANCHOR_Y) * baseH;
     // Medido directamente sobre el arte: agrandar la máscara hasta ~45x la
     // mayor dimensión del viewport es el punto en que el recorte de pantalla
     // centrado en el ancla de arriba queda totalmente opaco — es decir, el
     // vídeo (que nunca cambia de escala) se lee a pantalla completa.
-    const endW = Math.max(vw, vh) * 45;
+    const zoomH = onMobile ? Math.max(largeH, stage.clientHeight) : vh;
+    const endW = Math.max(vw, zoomH) * 45;
     const easeIn = gsap.parseEase("power1.in");
 
     applyMask(baseW, inkX, inkY);
     if (logoMarkRef.current) {
       logoMarkRef.current.style.width = `${baseW}px`;
+      if (onMobile) {
+        logoMarkRef.current.style.top = `${visibleTop + vh / 2}px`;
+      }
     }
 
     const copy = copyRef.current;
@@ -176,8 +194,8 @@ export default function HeroLogoReveal() {
       gsap.set(copySpans, { opacity: 0 });
     }
     let copyRevealed = false;
-    const fullStart = Math.max(vw, vh) * 10;
-    const fullEnd = Math.max(vw, vh) * 22;
+    const fullStart = Math.max(vw, zoomH) * 10;
+    const fullEnd = Math.max(vw, zoomH) * 22;
 
     const trigger = ScrollTrigger.create({
       trigger: spacer,
