@@ -138,13 +138,13 @@ export default function HeroLogoReveal() {
     const smallH = measureUnitVh("svh");
     const visualH = window.visualViewport?.height ?? window.innerHeight;
     const visualTop = window.visualViewport?.offsetTop ?? 0;
+    const frameH = Math.max(
+      largeH,
+      stage.getBoundingClientRect().height,
+      window.innerHeight,
+    );
 
     if (onMobile) {
-      const frameH = Math.max(
-        largeH,
-        stage.getBoundingClientRect().height,
-        window.innerHeight,
-      );
       stage.style.height = `${frameH}px`;
       if (hold) hold.style.height = `${frameH}px`;
     }
@@ -155,6 +155,7 @@ export default function HeroLogoReveal() {
       : stage.clientHeight;
     const visibleTop = onMobile ? visualTop : 0;
     const vh = visibleH;
+    const visualCenterY = visibleTop + vh / 2;
 
     const applyMask = (widthPx, inkX, inkY) => {
       const maskH = widthPx * LOGO_ASPECT;
@@ -182,8 +183,24 @@ export default function HeroLogoReveal() {
     applyMask(baseW, inkX, inkY);
     if (logoMarkRef.current) {
       logoMarkRef.current.style.width = `${baseW}px`;
-      if (onMobile) {
-        logoMarkRef.current.style.top = `${visibleTop + vh / 2}px`;
+    }
+
+    // El hold mide lvh (swipe). Logo + listado se anclan al centro
+    // visible para que no queden bajos con la barra de Chrome.
+    if (onMobile && hold) {
+      hold.style.alignItems = "flex-start";
+      const pinCenter = (el, extraTransform) => {
+        if (!el) return;
+        el.style.position = "absolute";
+        el.style.top = `${visualCenterY}px`;
+        el.style.left = "50%";
+        el.style.transform = extraTransform ?? "translate(-50%, -50%)";
+      };
+      pinCenter(logoMarkRef.current);
+      pinCenter(artistsContainerRef.current);
+      if (hoverImageRef.current) {
+        hoverImageRef.current.style.top = `${visualCenterY}px`;
+        hoverImageRef.current.style.left = "50%";
       }
     }
 
