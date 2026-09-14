@@ -109,7 +109,8 @@ export default function ManifestoNew() {
   useLayoutEffect(() => {
     const sticky = stickyRef.current;
     const quoteEl = quoteTextRef.current;
-    if (!sticky || !quoteEl || !bottomMetaRef.current) return;
+    const root = rootRef.current;
+    if (!sticky || !quoteEl || !bottomMetaRef.current || !root) return;
 
     const isMobile = window.innerWidth <= MOBILE_MAX;
     let removeManifestoListener = null;
@@ -283,18 +284,39 @@ export default function ManifestoNew() {
       // recedeRange deliberadamente corto (0.6 vh) → mismo recorrido
       // animado en menos scroll = sensación de "golpe" sin perder la
       // consistencia del scrub. Lenis añade la inercia que lo asienta.
-      const vh = window.innerHeight;
+      const vh = isMobile
+        ? (() => {
+            const probe = document.createElement("div");
+            probe.style.cssText =
+              "position:fixed;top:0;left:0;width:0;height:100svh;pointer-events:none;visibility:hidden";
+            document.body.appendChild(probe);
+            const h = probe.getBoundingClientRect().height;
+            probe.remove();
+            return h;
+          })()
+        : window.innerHeight;
       const growRange = vh * (isMobile ? 0.8 : 0.9);
       const recedeRange = vh * 0.6;
       const totalRange = growRange + recedeRange;
       const growPhaseEnd = growRange / totalRange;
       const manifestoProgress = 0.995;
 
+      // Móvil: el pin de GSAP, al terminar, suelta position:fixed y el
+      // primer frame del viaje hacia About salta unos px. Sticky nativo
+      // libera el bloque en el mismo compositor que el scroll.
+      const useNativeSticky = window.innerWidth < 720;
+      if (useNativeSticky) {
+        sticky.style.position = "sticky";
+        sticky.style.top = "0px";
+        sticky.style.height = `${vh}px`;
+        root.style.height = `${vh + totalRange}px`;
+      }
+
       const mainTrigger = ScrollTrigger.create({
-        trigger: sticky,
+        trigger: useNativeSticky ? root : sticky,
         start: "top top",
-        end: `+=${totalRange}`,
-        pin: true,
+        end: useNativeSticky ? "bottom bottom" : `+=${totalRange}`,
+        pin: !useNativeSticky,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
           const p = self.progress;
@@ -373,6 +395,10 @@ export default function ManifestoNew() {
     return () => {
       if (removeManifestoListener) removeManifestoListener();
       ctx.revert();
+      sticky.style.position = "";
+      sticky.style.top = "";
+      sticky.style.height = "";
+      root.style.height = "";
     };
   }, []);
 

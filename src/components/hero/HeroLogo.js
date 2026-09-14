@@ -182,29 +182,23 @@ export default function HeroLogoReveal() {
 
     applyMask(baseW, inkX, inkY);
 
-    const placeWatermark = () => {
+    // La marca y el contenido comparten el escenario svh (alto con la
+    // barra de Chrome visible). No seguimos visualViewport: al ocultarse
+    // la barra el centro visual baja y el logo se despega del copy.
+    const sizeWatermark = () => {
       const mark = logoMarkRef.current;
       if (!mark) return;
-      const restW = Math.min(stage.clientWidth * LOGO_REST_VW, LOGO_REST_MAX);
-      mark.style.width = `${restW}px`;
-      if (onMobile) {
-        const vvH = window.visualViewport?.height ?? window.innerHeight;
-        const vvTop = window.visualViewport?.offsetTop ?? 0;
-        mark.style.top = `${vvTop + vvH / 2}px`;
-      } else {
-        mark.style.top = "50%";
-      }
+      mark.style.width = `${Math.min(stage.clientWidth * LOGO_REST_VW, LOGO_REST_MAX)}px`;
     };
-    placeWatermark();
-    window.visualViewport?.addEventListener("resize", placeWatermark);
-    window.visualViewport?.addEventListener("scroll", placeWatermark);
+    sizeWatermark();
+    window.addEventListener("resize", sizeWatermark);
 
-    // Hold = lvh (swipe). El marco interior = viewport visible, para que
-    // logo y listado se centren ahí sin absolute ni transforms sueltos.
+    // Hold = lvh (swipe). El marco de artistas = svh, el mismo eje que
+    // la marca de agua. Congelado: la barra de Chrome no lo recentra.
     const artistsFrame = artistsFrameRef.current;
     if (onMobile && artistsFrame) {
-      artistsFrame.style.height = `${vh}px`;
-      artistsFrame.style.marginTop = `${visibleTop}px`;
+      artistsFrame.style.height = `${smallH}px`;
+      artistsFrame.style.marginTop = "0px";
     }
 
     const copy = copyRef.current;
@@ -240,8 +234,7 @@ export default function HeroLogoReveal() {
     });
 
     return () => {
-      window.visualViewport?.removeEventListener("resize", placeWatermark);
-      window.visualViewport?.removeEventListener("scroll", placeWatermark);
+      window.removeEventListener("resize", sizeWatermark);
       gsap.killTweensOf([copy, copySpans]);
       trigger.kill();
     };
@@ -609,7 +602,7 @@ export default function HeroLogoReveal() {
         src={LOGO_SRC}
         alt=""
         aria-hidden="true"
-        className="pointer-events-none fixed top-1/2 left-1/2 z-[1] -translate-x-1/2 -translate-y-1/2 select-none"
+        className="pointer-events-none fixed top-[50svh] left-1/2 z-[1] -translate-x-1/2 -translate-y-1/2 select-none"
         style={{ opacity: 0, visibility: "hidden" }}
         draggable={false}
       />

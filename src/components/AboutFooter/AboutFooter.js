@@ -448,7 +448,16 @@ export default function AboutFooter() {
       gsap.set(links, { opacity: 0, y: 12, pointerEvents: "none" });
 
       const onMobile = window.innerWidth < MOBILE_MAX_WIDTH;
-      const vh = window.innerHeight;
+      const measureSvh = () => {
+        const probe = document.createElement("div");
+        probe.style.cssText =
+          "position:fixed;top:0;left:0;width:0;height:100svh;pointer-events:none;visibility:hidden";
+        document.body.appendChild(probe);
+        const h = probe.getBoundingClientRect().height;
+        probe.remove();
+        return h;
+      };
+      const vh = onMobile ? Math.round(measureSvh()) : window.innerHeight;
 
       // En móvil el pin de GSAP entra un frame tarde: el párrafo sigue
       // subiendo (más allá del centro) y luego el pin lo devuelve.
