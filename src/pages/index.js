@@ -113,7 +113,7 @@ export default function Home() {
       if (!Number.isFinite(targetY)) return;
 
       if (lenisRef.current) {
-        lenisRef.current.scrollTo(targetY, { duration: 1.1 });
+        lenisRef.current.scrollTo(targetY, { duration: 1.1, force: true });
         return;
       }
 

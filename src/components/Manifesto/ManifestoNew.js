@@ -374,6 +374,7 @@ export default function ManifestoNew() {
       });
 
       const onManifestoNav = () => {
+        ScrollTrigger.refresh();
         const start = Number(mainTrigger.start);
         const end = Number(mainTrigger.end);
         if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start)

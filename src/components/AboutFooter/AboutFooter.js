@@ -521,6 +521,7 @@ export default function AboutFooter() {
       const aboutTrigger = tl.scrollTrigger;
       const onNavAbout = () => {
         if (!aboutTrigger) return;
+        ScrollTrigger.refresh();
         const start = Number(aboutTrigger.start);
         const end = Number(aboutTrigger.end);
         if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start)

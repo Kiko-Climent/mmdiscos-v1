@@ -302,6 +302,8 @@ export default function HeroLogoReveal() {
     let snapTween = null;
     let snapping = false;
     let lastTouchY = 0;
+    let programmaticNav = false;
+    let programmaticTimer = 0;
 
     const progressOf = (st) => {
       const range = st.end - st.start;
@@ -310,7 +312,7 @@ export default function HeroLogoReveal() {
     };
 
     const snapTo = (gate, target) => {
-      if (snapping) return;
+      if (programmaticNav || snapping) return;
       const st = gate.st;
       const range = st.end - st.start;
       if (!range) return;
@@ -369,6 +371,29 @@ export default function HeroLogoReveal() {
       gates.push(makeGate(highlightsEl, () => gates[0].locked));
     }
 
+    // Nav ABOUT/MANIFESTO hace scroll programático. Sin esto, onLeave del
+    // gate de artistas / highlights dispara snapTo y corta el viaje:
+    // primer clic en home → inicio de highlights; desde /releases → copy
+    // de artistas. El segundo clic ya funcionaba porque el gate quedaba locked.
+    const lockGatesForNav = () => {
+      programmaticNav = true;
+      window.clearTimeout(idleTimer);
+      window.clearTimeout(programmaticTimer);
+      snapTween?.kill();
+      snapTween = null;
+      snapping = false;
+      gates.forEach((gate) => {
+        gate.locked = true;
+      });
+      programmaticTimer = window.setTimeout(() => {
+        programmaticNav = false;
+        gates.forEach((gate) => {
+          const p = progressOf(gate.st);
+          gate.locked = p >= 0.998;
+        });
+      }, 1400);
+    };
+
     const findGate = (goingDown) => {
       for (const gate of gates) {
         const p = progressOf(gate.st);
@@ -422,6 +447,7 @@ export default function HeroLogoReveal() {
     };
 
     const onWheel = (event) => {
+      if (programmaticNav) return;
       const goingDown = event.deltaY > 0;
       if (snapping) {
         event.preventDefault();
@@ -440,6 +466,7 @@ export default function HeroLogoReveal() {
     };
 
     const onTouchMove = (event) => {
+      if (programmaticNav) return;
       const y = event.touches[0]?.clientY ?? lastTouchY;
       const deltaY = lastTouchY - y;
       lastTouchY = y;
@@ -464,6 +491,9 @@ export default function HeroLogoReveal() {
     window.addEventListener("wheel", onWheel, wheelOpts);
     window.addEventListener("touchstart", onTouchStart, touchStartOpts);
     window.addEventListener("touchmove", onTouchMove, touchMoveOpts);
+    window.addEventListener("mm-nav-about", lockGatesForNav);
+    window.addEventListener("mm-nav-manifesto", lockGatesForNav);
+    window.addEventListener("mm-scroll-to", lockGatesForNav);
 
     const artistsSt = ScrollTrigger.create({
       trigger: hold,
@@ -474,10 +504,14 @@ export default function HeroLogoReveal() {
 
     return () => {
       window.clearTimeout(idleTimer);
+      window.clearTimeout(programmaticTimer);
       snapTween?.kill();
       window.removeEventListener("wheel", onWheel, wheelOpts);
       window.removeEventListener("touchstart", onTouchStart, touchStartOpts);
       window.removeEventListener("touchmove", onTouchMove, touchMoveOpts);
+      window.removeEventListener("mm-nav-about", lockGatesForNav);
+      window.removeEventListener("mm-nav-manifesto", lockGatesForNav);
+      window.removeEventListener("mm-scroll-to", lockGatesForNav);
       gates.forEach((gate) => gate.st.kill());
       artistsSt.kill();
       gsap.killTweensOf([container, spans, hoverImg, logoMark]);
