@@ -461,14 +461,19 @@ export default function AboutFooter() {
 
       // En móvil el pin de GSAP entra un frame tarde: el párrafo sigue
       // subiendo (más allá del centro) y luego el pin lo devuelve.
-      // Sticky nativo bloquea en top:0 el mismo frame que el scroll,
-      // así no puede pasar de la foto 1. El recorrido extra (3.5 vh)
-      // vive en la altura de la sección, no en un pin-spacer.
+      // Sticky nativo bloquea en top:0 el mismo frame que el scroll.
+      // El panel pinta 100dvh (llena la pantalla con o sin barra); el
+      // copy se ancla a 50svh, el mismo eje que la marca de agua.
       if (onMobile) {
         sticky.style.position = "sticky";
         sticky.style.top = "0px";
-        sticky.style.height = `${vh}px`;
+        sticky.style.height = "100dvh";
         section.style.height = `${vh * 4.5}px`;
+        paragraph.style.position = "absolute";
+        paragraph.style.top = "50svh";
+        paragraph.style.left = "50%";
+        paragraph.style.transform = "translate(-50%, -50%)";
+        paragraph.style.width = "100%";
       }
 
       const tl = gsap.timeline({
@@ -542,6 +547,11 @@ export default function AboutFooter() {
       sticky.style.top = "";
       sticky.style.height = "";
       section.style.height = "";
+      paragraph.style.position = "";
+      paragraph.style.top = "";
+      paragraph.style.left = "";
+      paragraph.style.transform = "";
+      paragraph.style.width = "";
       explodedRef.current = false;
       editorialRevealedRef.current = false;
     };
