@@ -181,9 +181,23 @@ export default function HeroLogoReveal() {
     const easeIn = gsap.parseEase("power1.in");
 
     applyMask(baseW, inkX, inkY);
-    if (logoMarkRef.current) {
-      logoMarkRef.current.style.width = `${baseW}px`;
-    }
+
+    const placeWatermark = () => {
+      const mark = logoMarkRef.current;
+      if (!mark) return;
+      const restW = Math.min(stage.clientWidth * LOGO_REST_VW, LOGO_REST_MAX);
+      mark.style.width = `${restW}px`;
+      if (onMobile) {
+        const vvH = window.visualViewport?.height ?? window.innerHeight;
+        const vvTop = window.visualViewport?.offsetTop ?? 0;
+        mark.style.top = `${vvTop + vvH / 2}px`;
+      } else {
+        mark.style.top = "50%";
+      }
+    };
+    placeWatermark();
+    window.visualViewport?.addEventListener("resize", placeWatermark);
+    window.visualViewport?.addEventListener("scroll", placeWatermark);
 
     // Hold = lvh (swipe). El marco interior = viewport visible, para que
     // logo y listado se centren ahí sin absolute ni transforms sueltos.
@@ -226,6 +240,8 @@ export default function HeroLogoReveal() {
     });
 
     return () => {
+      window.visualViewport?.removeEventListener("resize", placeWatermark);
+      window.visualViewport?.removeEventListener("scroll", placeWatermark);
       gsap.killTweensOf([copy, copySpans]);
       trigger.kill();
     };
@@ -244,12 +260,17 @@ export default function HeroLogoReveal() {
     ).matches;
 
     const spans = artistsSpansRef.current.filter(Boolean);
+    const logoMark = logoMarkRef.current;
     gsap.set(container, { opacity: 0 });
     gsap.set(spans, { opacity: 0 });
     gsap.set(hoverImg, { xPercent: -50, yPercent: -50, scale: 1, force3D: true });
+    if (logoMark) gsap.set(logoMark, { autoAlpha: 0 });
 
     const revealArtists = () => {
       revealSpans(container, spans);
+      if (logoMark) {
+        gsap.to(logoMark, { autoAlpha: 0.16, duration: 0.85, ease: "power3.out" });
+      }
       if (hasHoverRef.current) container.style.pointerEvents = "auto";
       window.dispatchEvent(new Event("mm-hero-logo-settled"));
 
@@ -278,6 +299,9 @@ export default function HeroLogoReveal() {
       container.style.pointerEvents = "none";
       handleHoverLeave();
       hideSpans(container, spans);
+      if (logoMark) {
+        gsap.to(logoMark, { autoAlpha: 0, duration: 0.85, ease: "power3.in" });
+      }
       window.dispatchEvent(new Event("mm-hero-logo-reset"));
     };
 
@@ -463,7 +487,7 @@ export default function HeroLogoReveal() {
       window.removeEventListener("touchmove", onTouchMove, touchMoveOpts);
       gates.forEach((gate) => gate.st.kill());
       artistsSt.kill();
-      gsap.killTweensOf([container, spans, hoverImg]);
+      gsap.killTweensOf([container, spans, hoverImg, logoMark]);
     };
   }, []);
 
@@ -533,17 +557,8 @@ export default function HeroLogoReveal() {
       >
         <div
           ref={artistsFrameRef}
-          className="relative flex h-full w-full items-center justify-center"
+          className="relative z-[2] flex h-full w-full items-center justify-center"
         >
-          <img
-            ref={logoMarkRef}
-            src={LOGO_SRC}
-            alt=""
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 left-1/2 z-0 -translate-x-1/2 -translate-y-1/2 select-none opacity-[0.16]"
-            draggable={false}
-          />
-
           <img
             ref={hoverImageRef}
             alt=""
@@ -588,6 +603,16 @@ export default function HeroLogoReveal() {
           </div>
         </div>
       </section>
+
+      <img
+        ref={logoMarkRef}
+        src={LOGO_SRC}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none fixed top-1/2 left-1/2 z-[1] -translate-x-1/2 -translate-y-1/2 select-none"
+        style={{ opacity: 0, visibility: "hidden" }}
+        draggable={false}
+      />
     </>
   );
 }

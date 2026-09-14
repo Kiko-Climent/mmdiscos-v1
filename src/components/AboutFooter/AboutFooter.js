@@ -192,7 +192,8 @@ export default function AboutFooter() {
     const sticky = stickyRef.current;
     const paragraph = paragraphRef.current;
     const stage = stageRef.current;
-    if (!sticky || !paragraph || !stage) return;
+    const section = sectionRef.current;
+    if (!sticky || !paragraph || !stage || !section) return;
 
     const meta = metaRef.current;
     const videoWrap = videoWrapRef.current;
@@ -446,12 +447,27 @@ export default function AboutFooter() {
       gsap.set(headlineLines, { opacity: 0, y: 16, filter: "blur(18px)" });
       gsap.set(links, { opacity: 0, y: 12, pointerEvents: "none" });
 
+      const onMobile = window.innerWidth < MOBILE_MAX_WIDTH;
+      const vh = window.innerHeight;
+
+      // En móvil el pin de GSAP entra un frame tarde: el párrafo sigue
+      // subiendo (más allá del centro) y luego el pin lo devuelve.
+      // Sticky nativo bloquea en top:0 el mismo frame que el scroll,
+      // así no puede pasar de la foto 1. El recorrido extra (3.5 vh)
+      // vive en la altura de la sección, no en un pin-spacer.
+      if (onMobile) {
+        sticky.style.position = "sticky";
+        sticky.style.top = "0px";
+        sticky.style.height = `${vh}px`;
+        section.style.height = `${vh * 4.5}px`;
+      }
+
       const tl = gsap.timeline({
         scrollTrigger: {
-          trigger: sticky,
+          trigger: onMobile ? section : sticky,
           start: "top top",
-          end: () => `+=${window.innerHeight * 3.5}`,
-          pin: true,
+          end: onMobile ? "bottom bottom" : () => `+=${window.innerHeight * 3.5}`,
+          pin: !onMobile,
           scrub: true,
           invalidateOnRefresh: true,
           onUpdate: (self) => {
@@ -513,6 +529,10 @@ export default function AboutFooter() {
       killRevealTl();
       cleanupStage();
       ctx.revert();
+      sticky.style.position = "";
+      sticky.style.top = "";
+      sticky.style.height = "";
+      section.style.height = "";
       explodedRef.current = false;
       editorialRevealedRef.current = false;
     };
@@ -527,7 +547,7 @@ export default function AboutFooter() {
     >
       <div
         ref={stickyRef}
-        className="relative w-full h-screen overflow-hidden flex items-center justify-center bg-white"
+        className="relative z-[2] w-full h-screen overflow-hidden flex items-center justify-center"
       >
         <div
           ref={stageRef}

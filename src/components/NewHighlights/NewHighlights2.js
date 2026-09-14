@@ -472,7 +472,7 @@ export default function NewHighlights2() {
           position: "absolute",
           top: EDGE,
           right: EDGE,
-          zIndex: 1,
+          zIndex: 2,
           pointerEvents: "none",
         }}
       >
@@ -503,6 +503,7 @@ export default function NewHighlights2() {
           left: EDGE,
           bottom: LINE_BOTTOM,
           width: DESC_WIDTH,
+          zIndex: 2,
         }}
       >
         <p
@@ -533,6 +534,7 @@ export default function NewHighlights2() {
           right: EDGE,
           bottom: LINE_BOTTOM,
           width: trackWidth,
+          zIndex: 2,
         }}
       >
           {active && (

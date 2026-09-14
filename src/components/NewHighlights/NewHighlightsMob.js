@@ -126,7 +126,10 @@ export default function NewHighlightsMob() {
           margin: "0 auto",
         }}
       >
-        <div ref={contentColRef} style={{ paddingTop: NAV_PAD_TOP }}>
+        <div
+          ref={contentColRef}
+          style={{ paddingTop: NAV_PAD_TOP, position: "relative", zIndex: 2 }}
+        >
           {ITEMS.map((it, i) => (
             <section
               key={it.ref}

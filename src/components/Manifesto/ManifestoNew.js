@@ -380,7 +380,7 @@ export default function ManifestoNew() {
     <div ref={rootRef} className="manifesto-root w-full bg-white">
       <section
         ref={stickyRef}
-        className="manifesto-sticky relative w-screen h-screen bg-white overflow-hidden"
+        className="manifesto-sticky relative z-[2] w-screen h-screen overflow-hidden"
       >
         {/* ── Editorial overlay ─────────────────────────────────────
             Orden de profundidad:
