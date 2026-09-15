@@ -96,19 +96,24 @@ const FOCUS_MIN_OPACITY = 0.15;
 // del borde inferior — en vez de degradarse ya desde el centro.
 const FOCUS_HOLD_VH = 0.32;
 const FOCUS_FADE_VH = 0.25;
-// Descripción: banda de lectura (estilo Unlearned). Opacidad 1 entre el
-// borde inferior del NewNav (la línea bajo MANIFESTO) y ~76vh. Arriba
-// baja a un gris ~32%. Abajo el ghost es más pronunciado (~8%) y arranca
-// antes, para que el copy que asoma se lea como Harriet en Unlearned.
-const NAV_LINK_COUNT = 4;
-const TEXT_TOP_FADE_Y =
-  NAV_PAD_TOP + NAV_LINK_COUNT * NAV_ROW; // fallback si #mm-new-nav no está
-const TEXT_BOTTOM_START_VH = 0.76;
-const TEXT_BOTTOM_FADE_VH = 0.12;
-const TEXT_TOP_MIN_OPACITY = 0.32;
-const TEXT_BOTTOM_MIN_OPACITY = 0.08;
 
-export default function NewHighlightsMob2() {
+// Descripciones — reveal estilo ManifestoNew.js (quote de Alfredo): entran
+// desde el lateral (alternando izq/der por índice) mientras se acercan al
+// foco, se asientan del todo AL llegar al foco, y al superarlo salen en
+// bloque hacia arriba (no hacia el lado) — como si desaparecieran por el
+// top de la pantalla.
+const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+// Rango (por debajo del foco) en el que se desliza desde el lado hasta
+// asentarse en su sitio.
+const TEXT_ENTER_RANGE_VH = 0.5;
+// Desplazamiento lateral de arranque, como fracción del ancho de viewport.
+const TEXT_ENTER_OFFSET_VW = 0.55;
+// Rango (por encima del foco) en el que se va en bloque hacia arriba.
+const TEXT_EXIT_RANGE_VH = 0.28;
+// Cuánto sube (px) el bloque al salir por el top.
+const TEXT_EXIT_RISE_PX = 90;
+
+export default function NewHighlightsMob3() {
   const frameRef = useRef(null);
   const contentColRef = useRef(null);
   const refColRef = useRef(null);
@@ -119,7 +124,6 @@ export default function NewHighlightsMob2() {
   const textRefs = useRef([]);
   const refWrapRefs = useRef([]);
   const svhRef = useRef(0);
-  const topFadeYRef = useRef(TEXT_TOP_FADE_Y);
 
   useLayoutEffect(() => {
     const frame = frameRef.current;
@@ -129,14 +133,16 @@ export default function NewHighlightsMob2() {
     const firstImage = firstImageRef.current;
     if (!frame || !contentCol || !refCol) return;
 
-    const updateFocusOpacity = () => {
+    const updateFocus = () => {
       const vh = svhRef.current || window.innerHeight;
+      const vw = window.innerWidth;
       const focusY = vh / 2;
       const imgHoldPx = vh * FOCUS_HOLD_VH;
       const imgFadePx = vh * FOCUS_FADE_VH;
-      const topFadeY = topFadeYRef.current;
-      const bottomStartY = vh * TEXT_BOTTOM_START_VH;
-      const bottomFadePx = vh * TEXT_BOTTOM_FADE_VH;
+      const enterRangePx = vh * TEXT_ENTER_RANGE_VH;
+      const exitRangePx = vh * TEXT_EXIT_RANGE_VH;
+      const enterOffsetPx = vw * TEXT_ENTER_OFFSET_VW;
+
       sectionRefs.current.forEach((s, i) => {
         if (!s) return;
         const rect = s.getBoundingClientRect();
@@ -153,39 +159,41 @@ export default function NewHighlightsMob2() {
         }
 
         const text = textRefs.current[i];
-        if (text) {
-          // El copy se mide por su propio top, no por el centro del disco:
-          // así el párrafo de un release que ya subió sigue negro hasta
-          // tocar el umbral del nav, y el que entra por abajo se vela
-          // cerca del borde inferior — como Unlearned.
-          const y = text.getBoundingClientRect().top;
-          let tText = 0;
-          let minOp = TEXT_TOP_MIN_OPACITY;
-          if (y < topFadeY) {
-            tText = (topFadeY - y) / Math.max(1, topFadeY);
-          } else if (y > bottomStartY) {
-            const raw = Math.max(
-              0,
-              Math.min(1, (y - bottomStartY) / bottomFadePx)
-            );
-            // Ease-out: el ghost se nota en cuanto asoma por abajo,
-            // no solo al rozar el borde del viewport.
-            tText = 1 - (1 - raw) * (1 - raw);
-            minOp = TEXT_BOTTOM_MIN_OPACITY;
+        if (text && visual) {
+          // OJO: usar el centro del bloque imagen+titulo (visual), NO el
+          // de la section entera (que incluye el propio párrafo) — la
+          // section es mucho más alta, así que su centro cae bastante
+          // por debajo de donde realmente centra la imagen, y el primer
+          // release llegaba "desde el lado" aunque la imagen ya estuviera
+          // asentada en el foco. visual no lleva transform, así que su
+          // rect siempre refleja la posición real en pantalla.
+          const visRect = visual.getBoundingClientRect();
+          const visCenterY = visRect.top + visRect.height / 2;
+          // delta > 0: el release aún no ha llegado al foco (está abajo) →
+          // entra desde el lado. delta <= 0: ya lo superó (está arriba) →
+          // sale en bloque hacia arriba.
+          const delta = visCenterY - focusY;
+          let x = 0;
+          let y = 0;
+          let opacity = 1;
+          if (delta > 0) {
+            const t = easeOutCubic(Math.max(0, Math.min(1, delta / enterRangePx)));
+            const side = i % 2 === 0 ? -1 : 1;
+            x = side * t * enterOffsetPx;
+            opacity = 1 - t;
+          } else {
+            const t = easeOutCubic(Math.max(0, Math.min(1, -delta / exitRangePx)));
+            y = -t * TEXT_EXIT_RISE_PX;
+            opacity = 1 - t;
           }
-          tText = Math.max(0, Math.min(1, tText));
-          text.style.opacity = (1 - tText * (1 - minOp)).toFixed(3);
+          text.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+          text.style.opacity = opacity.toFixed(3);
         }
       });
     };
 
     const layoutRefs = () => {
       svhRef.current = measureSvh();
-
-      const navEl = document.getElementById("mm-new-nav");
-      topFadeYRef.current = navEl
-        ? navEl.getBoundingClientRect().bottom
-        : TEXT_TOP_FADE_Y;
 
       if (topSpacer && firstImage) {
         const imgH = firstImage.offsetHeight;
@@ -211,7 +219,7 @@ export default function NewHighlightsMob2() {
         wrap.style.height = `${Math.max(0, wrapEnd - top)}px`;
       });
 
-      updateFocusOpacity();
+      updateFocus();
     };
 
     layoutRefs();
@@ -223,12 +231,12 @@ export default function NewHighlightsMob2() {
     // ScrollTrigger.normalizeScroll (mueve el contenido con transform, no
     // con scrollTop nativo), así que el evento "scroll" nunca llega ahí.
     // El ticker de GSAP corre siempre, sea scroll nativo o normalizado.
-    gsap.ticker.add(updateFocusOpacity);
+    gsap.ticker.add(updateFocus);
 
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", layoutRefs);
-      gsap.ticker.remove(updateFocusOpacity);
+      gsap.ticker.remove(updateFocus);
     };
   }, []);
 
@@ -331,8 +339,7 @@ export default function NewHighlightsMob2() {
                   color: INK,
                   margin: "8px 0 0",
                   width: "100%",
-                  opacity: i === 0 ? 1 : TEXT_BOTTOM_MIN_OPACITY,
-                  willChange: "opacity",
+                  willChange: "transform, opacity",
                 }}
               >
                 {it.copy}
