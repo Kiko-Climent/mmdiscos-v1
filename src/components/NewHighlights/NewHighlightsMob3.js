@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { Fragment, useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -55,12 +55,6 @@ const ITEMS = HIGHLIGHTS.map((h) => ({
 const HEADLINE_FONT = "'Favorit', sans-serif";
 const INK = "#111111";
 
-// EDGE = px-3 del NewNav. El wrapper se estrecha 2×EDGE; ahi dentro
-// `right: 0` de las refs YA queda a EDGE del viewport (los absolute
-// ignoran padding, por eso no usamos padding en el padre).
-// SIDE = ancho de cada columna lateral (nav / refs) medido desde el
-// borde de la pantalla, para que la imagen tenga el mismo aire a ambos
-// lados.
 const EDGE = "0.75rem";
 const SIDE = "6.75rem";
 const GUTTER = `calc(${SIDE} - ${EDGE})`;
@@ -72,9 +66,6 @@ const NAV_TRACKING = "-0.06em";
 const NAV_WEIGHT = 600;
 const STACK_HEIGHT = NAV_PAD_TOP + ITEMS.length * NAV_ROW;
 
-// Mide 100svh igual que el hero (probe en vez de innerHeight): así el
-// primer release queda centrado sobre el mismo eje que la marca de agua
-// fija (top-[50svh] en HeroLogoReveal) y la tapa al aparecer tras el flip.
 const measureSvh = () => {
   const probe = document.createElement("div");
   probe.style.cssText =
@@ -85,33 +76,117 @@ const measureSvh = () => {
   return h;
 };
 
-// El release centrado en el foco (mismo eje que el spacer de arriba, 50svh)
-// queda a opacidad plena; los que salen por arriba o entran por abajo se
-// apagan — igual que en la versión mobile de readymag.com/readymag/unlearned.
-// FOCUS_MIN_OPACITY iguala MARQUEE_OPACITY del marquee desktop (NewHighlights2).
+const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+
+// Tapa / título: mismo fundido que NewHighlightsMob2.
 const FOCUS_MIN_OPACITY = 0.15;
-// Zona muerta alrededor del foco (en fracción de vh): dentro de ella el
-// release se mantiene a opacidad plena. El fundido solo arranca al
-// cruzar ese radio, así que empieza más tarde — cerca del nav arriba /
-// del borde inferior — en vez de degradarse ya desde el centro.
 const FOCUS_HOLD_VH = 0.32;
 const FOCUS_FADE_VH = 0.25;
 
-// Descripciones — reveal estilo ManifestoNew.js (quote de Alfredo): entran
-// desde el lateral (alternando izq/der por índice) mientras se acercan al
-// foco, se asientan del todo AL llegar al foco, y al superarlo salen en
-// bloque hacia arriba (no hacia el lado) — como si desaparecieran por el
-// top de la pantalla.
-const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-// Rango (por debajo del foco) en el que se desliza desde el lado hasta
-// asentarse en su sitio.
-const TEXT_ENTER_RANGE_VH = 0.5;
-// Desplazamiento lateral de arranque, como fracción del ancho de viewport.
-const TEXT_ENTER_OFFSET_VW = 0.55;
-// Rango (por encima del foco) en el que se va en bloque hacia arriba.
-const TEXT_EXIT_RANGE_VH = 0.28;
-// Cuánto sube (px) el bloque al salir por el top.
-const TEXT_EXIT_RISE_PX = 90;
+// Copy — mismo split L/R + spread + cascade que ManifestoNew.js.
+// La formación NO arranca abajo del todo: el párrafo sigue fuera hasta
+// ~90vh y acaba de coserse al llegar a la banda de lectura (~66vh),
+// que es donde el copy se lee bajo el título (foto 2). Si la tapa ya
+// está en el foco, se da por montado (primer release al cargar).
+const TEXT_ASSEMBLE_END_VH = 0.66;
+const TEXT_ASSEMBLE_START_VH = 0.9;
+const TEXT_ENTER_HOLD_VH = 0.04;
+const TEXT_OFF_VW = 0.6;
+const TEXT_SPREAD = 0.1;
+const SEG_DURATION = 0.6;
+const LINE_CASCADE = 0.06;
+const TEXT_ENTER_BLUR_PX = 5;
+const NAV_LINK_COUNT = 4;
+const TEXT_TOP_FADE_Y = NAV_PAD_TOP + NAV_LINK_COUNT * NAV_ROW;
+const TEXT_TOP_MIN_OPACITY = 0.32;
+
+const expoOut = gsap.parseEase("expo.out");
+
+// Agrupa palabras en trozos línea×lado usando el layout ya pintado.
+// Clustering por proximidad de `top` (mitad de la altura de palabra)
+// — copiado de ManifestoNew.js.
+function buildQuoteSegments(quoteEl) {
+  const wordEls = Array.from(quoteEl.querySelectorAll(".hl-q-word"));
+  const containerRect = quoteEl.getBoundingClientRect();
+  const containerCenterX = containerRect.left + containerRect.width / 2;
+
+  const wordMeta = wordEls.map((el) => {
+    const r = el.getBoundingClientRect();
+    return {
+      el,
+      top: r.top,
+      centerX: r.left + r.width / 2,
+    };
+  });
+
+  const sorted = [...wordMeta].sort((a, b) => a.top - b.top);
+  const sampleH = sorted[0]?.el.getBoundingClientRect().height || 20;
+  const threshold = Math.max(sampleH * 0.45, 6);
+
+  const lines = [];
+  sorted.forEach((w) => {
+    const line = lines[lines.length - 1];
+    if (line && Math.abs(w.top - line.top) <= threshold) {
+      line.words.push(w);
+    } else {
+      lines.push({ top: w.top, words: [w] });
+    }
+  });
+
+  const segments = [];
+  lines.forEach((line, lineIdx) => {
+    const left = [];
+    const right = [];
+    line.words.forEach((w) => {
+      (w.centerX < containerCenterX ? left : right).push(w);
+    });
+    left.sort((a, b) => a.centerX - b.centerX);
+    right.sort((a, b) => a.centerX - b.centerX);
+    if (left.length) {
+      segments.push({
+        side: "L",
+        lineIdx,
+        words: left,
+        anchorX: left[left.length - 1].centerX,
+      });
+    }
+    if (right.length) {
+      segments.push({
+        side: "R",
+        lineIdx,
+        words: right,
+        anchorX: right[0].centerX,
+      });
+    }
+  });
+
+  return segments;
+}
+
+function applyAssemble(segments, offX, assembleP) {
+  const maxLine = segments.reduce((m, s) => Math.max(m, s.lineIdx), 0);
+  const totalWave = SEG_DURATION + maxLine * LINE_CASCADE;
+  segments.forEach((seg) => {
+    const startTime = seg.lineIdx * LINE_CASCADE;
+    const local = clamp01((assembleP * totalWave - startTime) / SEG_DURATION);
+    const eased = expoOut(local);
+    const baseOff = seg.side === "L" ? -offX : offX;
+    seg.words.forEach((w) => {
+      const extra = (w.centerX - seg.anchorX) * TEXT_SPREAD;
+      w.el.style.transform = `translate3d(${((1 - eased) * (baseOff + extra)).toFixed(2)}px,0,0)`;
+      w.el.style.opacity = eased.toFixed(3);
+    });
+  });
+}
+
+function settleWords(segments) {
+  segments.forEach((seg) => {
+    seg.words.forEach((w) => {
+      w.el.style.transform = "translate3d(0,0,0)";
+      w.el.style.opacity = "1";
+    });
+  });
+}
 
 export default function NewHighlightsMob3() {
   const frameRef = useRef(null);
@@ -123,7 +198,10 @@ export default function NewHighlightsMob3() {
   const visualRefs = useRef([]);
   const textRefs = useRef([]);
   const refWrapRefs = useRef([]);
+  const packsRef = useRef([]);
   const svhRef = useRef(0);
+  const topFadeYRef = useRef(TEXT_TOP_FADE_Y);
+  const offXRef = useRef(0);
 
   useLayoutEffect(() => {
     const frame = frameRef.current;
@@ -135,13 +213,15 @@ export default function NewHighlightsMob3() {
 
     const updateFocus = () => {
       const vh = svhRef.current || window.innerHeight;
-      const vw = window.innerWidth;
       const focusY = vh / 2;
       const imgHoldPx = vh * FOCUS_HOLD_VH;
       const imgFadePx = vh * FOCUS_FADE_VH;
-      const enterRangePx = vh * TEXT_ENTER_RANGE_VH;
-      const exitRangePx = vh * TEXT_EXIT_RANGE_VH;
-      const enterOffsetPx = vw * TEXT_ENTER_OFFSET_VW;
+      const assembleEndY = vh * TEXT_ASSEMBLE_END_VH;
+      const assembleStartY = vh * TEXT_ASSEMBLE_START_VH;
+      const assembleRangePx = Math.max(1, assembleStartY - assembleEndY);
+      const enterHoldPx = vh * TEXT_ENTER_HOLD_VH;
+      const topFadeY = topFadeYRef.current;
+      const offX = offXRef.current;
 
       sectionRefs.current.forEach((s, i) => {
         if (!s) return;
@@ -153,47 +233,54 @@ export default function NewHighlightsMob3() {
         if (visual) {
           const tImg = Math.max(0, Math.min(1, (dist - imgHoldPx) / imgFadePx));
           visual.style.opacity = (1 - tImg * (1 - FOCUS_MIN_OPACITY)).toFixed(3);
-          // Mismo tratamiento que el marquee desktop (opacity + grayscale(1)):
-          // a t=1 el release queda tan desaturado como las imagenes de fondo.
           visual.style.filter = `grayscale(${(tImg * 100).toFixed(1)}%)`;
         }
 
         const text = textRefs.current[i];
-        if (text && visual) {
-          // OJO: usar el centro del bloque imagen+titulo (visual), NO el
-          // de la section entera (que incluye el propio párrafo) — la
-          // section es mucho más alta, así que su centro cae bastante
-          // por debajo de donde realmente centra la imagen, y el primer
-          // release llegaba "desde el lado" aunque la imagen ya estuviera
-          // asentada en el foco. visual no lleva transform, así que su
-          // rect siempre refleja la posición real en pantalla.
-          const visRect = visual.getBoundingClientRect();
-          const visCenterY = visRect.top + visRect.height / 2;
-          // delta > 0: el release aún no ha llegado al foco (está abajo) →
-          // entra desde el lado. delta <= 0: ya lo superó (está arriba) →
-          // sale en bloque hacia arriba.
-          const delta = visCenterY - focusY;
-          let x = 0;
-          let y = 0;
-          let opacity = 1;
-          if (delta > 0) {
-            const t = easeOutCubic(Math.max(0, Math.min(1, delta / enterRangePx)));
-            const side = i % 2 === 0 ? -1 : 1;
-            x = side * t * enterOffsetPx;
-            opacity = 1 - t;
+        const pack = packsRef.current[i];
+        if (!text || !pack?.segments?.length || !visual) return;
+
+        const visRect = visual.getBoundingClientRect();
+        const imgBox = visual.firstElementChild;
+        const focusRect = imgBox ? imgBox.getBoundingClientRect() : visRect;
+        const visCenterY = focusRect.top + focusRect.height / 2;
+        const delta = visCenterY - focusY;
+        const y = text.getBoundingClientRect().top;
+        const imageSettled = delta <= enterHoldPx;
+        const textSettled = y <= assembleEndY;
+
+        if (!imageSettled && !textSettled) {
+          const assembleP = 1 - clamp01((y - assembleEndY) / assembleRangePx);
+          applyAssemble(pack.segments, offX, assembleP);
+          text.style.opacity = "1";
+          text.style.filter =
+            assembleP >= 1
+              ? "none"
+              : `blur(${((1 - assembleP) * TEXT_ENTER_BLUR_PX).toFixed(2)}px)`;
+        } else {
+          settleWords(pack.segments);
+          text.style.filter = "none";
+          if (y < topFadeY) {
+            const tText = clamp01((topFadeY - y) / Math.max(1, topFadeY));
+            text.style.opacity = (
+              1 -
+              tText * (1 - TEXT_TOP_MIN_OPACITY)
+            ).toFixed(3);
           } else {
-            const t = easeOutCubic(Math.max(0, Math.min(1, -delta / exitRangePx)));
-            y = -t * TEXT_EXIT_RISE_PX;
-            opacity = 1 - t;
+            text.style.opacity = "1";
           }
-          text.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
-          text.style.opacity = opacity.toFixed(3);
         }
       });
     };
 
     const layoutRefs = () => {
       svhRef.current = measureSvh();
+      offXRef.current = window.innerWidth * TEXT_OFF_VW;
+
+      const navEl = document.getElementById("mm-new-nav");
+      topFadeYRef.current = navEl
+        ? navEl.getBoundingClientRect().bottom
+        : TEXT_TOP_FADE_Y;
 
       if (topSpacer && firstImage) {
         const imgH = firstImage.offsetHeight;
@@ -209,15 +296,27 @@ export default function NewHighlightsMob3() {
         const wrap = refWrapRefs.current[i];
         if (!wrap) return;
         const top = s.getBoundingClientRect().top - frameTop;
-        // El wrap no llega al fondo común: termina en el punto en el que
-        // toda la pila cabe justo bajo el top. Así cada ref sigue pegándose
-        // a su imagen, pero al salir del frame se desplazan juntas (mismo
-        // delta) y no se comprimen una encima de otra.
         const wrapEnd =
           totalH - STACK_HEIGHT + NAV_PAD_TOP + (i + 1) * NAV_ROW;
         wrap.style.top = `${top}px`;
         wrap.style.height = `${Math.max(0, wrapEnd - top)}px`;
       });
+
+      // Medir el wrap real ANTES de aplicar x off-screen (igual que
+      // ManifestoNew). Si medimos con translate, el seam L/R se rompe.
+      textRefs.current.forEach((el) => {
+        if (!el) return;
+        el.style.opacity = "1";
+        el.style.filter = "none";
+        el.querySelectorAll(".hl-q-word").forEach((w) => {
+          w.style.transform = "";
+          w.style.opacity = "";
+        });
+      });
+      void contentCol.offsetWidth;
+      packsRef.current = textRefs.current.map((el) =>
+        el ? { segments: buildQuoteSegments(el) } : null
+      );
 
       updateFocus();
     };
@@ -226,11 +325,6 @@ export default function NewHighlightsMob3() {
     const ro = new ResizeObserver(layoutRefs);
     ro.observe(contentCol);
     window.addEventListener("resize", layoutRefs);
-
-    // NO usar window "scroll": en móvil el scroll va por
-    // ScrollTrigger.normalizeScroll (mueve el contenido con transform, no
-    // con scrollTop nativo), así que el evento "scroll" nunca llega ahí.
-    // El ticker de GSAP corre siempre, sea scroll nativo o normalizado.
     gsap.ticker.add(updateFocus);
 
     return () => {
@@ -246,6 +340,7 @@ export default function NewHighlightsMob3() {
         width: "100%",
         background: "#fff",
         color: INK,
+        overflow: "hidden",
       }}
     >
       <div
@@ -278,7 +373,12 @@ export default function NewHighlightsMob3() {
                 ref={(el) => {
                   visualRefs.current[i] = el;
                 }}
-                style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
               >
                 <div
                   ref={i === 0 ? firstImageRef : undefined}
@@ -290,7 +390,10 @@ export default function NewHighlightsMob3() {
                   }}
                 >
                   <picture>
-                    <source srcSet={`${optBase(it.base)}-720.avif`} type="image/avif" />
+                    <source
+                      srcSet={`${optBase(it.base)}-720.avif`}
+                      type="image/avif"
+                    />
                     <img
                       src={`${optBase(it.base)}-720.webp`}
                       alt={it.title}
@@ -339,15 +442,31 @@ export default function NewHighlightsMob3() {
                   color: INK,
                   margin: "8px 0 0",
                   width: "100%",
-                  willChange: "transform, opacity",
+                  willChange: "opacity, filter",
                 }}
               >
-                {it.copy}
+                {it.copy.split(" ").map((w, wi, arr) => (
+                  <Fragment key={wi}>
+                    <span
+                      className="hl-q-word"
+                      style={{
+                        display: "inline-block",
+                        willChange: "transform, opacity",
+                      }}
+                    >
+                      {w}
+                    </span>
+                    {wi < arr.length - 1 ? " " : ""}
+                  </Fragment>
+                ))}
               </p>
             </section>
           ))}
 
-          <div style={{ height: `calc(100svh - ${STACK_HEIGHT}px)` }} aria-hidden />
+          <div
+            style={{ height: `calc(100svh - ${STACK_HEIGHT}px)` }}
+            aria-hidden
+          />
         </div>
 
         <div

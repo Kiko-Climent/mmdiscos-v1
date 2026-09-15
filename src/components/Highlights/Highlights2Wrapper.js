@@ -6,6 +6,7 @@ import NewHighlights from "@/components/NewHighlights/NewHighlights";
 import NewHighlights2 from "@/components/NewHighlights/NewHighlights2";
 import NewHighlightsMob from "@/components/NewHighlights/NewHighlightsMob";
 import NewHighlightsMob2 from "@/components/NewHighlights/NewHighlightsMob2";
+import NewHighlightsMob3 from "@/components/NewHighlights/NewHighlightsMob3";
 
 // Ambas variantes se renderizan en SSR (cero hydration mismatch). Cada
 // envoltorio se muestra/oculta vía media query Tailwind (breakpoint 900px).
@@ -28,7 +29,8 @@ export default function Highlights2Wrapper() {
       </div>
       <div className="block min-[901px]:hidden">
         {/* <Highlights3_3Mobile3 /> */}
-        <NewHighlightsMob2 />
+        {/* <NewHighlightsMob2 /> */}
+        <NewHighlightsMob3 />
       </div>
     </div>
   );
