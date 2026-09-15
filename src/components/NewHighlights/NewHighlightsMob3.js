@@ -335,6 +335,9 @@ export default function NewHighlightsMob3() {
         width: "100%",
         background: "#fff",
         color: INK,
+        // Clip en el borde del viewport, no en el frame con EDGE:
+        // las palabras entran desde el costado real de la pantalla.
+        overflowX: "clip",
       }}
     >
       <div
@@ -351,7 +354,6 @@ export default function NewHighlightsMob3() {
             paddingTop: NAV_PAD_TOP,
             position: "relative",
             zIndex: 2,
-            overflowX: "clip",
           }}
         >
           <div ref={topSpacerRef} aria-hidden="true" />
