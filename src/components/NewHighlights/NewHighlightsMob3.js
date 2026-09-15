@@ -86,21 +86,28 @@ const FOCUS_FADE_VH = 0.25;
 // Copy — mismo split L/R + spread + cascade que ManifestoNew.js.
 // La formación NO arranca abajo del todo: el párrafo sigue fuera hasta
 // ~90vh y acaba de coserse al llegar a la banda de lectura (~66vh),
-// que es donde el copy se lee bajo el título (foto 2). Si la tapa ya
-// está en el foco, se da por montado (primer release al cargar).
+// que es donde el copy se lee bajo el título (foto 2). El montaje es
+// continuo (smootherstep): no hay corte a “ya legible”.
 const TEXT_ASSEMBLE_END_VH = 0.66;
 const TEXT_ASSEMBLE_START_VH = 0.9;
-const TEXT_ENTER_HOLD_VH = 0.04;
+// Aproximación suave de la tapa al foco (sin corte binario).
+const TEXT_IMAGE_ENTER_VH = 0.22;
 const TEXT_OFF_VW = 0.6;
 const TEXT_SPREAD = 0.1;
-const SEG_DURATION = 0.6;
-const LINE_CASCADE = 0.06;
-const TEXT_ENTER_BLUR_PX = 5;
+const SEG_DURATION = 0.7;
+const LINE_CASCADE = 0.03;
+const TEXT_ENTER_BLUR_PX = 4;
 const NAV_LINK_COUNT = 4;
 const TEXT_TOP_FADE_Y = NAV_PAD_TOP + NAV_LINK_COUNT * NAV_ROW;
 const TEXT_TOP_MIN_OPACITY = 0.32;
 
-const expoOut = gsap.parseEase("expo.out");
+const power2Out = gsap.parseEase("power2.out");
+
+// Derivada 0 en t=0 y t=1: el aterrizaje no corta, se apaga solo.
+function smootherstep(t) {
+  t = clamp01(t);
+  return t * t * t * (t * (t * 6 - 15) + 10);
+}
 
 // Agrupa palabras en trozos línea×lado usando el layout ya pintado.
 // Clustering por proximidad de `top` (mitad de la altura de palabra)
@@ -169,21 +176,12 @@ function applyAssemble(segments, offX, assembleP) {
   segments.forEach((seg) => {
     const startTime = seg.lineIdx * LINE_CASCADE;
     const local = clamp01((assembleP * totalWave - startTime) / SEG_DURATION);
-    const eased = expoOut(local);
+    const eased = power2Out(local);
     const baseOff = seg.side === "L" ? -offX : offX;
     seg.words.forEach((w) => {
       const extra = (w.centerX - seg.anchorX) * TEXT_SPREAD;
       w.el.style.transform = `translate3d(${((1 - eased) * (baseOff + extra)).toFixed(2)}px,0,0)`;
       w.el.style.opacity = eased.toFixed(3);
-    });
-  });
-}
-
-function settleWords(segments) {
-  segments.forEach((seg) => {
-    seg.words.forEach((w) => {
-      w.el.style.transform = "translate3d(0,0,0)";
-      w.el.style.opacity = "1";
     });
   });
 }
@@ -219,7 +217,7 @@ export default function NewHighlightsMob3() {
       const assembleEndY = vh * TEXT_ASSEMBLE_END_VH;
       const assembleStartY = vh * TEXT_ASSEMBLE_START_VH;
       const assembleRangePx = Math.max(1, assembleStartY - assembleEndY);
-      const enterHoldPx = vh * TEXT_ENTER_HOLD_VH;
+      const imageEnterPx = vh * TEXT_IMAGE_ENTER_VH;
       const topFadeY = topFadeYRef.current;
       const offX = offXRef.current;
 
@@ -246,29 +244,22 @@ export default function NewHighlightsMob3() {
         const visCenterY = focusRect.top + focusRect.height / 2;
         const delta = visCenterY - focusY;
         const y = text.getBoundingClientRect().top;
-        const imageSettled = delta <= enterHoldPx;
-        const textSettled = y <= assembleEndY;
+        const textP = 1 - clamp01((y - assembleEndY) / assembleRangePx);
+        const imageP = 1 - clamp01(delta / imageEnterPx);
+        const assembleP = smootherstep(Math.max(textP, imageP));
 
-        if (!imageSettled && !textSettled) {
-          const assembleP = 1 - clamp01((y - assembleEndY) / assembleRangePx);
-          applyAssemble(pack.segments, offX, assembleP);
-          text.style.opacity = "1";
-          text.style.filter =
-            assembleP >= 1
-              ? "none"
-              : `blur(${((1 - assembleP) * TEXT_ENTER_BLUR_PX).toFixed(2)}px)`;
+        applyAssemble(pack.segments, offX, assembleP);
+        const blurPx = (1 - assembleP) * TEXT_ENTER_BLUR_PX;
+        text.style.filter = `blur(${blurPx.toFixed(2)}px)`;
+
+        if (y < topFadeY) {
+          const tText = clamp01((topFadeY - y) / Math.max(1, topFadeY));
+          text.style.opacity = (
+            1 -
+            tText * (1 - TEXT_TOP_MIN_OPACITY)
+          ).toFixed(3);
         } else {
-          settleWords(pack.segments);
-          text.style.filter = "none";
-          if (y < topFadeY) {
-            const tText = clamp01((topFadeY - y) / Math.max(1, topFadeY));
-            text.style.opacity = (
-              1 -
-              tText * (1 - TEXT_TOP_MIN_OPACITY)
-            ).toFixed(3);
-          } else {
-            text.style.opacity = "1";
-          }
+          text.style.opacity = "1";
         }
       });
     };
