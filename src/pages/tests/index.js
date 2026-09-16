@@ -39,7 +39,7 @@ import AboutFinal from "@/components/About/AboutFinal";
 import Highlights2Wrapper from "@/components/Highlights/Highlights2Wrapper";
 import HeroLogo from "@/components/hero/HeroLogo";
 import ManifestoNew from "@/components/Manifesto/ManifestoNew"
-import AboutFooter from "@/components/AboutFooter/AboutFooter";
+import AboutFooter2 from "@/components/AboutFooter/AboutFooter2";
 gsap.registerPlugin(ScrollTrigger);
 
 
@@ -95,7 +95,7 @@ export default function Tests() {
     <>
       {/* <HeroLogo /> */}
       {/* <ManifestoNew /> */}
-      <AboutFooter />
+      <AboutFooter2 />
     </>
   );
 }
