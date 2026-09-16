@@ -38,6 +38,8 @@ const VIDEO_HEADLINE_GAP = 12;
 const VIDEO_HEADLINE_GAP_MOBILE = 10;
 const DESKTOP_TOP_EXTRA = "2rem";
 const MOBILE_TOP_BREATHING = "4.5rem";
+const NAV_DIM_COLOR = "rgba(0,0,0,0.16)";
+const NAV_FULL_COLOR = "#000000";
 
 export default function AboutFooter2() {
   const sectionRef = useRef(null);
@@ -209,6 +211,32 @@ export default function AboutFooter2() {
     const headlineLines = headlineLinesRef.current.filter(Boolean);
     const links = linksRef.current;
 
+    const navEls = () => document.querySelectorAll("#mm-new-nav a");
+    const dimNav = (silent = false) => {
+      const els = navEls();
+      if (!els.length) return;
+      if (silent) gsap.set(els, { color: NAV_DIM_COLOR });
+      else
+        gsap.to(els, {
+          color: NAV_DIM_COLOR,
+          duration: 0.85,
+          ease: "power3.out",
+          overwrite: true,
+        });
+    };
+    const restoreNav = (silent = false) => {
+      const els = navEls();
+      if (!els.length) return;
+      if (silent) gsap.set(els, { color: NAV_FULL_COLOR });
+      else
+        gsap.to(els, {
+          color: NAV_FULL_COLOR,
+          duration: 0.45,
+          ease: "power2.in",
+          overwrite: true,
+        });
+    };
+
     const wordEls = Array.from(paragraph.querySelectorAll(".about-final-word"));
     wordsRef.current = wordEls;
 
@@ -352,6 +380,7 @@ export default function AboutFooter2() {
         gsap.set(videoWrap, { clipPath: "inset(0 0 0 100%)" });
         gsap.set(headlineLines, { opacity: 0, y: 16, filter: "blur(18px)" });
         gsap.set(links, { opacity: 0, y: linksFromY, pointerEvents: "none" });
+        restoreNav(true);
         return;
       }
 
@@ -385,6 +414,7 @@ export default function AboutFooter2() {
         ease: "power2.in",
         overwrite: true,
       });
+      restoreNav(false);
     };
 
     const resetExplosion = () => {
@@ -442,6 +472,7 @@ export default function AboutFooter2() {
         },
         0.55
       );
+      dimNav(false);
 
       revealTlRef.current = tl;
     };
@@ -551,6 +582,7 @@ export default function AboutFooter2() {
       stopRaf();
       killRevealTl();
       cleanupStage();
+      restoreNav(true);
       ctx.revert();
       sticky.style.position = "";
       sticky.style.top = "";

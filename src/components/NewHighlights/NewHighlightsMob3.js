@@ -252,8 +252,15 @@ export default function NewHighlightsMob3() {
         const blurPx = (1 - assembleP) * TEXT_ENTER_BLUR_PX;
         text.style.filter = `blur(${blurPx.toFixed(2)}px)`;
 
-        if (y < topFadeY) {
-          const tText = clamp01((topFadeY - y) / Math.max(1, topFadeY));
+        // El copy empieza a apagarse cuando la tapa llega al navbar,
+        // no cuando el propio texto cruza esa línea. Así el fundido
+        // arranca más abajo y el release ya va de salida al desaparecer
+        // por el top.
+        const imgTop = focusRect.top;
+        if (imgTop < topFadeY) {
+          const tText = clamp01(
+            (topFadeY - imgTop) / Math.max(1, y - imgTop)
+          );
           text.style.opacity = (
             1 -
             tText * (1 - TEXT_TOP_MIN_OPACITY)
