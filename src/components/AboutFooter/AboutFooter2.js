@@ -381,6 +381,7 @@ export default function AboutFooter2() {
         gsap.set(headlineLines, { opacity: 0, y: 16, filter: "blur(18px)" });
         gsap.set(links, { opacity: 0, y: linksFromY, pointerEvents: "none" });
         restoreNav(true);
+        window.dispatchEvent(new Event("mm-home-watermark-show"));
         return;
       }
 
@@ -415,6 +416,7 @@ export default function AboutFooter2() {
         overwrite: true,
       });
       restoreNav(false);
+      window.dispatchEvent(new Event("mm-home-watermark-show"));
     };
 
     const resetExplosion = () => {
@@ -473,6 +475,8 @@ export default function AboutFooter2() {
         0.55
       );
       dimNav(false);
+
+      window.dispatchEvent(new Event("mm-home-watermark-hide"));
 
       revealTlRef.current = tl;
     };

@@ -254,16 +254,25 @@ export default function HeroLogoReveal() {
 
     const spans = artistsSpansRef.current.filter(Boolean);
     const logoMark = logoMarkRef.current;
+    const watermarkArmedRef = { current: false };
     gsap.set(container, { opacity: 0 });
     gsap.set(spans, { opacity: 0 });
     gsap.set(hoverImg, { xPercent: -50, yPercent: -50, scale: 1, force3D: true });
     if (logoMark) gsap.set(logoMark, { autoAlpha: 0 });
 
+    const showWatermark = () => {
+      if (!logoMark || !watermarkArmedRef.current) return;
+      gsap.to(logoMark, { autoAlpha: 0.16, duration: 0.85, ease: "power3.out" });
+    };
+    const hideWatermark = () => {
+      if (!logoMark) return;
+      gsap.to(logoMark, { autoAlpha: 0, duration: 0.85, ease: "power3.in" });
+    };
+
     const revealArtists = () => {
       revealSpans(container, spans);
-      if (logoMark) {
-        gsap.to(logoMark, { autoAlpha: 0.16, duration: 0.85, ease: "power3.out" });
-      }
+      watermarkArmedRef.current = true;
+      showWatermark();
       if (hasHoverRef.current) container.style.pointerEvents = "auto";
       window.dispatchEvent(new Event("mm-hero-logo-settled"));
 
@@ -292,9 +301,8 @@ export default function HeroLogoReveal() {
       container.style.pointerEvents = "none";
       handleHoverLeave();
       hideSpans(container, spans);
-      if (logoMark) {
-        gsap.to(logoMark, { autoAlpha: 0, duration: 0.85, ease: "power3.in" });
-      }
+      watermarkArmedRef.current = false;
+      hideWatermark();
       window.dispatchEvent(new Event("mm-hero-logo-reset"));
     };
 
@@ -502,6 +510,9 @@ export default function HeroLogoReveal() {
       onLeaveBack: resetArtists,
     });
 
+    window.addEventListener("mm-home-watermark-hide", hideWatermark);
+    window.addEventListener("mm-home-watermark-show", showWatermark);
+
     return () => {
       window.clearTimeout(idleTimer);
       window.clearTimeout(programmaticTimer);
@@ -512,6 +523,8 @@ export default function HeroLogoReveal() {
       window.removeEventListener("mm-nav-about", lockGatesForNav);
       window.removeEventListener("mm-nav-manifesto", lockGatesForNav);
       window.removeEventListener("mm-scroll-to", lockGatesForNav);
+      window.removeEventListener("mm-home-watermark-hide", hideWatermark);
+      window.removeEventListener("mm-home-watermark-show", showWatermark);
       gates.forEach((gate) => gate.st.kill());
       artistsSt.kill();
       gsap.killTweensOf([container, spans, hoverImg, logoMark]);

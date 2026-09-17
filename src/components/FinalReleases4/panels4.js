@@ -1,5 +1,6 @@
 "use client";
 
+import { useLayoutEffect, useRef, useState } from "react";
 import { PADDING_PX } from "./constants";
 import { DEFAULT_CREDITS_LINES } from "./releaseMap";
 
@@ -7,6 +8,14 @@ const HEADLINE_FONT = "'Favorit', sans-serif";
 const GREY_TEXT_SOFT = "#9a9a9a";
 const INK = "#111111";
 const ARTIST = "#8A8A8A";
+
+const TRACK_COL_GAP = 24;
+
+function contentWidth(el) {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  return range.getBoundingClientRect().width;
+}
 
 function splitInHalf(tracks) {
   const mid = Math.ceil(tracks.length / 2);
@@ -134,12 +143,47 @@ export function DetailPanel({ forwardRef, panelLayout, focusedData }) {
     left = 0,
     top = 0,
     availableW = 0,
-    heroLeft = 0,
-    heroTop = 0,
-    heroW = 0,
-    heroH = 0,
   } = panelLayout;
   const infoW = Math.max(0, availableW - PADDING_PX);
+  const fallbackCreditsW = infoW * 0.58;
+  const [creditsW, setCreditsW] = useState(fallbackCreditsW);
+  const colBRef = useRef(null);
+
+  useLayoutEffect(() => {
+    if (!twoCol) {
+      setCreditsW(fallbackCreditsW);
+      return;
+    }
+
+    const measure = () => {
+      const colB = colBRef.current;
+      const colA = colB?.previousElementSibling;
+      if (!colA || !colB) {
+        setCreditsW(fallbackCreditsW);
+        return;
+      }
+      let longestB = 0;
+      for (const row of colB.children) {
+        longestB = Math.max(longestB, contentWidth(row));
+      }
+      if (longestB <= 0) {
+        setCreditsW(fallbackCreditsW);
+        return;
+      }
+      setCreditsW(colA.getBoundingClientRect().width + TRACK_COL_GAP + longestB);
+    };
+
+    measure();
+    const fonts = document.fonts;
+    fonts?.ready?.then(measure);
+
+    const colB = colBRef.current;
+    const colA = colB?.previousElementSibling;
+    const ro = new ResizeObserver(measure);
+    if (colA) ro.observe(colA);
+    if (colB) ro.observe(colB);
+    return () => ro.disconnect();
+  }, [twoCol, fallbackCreditsW, focusedData?.ref, tracks.length]);
 
   return (
     <div
@@ -237,7 +281,7 @@ export function DetailPanel({ forwardRef, panelLayout, focusedData }) {
               style={{
                 display: "grid",
                 gridTemplateColumns: twoCol ? "1fr 1fr" : "1fr",
-                columnGap: 24,
+                columnGap: TRACK_COL_GAP,
               }}
             >
               <div>
@@ -250,7 +294,7 @@ export function DetailPanel({ forwardRef, panelLayout, focusedData }) {
                 ))}
               </div>
               {twoCol ? (
-                <div>
+                <div ref={colBRef}>
                   {colB.map((track, i) => (
                     <TrackRow
                       key={`b-${i}`}
@@ -262,6 +306,27 @@ export function DetailPanel({ forwardRef, panelLayout, focusedData }) {
               ) : null}
             </div>
             </div>
+
+            <p
+              style={{
+                margin: "14px 0 0",
+                maxWidth: creditsW > 0 ? creditsW : "58%",
+                fontFamily: HEADLINE_FONT,
+                fontSize: 10,
+                fontWeight: 600,
+                lineHeight: 1.4,
+                color: INK,
+              }}
+            >
+              {credits.map((line, i) => (
+                <span key={i}>
+                  {line}
+                  {i < credits.length - 1 ? (
+                    <span style={{ color: GREY_TEXT_SOFT }}>{"  ·  "}</span>
+                  ) : null}
+                </span>
+              ))}
+            </p>
 
             <div
               style={{
@@ -275,33 +340,6 @@ export function DetailPanel({ forwardRef, panelLayout, focusedData }) {
               <ExternalLink href={focusedData.soundcloud} label="Soundcloud" />
             </div>
           </div>
-
-          {heroW > 0 ? (
-            <div
-              style={{
-                position: "absolute",
-                left: heroLeft,
-                top: heroTop + heroH + 16,
-                width: heroW,
-              }}
-            >
-              {credits.map((line, i) => (
-                <p
-                  key={i}
-                  style={{
-                    margin: 0,
-                    fontFamily: HEADLINE_FONT,
-                    fontSize: 10,
-                    fontWeight: 600,
-                    lineHeight: 1.4,
-                    color: INK,
-                  }}
-                >
-                  {line}
-                </p>
-              ))}
-            </div>
-          ) : null}
         </>
       ) : null}
     </div>
