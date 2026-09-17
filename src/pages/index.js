@@ -11,12 +11,19 @@ import AboutFinal4 from "@/components/About/AboutFinal4";
 import HeroLogo from "@/components/hero/HeroLogo";
 import AboutFooter from "@/components/AboutFooter/AboutFooter";
 import AboutFooter2 from "@/components/AboutFooter/AboutFooter2";
+import {
+  SITE_DESCRIPTION,
+  SITE_OG_IMAGE,
+  SITE_TITLE,
+  SITE_URL,
+} from "@/lib/siteMeta";
 
 gsap.registerPlugin(ScrollTrigger);
 
 // Previene que la barra de direcciones del móvil dispare un resize
 // que recalcule los puntos de ScrollTrigger mid-scroll.
 ScrollTrigger.config({ ignoreMobileResize: true });
+
 
 export default function Home() {
   const router = useRouter();
@@ -172,8 +179,15 @@ export default function Home() {
   return (
     <div>
       <Head>
-        <title>MM Discos | Balearic Soundsystem</title>
-        <meta name="description" content="MM Discos is a record label based between Berlin and Barcelona. Founded by Moon & Mann — music without stylistic boundaries, inspired by the Mediterranean." />
+        <title>{SITE_TITLE}</title>
+        <meta name="description" content={SITE_DESCRIPTION} />
+        <meta property="og:title" content={SITE_TITLE} />
+        <meta property="og:description" content={SITE_DESCRIPTION} />
+        <meta property="og:image" content={SITE_OG_IMAGE} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:url" content={SITE_URL} />
+        <meta property="og:type" content="website" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/logo/MM.svg" type="image/svg+xml" />
       </Head>
