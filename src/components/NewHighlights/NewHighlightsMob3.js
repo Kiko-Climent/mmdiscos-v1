@@ -59,7 +59,7 @@ const EDGE = "0.75rem";
 const SIDE = "6.75rem";
 const GUTTER = `calc(${SIDE} - ${EDGE})`;
 const NAV_PAD_TOP = 10;
-const NAV_FONT_SIZE = 18;
+const NAV_FONT_SIZE = 12;
 const NAV_LINE_HEIGHT = 1.05;
 const NAV_ROW = NAV_FONT_SIZE * NAV_LINE_HEIGHT;
 const NAV_TRACKING = "-0.06em";
@@ -82,6 +82,10 @@ const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const FOCUS_MIN_OPACITY = 0.15;
 const FOCUS_HOLD_VH = 0.32;
 const FOCUS_FADE_VH = 0.25;
+// Tapa: más chica al asomar por abajo y al salir por arriba;
+// scale 1 solo en el foco.
+const FOCUS_MIN_SCALE = 0.75;
+const FOCUS_SCALE_RANGE_VH = 0.42;
 
 // Copy — mismo split L/R + spread + cascade que ManifestoNew.js.
 // La formación NO arranca abajo del todo: el párrafo sigue fuera hasta
@@ -99,7 +103,9 @@ const LINE_CASCADE = 0.03;
 const TEXT_ENTER_BLUR_PX = 4;
 const NAV_LINK_COUNT = 4;
 const TEXT_TOP_FADE_Y = NAV_PAD_TOP + NAV_LINK_COUNT * NAV_ROW;
-const TEXT_TOP_MIN_OPACITY = 0.32;
+// Salida por arriba: misma costura a la inversa (se abre el seam y
+// cada mitad viaja a su costado). Arranca cuando la tapa toca el nav.
+const TEXT_EXIT_RANGE_VH = 0.32;
 
 const power2Out = gsap.parseEase("power2.out");
 
@@ -228,10 +234,22 @@ export default function NewHighlightsMob3() {
         const dist = Math.abs(centerY - focusY);
 
         const visual = visualRefs.current[i];
+        const imgBox = visual?.firstElementChild;
         if (visual) {
           const tImg = Math.max(0, Math.min(1, (dist - imgHoldPx) / imgFadePx));
           visual.style.opacity = (1 - tImg * (1 - FOCUS_MIN_OPACITY)).toFixed(3);
           visual.style.filter = `grayscale(${(tImg * 100).toFixed(1)}%)`;
+
+          if (imgBox) {
+            const imgRect = imgBox.getBoundingClientRect();
+            const imgCenterY = imgRect.top + imgRect.height / 2;
+            const distScale = Math.abs(imgCenterY - focusY);
+            const tScale = clamp01(distScale / (vh * FOCUS_SCALE_RANGE_VH));
+            const grow = smootherstep(1 - tScale);
+            const scale =
+              FOCUS_MIN_SCALE + grow * (1 - FOCUS_MIN_SCALE);
+            imgBox.style.transform = `scale(${scale.toFixed(4)})`;
+          }
         }
 
         const text = textRefs.current[i];
@@ -239,35 +257,28 @@ export default function NewHighlightsMob3() {
         if (!text || !pack?.segments?.length || !visual) return;
 
         const visRect = visual.getBoundingClientRect();
-        const imgBox = visual.firstElementChild;
         const focusRect = imgBox ? imgBox.getBoundingClientRect() : visRect;
         const visCenterY = focusRect.top + focusRect.height / 2;
         const delta = visCenterY - focusY;
         const y = text.getBoundingClientRect().top;
-        const textP = 1 - clamp01((y - assembleEndY) / assembleRangePx);
-        const imageP = 1 - clamp01(delta / imageEnterPx);
-        const assembleP = smootherstep(Math.max(textP, imageP));
+        const imgTop = focusRect.top;
+
+        let assembleP;
+        if (imgTop < topFadeY) {
+          const exitRangePx = vh * TEXT_EXIT_RANGE_VH;
+          assembleP = smootherstep(
+            1 - clamp01((topFadeY - imgTop) / exitRangePx)
+          );
+        } else {
+          const textP = 1 - clamp01((y - assembleEndY) / assembleRangePx);
+          const imageP = 1 - clamp01(delta / imageEnterPx);
+          assembleP = smootherstep(Math.max(textP, imageP));
+        }
 
         applyAssemble(pack.segments, offX, assembleP);
         const blurPx = (1 - assembleP) * TEXT_ENTER_BLUR_PX;
         text.style.filter = `blur(${blurPx.toFixed(2)}px)`;
-
-        // El copy empieza a apagarse cuando la tapa llega al navbar,
-        // no cuando el propio texto cruza esa línea. Así el fundido
-        // arranca más abajo y el release ya va de salida al desaparecer
-        // por el top.
-        const imgTop = focusRect.top;
-        if (imgTop < topFadeY) {
-          const tText = clamp01(
-            (topFadeY - imgTop) / Math.max(1, y - imgTop)
-          );
-          text.style.opacity = (
-            1 -
-            tText * (1 - TEXT_TOP_MIN_OPACITY)
-          ).toFixed(3);
-        } else {
-          text.style.opacity = "1";
-        }
+        text.style.opacity = "1";
       });
     };
 
@@ -395,6 +406,8 @@ export default function NewHighlightsMob3() {
                     aspectRatio: "1 / 1",
                     overflow: "hidden",
                     flexShrink: 0,
+                    transformOrigin: "center center",
+                    willChange: "transform",
                   }}
                 >
                   <picture>
@@ -443,9 +456,9 @@ export default function NewHighlightsMob3() {
                 }}
                 style={{
                   fontFamily: HEADLINE_FONT,
-                  fontSize: 16,
+                  fontSize: 12,
                   fontWeight: 600,
-                  lineHeight: 1.2,
+                  lineHeight: 1.05,
                   textAlign: "center",
                   color: INK,
                   margin: "8px 0 0",

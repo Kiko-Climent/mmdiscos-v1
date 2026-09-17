@@ -617,7 +617,7 @@ export default function AboutFooter2() {
 
         <ul
           ref={linksRef}
-          className="absolute z-40 m-0 p-0 list-none flex flex-col items-end text-right will-change-transform top-0 right-0 px-3 pt-2.5 min-[720px]:top-auto min-[720px]:right-3 min-[720px]:bottom-[2.75rem] min-[720px]:px-0 min-[720px]:pt-0"
+          className="fixed top-0 right-0 z-[9999] m-0 p-0 list-none flex flex-col items-end text-right will-change-transform px-3 pt-2.5"
           style={{ opacity: 0, pointerEvents: "none" }}
         >
           {LINKS.map((link) => (
