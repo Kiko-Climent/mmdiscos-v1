@@ -551,5 +551,64 @@ export const DataReleases = [
     bandcamp: "https://mmdiscos.bandcamp.com/album/brahmaputra-ep",
     soundcloud: "https://soundcloud.com/mmdiscos/sets/asa-tate-brahmaputra-ep"
   },
+  // DESERT ISLAND DISCO - World View LP
+  { 
+    artist: "Desert Island Disco",
+    artist_name: "Desert Island Disco",
+    title: "World View",
+    image: "/MMD043_Front.jpg",
+    year: "2026",
+    format: "AIFF, FLAC, MP3, WAV",
+    vinyl: "12\" 33 ⅓ RPM",
+    type: "LP",
+    ref: "mmd043",
+    tracklist: [
+      "Ifuna",
+      "Inkunzi",
+      "Iio",
+      "Cant't Help Me",
+      "Pressure"
+    ],
+    credits: [
+      "All tracks written and produced by Spencer Terry",
+      "Vocals on \"Can't Help Me\" taken from \"S'ka Ntsehela Ka Metsi\" by Umoja, re-arranged by Spencer Terry",
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by J.Diaz | allthatjazz",
+      "Curated By Da Silva & Dj Katah",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+      "Powered By MM Discos",
+    ],
+    bandcamp: "https://desertislanddisco.bandcamp.com/album/world-view",
+    soundcloud: "https://soundcloud.com/mmdiscos/sets/world-view-mm-discos-043"
+  },
+
+  // ASA TATE - Brahmaputra Remixes EP
+  { 
+    artist: "Asa Tate",
+    artist_name: "Asa Tate",
+    title: "Brahmaputra Remixes",
+    image: "/MMD044_Cover.jpg",
+    year: "2026",
+    format: "AIFF, FLAC, MP3, WAV",
+    type: "EP",
+    ref: "mmd044",
+    tracklist: [
+      "Brahmaputra (Good Block Remix)",
+      "Gizmo! (Dj City Remix)",
+      "Maximum (Daichi Remix)",
+      "Silk (Manuel Darquart Remix)",
+    ],
+    credits: [
+      "Mastering by Baldo Gallego",
+      "Graphics & Design by J.Diaz | allthatjazz",
+      "Curated By Da Silva, Dj Katah & Asa Tate",
+      "A & R by Moon & Mann",
+      "Distributed By Word and Sound",
+      "Powered By MM Discos",
+    ],
+    bandcamp: "https://asatate-techsupport.bandcamp.com/album/brahmaputra-remixes-ep",
+    soundcloud: "https://soundcloud.com/mmdiscos/sets/asa-tate-brahmaputra-remix-ep"
+  },
   
 ]

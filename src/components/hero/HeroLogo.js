@@ -269,7 +269,11 @@ export default function HeroLogoReveal() {
       gsap.to(logoMark, { autoAlpha: 0, duration: 0.85, ease: "power3.in" });
     };
 
+    let artistsShown = false;
+
     const revealArtists = () => {
+      if (artistsShown) return;
+      artistsShown = true;
       revealSpans(container, spans);
       watermarkArmedRef.current = true;
       showWatermark();
@@ -298,6 +302,8 @@ export default function HeroLogoReveal() {
     };
 
     const resetArtists = () => {
+      if (!artistsShown) return;
+      artistsShown = false;
       container.style.pointerEvents = "none";
       handleHoverLeave();
       hideSpans(container, spans);
@@ -329,6 +335,10 @@ export default function HeroLogoReveal() {
         gate.locked = target === 1;
         return;
       }
+
+      // Solo al comprometer el swipe de vuelta al vídeo. Un rebote
+      // (snapTo 1) no debe ocultar ni relanzar el reveal de artistas.
+      if (target === 0 && st.trigger === hold) resetArtists();
 
       window.clearTimeout(idleTimer);
       snapping = true;
@@ -373,9 +383,13 @@ export default function HeroLogoReveal() {
       return gate;
     };
 
+    // Mismo corte que Highlights2Wrapper: NewHighlightsMob3 < 901px.
+    const onMobileHighlights = window.innerWidth < 901;
     const gates = [makeGate(hold, () => true)];
+    // Desktop: segundo snap de artistas → Highlights.
+    // Móvil: el listado sale como bloque con scroll nativo.
     const highlightsEl = document.getElementById("mm-highlights");
-    if (highlightsEl) {
+    if (highlightsEl && !onMobileHighlights) {
       gates.push(makeGate(highlightsEl, () => gates[0].locked));
     }
 
@@ -405,7 +419,11 @@ export default function HeroLogoReveal() {
     const findGate = (goingDown) => {
       for (const gate of gates) {
         const p = progressOf(gate.st);
-        if (p > 0.001 && p < 0.999) return gate;
+        // Si el gate ya está anclado al final, no recapturar el swipe
+        // hacia abajo: en móvil eso deja paso al scroll nativo de Highlights.
+        if (p > 0.001 && p < 0.999 && !(goingDown && gate.locked)) {
+          return gate;
+        }
         if (
           goingDown &&
           p >= -0.02 &&
@@ -507,6 +525,11 @@ export default function HeroLogoReveal() {
       trigger: hold,
       start: "top 5%",
       onEnter: revealArtists,
+    });
+    // Seguridad: si se sale del rango del swipe sin pasar por snapTo(0).
+    const artistsResetSt = ScrollTrigger.create({
+      trigger: hold,
+      start: "top bottom",
       onLeaveBack: resetArtists,
     });
 
@@ -527,6 +550,7 @@ export default function HeroLogoReveal() {
       window.removeEventListener("mm-home-watermark-show", showWatermark);
       gates.forEach((gate) => gate.st.kill());
       artistsSt.kill();
+      artistsResetSt.kill();
       gsap.killTweensOf([container, spans, hoverImg, logoMark]);
     };
   }, []);
