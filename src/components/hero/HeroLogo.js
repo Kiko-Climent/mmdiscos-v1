@@ -262,19 +262,43 @@ export default function HeroLogoReveal() {
 
     const showWatermark = () => {
       if (!logoMark || !watermarkArmedRef.current) return;
-      gsap.to(logoMark, { autoAlpha: 0.16, duration: 0.85, ease: "power3.out" });
+      gsap.to(logoMark, {
+        autoAlpha: 0.16,
+        duration: 0.85,
+        ease: "power3.out",
+        overwrite: true,
+      });
     };
     const hideWatermark = () => {
       if (!logoMark) return;
-      gsap.to(logoMark, { autoAlpha: 0, duration: 0.85, ease: "power3.in" });
+      gsap.to(logoMark, {
+        autoAlpha: 0,
+        duration: 0.85,
+        ease: "power3.in",
+        overwrite: true,
+      });
     };
+
+    // Una sola timeline: play/reverse desde el progreso actual, sin
+    // fromTo(0) que borre los nombres a mitad de un hide.
+    const artistsTl = gsap.timeline({
+      paused: true,
+      onStart: () => gsap.set(container, { opacity: 1 }),
+      onReverseComplete: () => gsap.set(container, { opacity: 0 }),
+    });
+    artistsTl.fromTo(
+      spans,
+      { opacity: 0 },
+      { opacity: 1, ...TEXT_REVEAL },
+    );
 
     let artistsShown = false;
 
     const revealArtists = () => {
-      if (artistsShown) return;
+      if (artistsShown && !artistsTl.reversed()) return;
       artistsShown = true;
-      revealSpans(container, spans);
+      gsap.set(container, { opacity: 1 });
+      artistsTl.reversed(false).resume();
       watermarkArmedRef.current = true;
       showWatermark();
       if (hasHoverRef.current) container.style.pointerEvents = "auto";
@@ -306,7 +330,7 @@ export default function HeroLogoReveal() {
       artistsShown = false;
       container.style.pointerEvents = "none";
       handleHoverLeave();
-      hideSpans(container, spans);
+      artistsTl.reversed(true).resume();
       watermarkArmedRef.current = false;
       hideWatermark();
       window.dispatchEvent(new Event("mm-hero-logo-reset"));
@@ -315,6 +339,7 @@ export default function HeroLogoReveal() {
     let idleTimer = 0;
     let snapTween = null;
     let snapping = false;
+    let snapTarget = -1;
     let lastTouchY = 0;
     let programmaticNav = false;
     let programmaticTimer = 0;
@@ -326,7 +351,8 @@ export default function HeroLogoReveal() {
     };
 
     const snapTo = (gate, target) => {
-      if (programmaticNav || snapping) return;
+      if (programmaticNav) return;
+      if (snapping && snapTarget === target) return;
       const st = gate.st;
       const range = st.end - st.start;
       if (!range) return;
@@ -336,13 +362,15 @@ export default function HeroLogoReveal() {
         return;
       }
 
-      // Solo al comprometer el swipe de vuelta al vídeo. Un rebote
-      // (snapTo 1) no debe ocultar ni relanzar el reveal de artistas.
-      if (target === 0 && st.trigger === hold) resetArtists();
-
+      snapTween?.kill();
       window.clearTimeout(idleTimer);
       snapping = true;
-      snapTween?.kill();
+      snapTarget = target;
+
+      if (st.trigger === hold) {
+        if (target === 0) resetArtists();
+        else if (artistsTl.progress() > 0) revealArtists();
+      }
 
       const targetY = st.start + range * target;
       const proxy = { y: st.scroll() };
@@ -355,6 +383,7 @@ export default function HeroLogoReveal() {
         onComplete: () => {
           snapping = false;
           snapTween = null;
+          snapTarget = -1;
           gate.locked = target === 1;
         },
       });
@@ -404,6 +433,7 @@ export default function HeroLogoReveal() {
       snapTween?.kill();
       snapTween = null;
       snapping = false;
+      snapTarget = -1;
       gates.forEach((gate) => {
         gate.locked = true;
       });
@@ -452,6 +482,18 @@ export default function HeroLogoReveal() {
       }, SWIPE_IDLE_MS);
     };
 
+    const interruptSnapIfReverse = (goingDown) => {
+      if (!snapping) return true;
+      const reversing =
+        (snapTarget === 1 && !goingDown) || (snapTarget === 0 && goingDown);
+      if (!reversing) return false;
+      snapTween?.kill();
+      snapTween = null;
+      snapping = false;
+      snapTarget = -1;
+      return true;
+    };
+
     const applyDelta = (gate, deltaY) => {
       const st = gate.st;
       const range = st.end - st.start;
@@ -475,13 +517,19 @@ export default function HeroLogoReveal() {
     const onWheel = (event) => {
       if (programmaticNav) return;
       const goingDown = event.deltaY > 0;
-      if (snapping) {
+      const gate = findGate(goingDown);
+      if (!gate) {
+        if (snapping) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+        return;
+      }
+      if (!interruptSnapIfReverse(goingDown)) {
         event.preventDefault();
         event.stopImmediatePropagation();
         return;
       }
-      const gate = findGate(goingDown);
-      if (!gate) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       applyDelta(gate, event.deltaY);
@@ -498,13 +546,19 @@ export default function HeroLogoReveal() {
       lastTouchY = y;
       if (!deltaY) return;
       const goingDown = deltaY > 0;
-      if (snapping) {
+      const gate = findGate(goingDown);
+      if (!gate) {
+        if (snapping) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+        return;
+      }
+      if (!interruptSnapIfReverse(goingDown)) {
         event.preventDefault();
         event.stopImmediatePropagation();
         return;
       }
-      const gate = findGate(goingDown);
-      if (!gate) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       applyDelta(gate, deltaY);
@@ -540,6 +594,7 @@ export default function HeroLogoReveal() {
       window.clearTimeout(idleTimer);
       window.clearTimeout(programmaticTimer);
       snapTween?.kill();
+      artistsTl.kill();
       window.removeEventListener("wheel", onWheel, wheelOpts);
       window.removeEventListener("touchstart", onTouchStart, touchStartOpts);
       window.removeEventListener("touchmove", onTouchMove, touchMoveOpts);

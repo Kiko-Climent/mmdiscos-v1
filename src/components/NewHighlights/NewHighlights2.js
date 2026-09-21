@@ -9,6 +9,18 @@ import { DataReleases } from "@/components/data";
 // ─────────────────────────────────────────────────────────────────────────
 const HIGHLIGHTS = [
   {
+    title: "Brahmaputra Remixes",
+    base: "MMD044_Cover",
+    ref: "mmd044",
+    copy: "Four artists, four very different directions — Brahmaputra gets remixed and twisted by some of our favourite hands, taking Asa Tate's originals from psychedelic afro-acid to Chicago house, cosmic electronics and beyond.",
+  },
+  {
+    title: "World View",
+    base: "MMD043_Front",
+    ref: "mmd043",
+    copy: "Drawing deep from Kwaito and Bubblegum, World View weaves tropical textures, Caribbean flavours and Balearic sensibilities into something fluid and borderless — rooted in the dancefloor, but impossible to pin down.",
+  },
+  {
     title: "Pelagos",
     base: "MMD042_Cover",
     ref: "mmd042",
@@ -26,12 +38,12 @@ const HIGHLIGHTS = [
     ref: "mmd040.1",
     copy: "A decade of MM Discos, condensed. Volume one drifts from mid-tempo grooves to house-driven heat, threaded with a Balearic pulse. No trends, no labels — just the freewheeling spirit that defined us from day one.",
   },
-  {
-    title: "Deamwalker",
-    base: "img4",
-    ref: "mmd036",
-    copy: "Four tracks where downtempo electronics take the lead, drawing from house and balearic beat to sketch an island-Mediterranean landscape of color and fantasy.",
-  },
+  // {
+  //   title: "Deamwalker",
+  //   base: "img4",
+  //   ref: "mmd036",
+  //   copy: "Four tracks where downtempo electronics take the lead, drawing from house and balearic beat to sketch an island-Mediterranean landscape of color and fantasy.",
+  // },
   {
     title: "Socarrat vol.2",
     base: "MMD040-2",
