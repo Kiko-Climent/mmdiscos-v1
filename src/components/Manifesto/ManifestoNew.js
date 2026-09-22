@@ -18,6 +18,7 @@ const META_CHARS = Array.from(META_TEXT);
 const HEADLINE_FONT = "'Favorit', sans-serif";
 const HEADER_VIDEO = getResponsiveVideoSources("/video/Video MM Header.mp4");
 const MOBILE_MAX = 900;
+const PAGE_GUTTER = "0.75rem"; // NewNav px-3
 
 // Wrapper "mask" para el reveal Locomotive: overflow:hidden contiene el
 // char en yPercent 130 (debajo de la línea); el hijo translada a 0.
@@ -167,8 +168,7 @@ export default function ManifestoNew() {
       const quoteFrame = quoteBox?.parentElement;
       if (isMobile) {
         if (quoteFrame) {
-          quoteFrame.style.paddingTop = "6.5rem";
-          quoteFrame.style.paddingBottom = "3.75rem";
+          quoteFrame.style.padding = `6.5rem ${PAGE_GUTTER} 3.75rem`;
         }
         if (quoteBox) {
           quoteBox.style.width = "100%";
@@ -439,7 +439,7 @@ export default function ManifestoNew() {
               desplaza el render: el "hueco" final está reservado en
               su posición centrada desde el primer frame. */}
           <div
-            className="absolute inset-0 flex items-center justify-center"
+            className="absolute inset-0 flex items-center justify-center px-3 min-[901px]:px-0"
             style={{ paddingTop: "10rem", paddingBottom: "5.5rem" }}
           >
             <div className="relative w-[min(88vw,74rem)] text-center">
