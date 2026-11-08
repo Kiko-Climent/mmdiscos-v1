@@ -10,7 +10,7 @@ import ManifestoNew from "@/components/Manifesto/ManifestoNew";
 import AboutFinal4 from "@/components/About/AboutFinal4";
 import HeroLogo from "@/components/hero/HeroLogo";
 import AboutFooter from "@/components/AboutFooter/AboutFooter";
-import AboutFooter2 from "@/components/AboutFooter/AboutFooter2";
+import AboutFooterNew from "@/components/AboutFooter/AboutFooterNew";
 import {
   SITE_DESCRIPTION,
   SITE_OG_IMAGE,
@@ -196,7 +196,7 @@ export default function Home() {
           <HeroLogo />
           <Highlights2Wrapper />
           <ManifestoNew />
-          <AboutFooter2 />
+          <AboutFooterNew />
         </>
       ) : null}
     </div>
